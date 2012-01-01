@@ -44,9 +44,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
 
         node   = view.node();
 
-        island = new Island(this, 0,  0, 0);
+        island  = new Island(this, 0,  0, 0);
         tileset = view.loader().loadManagedSpriteSheet("tiles");
-        player = new Player(this, 0, 32, 0);
+        player  = new Player(this, 0, 32, 0);
         vehicle = new Vehicle(this, 0, 128, -32);
 
         node.addChangeListener(this);
@@ -77,16 +77,16 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
         vehicle.moveX(diff);
     }
     private void collideX() {
-        collidePlayerX(player);
         vehicle.collideWithCollisionGridX(island);
+        collidePlayerX(player);
     }
     private void moveY(int diff) {
         player.moveY(diff);
         vehicle.moveY(diff);
     }
     private void collideY() {
-        collidePlayerY(player);
         vehicle.collideWithCollisionGridY(island);
+        collidePlayerY(player);
     }
 
     public void collidePlayerX(Player player) {
@@ -128,7 +128,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
 
         player.render(gc, g);
 
-        g.drawString("player    x: " +player.getX()+      "    y: " +player.getY(), 10, 100);
+        g.drawString("player x: " +player.getX()+ "\n" +
+        		     "       y: " +player.getY(), 10, 100);
+        g.drawString("vehicle x: " +vehicle.getX()+ "\n" +
+        		     "        y: " +vehicle.getY(), 10, 140);
     }
 
     public View view() { return view; }

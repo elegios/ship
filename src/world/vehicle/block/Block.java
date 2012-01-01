@@ -17,18 +17,19 @@ import world.vehicle.Vehicle;
  */
 public class Block implements Updatable, Rectangle, RelativeMovable {
 
-    private Vehicle parent;
+    protected Vehicle parent;
 
     private int x;
     private int y;
 
-    private byte tile;
+    protected byte tile;
 
-    private boolean collide;
+    protected boolean collide;
+    protected boolean render;
 
-    private float mass;
+    protected float mass;
 
-    public Block(int x, int y, byte tile, float mass, boolean collide) {
+    public Block(int x, int y, byte tile, float mass, boolean collide, boolean render) {
         this.x = x;
         this.y = y;
 
@@ -37,8 +38,9 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
         this.mass = mass;
 
         this.collide = collide;
+        this.render  = render;
     }
-    public Block(int x, int y, int tile, float mass, boolean collide) { this(x, y, (byte) tile, mass, collide); }
+    public Block(int x, int y, int tile, float mass, boolean collide, boolean render) { this(x, y, (byte) tile, mass, collide, render); }
 
     public Block setParent(Vehicle parent) { this.parent = parent; return this; }
 
@@ -46,6 +48,7 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     public int     y()       { return y; }
     public byte    tile()    { return tile; }
     public boolean collide() { return collide; }
+    public boolean render()  { return render; }
     public float   mass()    { return mass; }
 
     public final int ix() { return Math.round(getX()); }

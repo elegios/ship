@@ -36,6 +36,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private float ySpeed;
 
     private boolean downMotion;
+    private boolean collided;
 
     //these are the absolute speeds of the object the player last stood on
     private float relativeXSpeed;
@@ -84,30 +85,33 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             c("xSpeed", MOVE_SPEED);
         if (!input.isKeyDown(Input.KEY_LEFT) && !input.isKeyDown(Input.KEY_RIGHT))
             c("xSpeed", 0.0f);
-        if (ySpeed == 0 && downMotion && input.isKeyDown(Input.KEY_UP))
+        if (collided && downMotion && input.isKeyDown(Input.KEY_UP))
                 c("ySpeed", JUMP_SPEED);
 
         c("ySpeed", ySpeed + world.actionsPerTick() * diff * mass * world.gravity());
         //c("ySpeed", 160.0f);
 
         downMotion = ySpeed > 0;
+        collided = false;
     }
 
     public void collisionFixPosX(float xMove, RelativeMovable collisionOrigin) {
         c("x", x + xMove);
 
-//        updateCollision(collisionOrigin);
+        updateCollision(collisionOrigin);
     }
 
     public void collisionFixPosY(float yMove, RelativeMovable collisionOrigin) {
         c("y", y + yMove);
 
-//        updateCollision(collisionOrigin);
+        updateCollision(collisionOrigin);
     }
 
     private void updateCollision(RelativeMovable collisionOrigin) {
         c("relativeXSpeed", collisionOrigin.getAbsXSpeed());
         c("relativeYSpeed", collisionOrigin.getAbsYSpeed());
+
+        collided = true;
     }
 
     public void render(GameContainer gc, Graphics g) {

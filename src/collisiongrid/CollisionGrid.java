@@ -17,7 +17,6 @@ import world.Position;
 import world.Rectangle;
 import world.RelativeMovable;
 import world.World;
-import world.vehicle.block.Block;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.EasyNode;
 
@@ -28,29 +27,29 @@ import dataverse.datanode.EasyNode;
 public abstract class CollisionGrid implements Position, Renderable, Updatable, RelativeMovable, Rectangle, ChangeListener {
     private int id;
 
-    protected static boolean centerInit;
-    protected static String  name;
+    private String name;
 
     public static final int WIDTH  = 1024;
     public static final int HEIGHT = 1024;
 
-    private float mass;
+    protected float mass;
 
-    private float x;
-    private float y;
+    protected float x;
+    protected float y;
 
-    private float xSpeed;
-    private float ySpeed;
+    protected float xSpeed;
+    protected float ySpeed;
 
-    private World world;
+    protected World world;
 
-    private EasyNode    node;
+    protected EasyNode    node;
 
-    private ManagedSpriteSheet tileset;
+    protected ManagedSpriteSheet tileset;
 
-    public CollisionGrid(World world, int id, int x, int y) throws SlickException {
+    public CollisionGrid(World world, int id, int x, int y, boolean centerInit, String name) throws SlickException {
         this.world = world;
         this.id    = id;
+        this.name  = name;
 
         node = world.view().node();
 
@@ -84,6 +83,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     public abstract void pushBackX(float momentum);
     public abstract void pushBackY(float momentum);
 
+    protected abstract float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove);
+    protected abstract float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove);
+
     public void collideWithCollisionGridX(CollisionGrid other) {
         if (other.overlaps(this) || this.overlaps(other))
             for (int i = 0; i < WIDTH; i++)
@@ -107,22 +109,14 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     }
 
     public float collideRectangleX(Rectangle rect, float xSpeed) { return collideRectangleX(rect, xSpeed, 0); }
-    public float collideRectangleX(Rectangle rect, float xSpeed, float xMod) { //TODO
+    public float collideRectangleX(Rectangle rect, float xSpeed, float xMod) {
         if (xSpeed > 0) {
             int i  = (int) Math.ceil(rect.getX2() + xMod - getX())/32;
             int j1 = (int)          (rect.getY()         - getY())/32;
             int j2 = (int) Math.ceil(rect.getY2()        - getY())/32;
             if (collides(i, j1) || collides(i, j2)) {
-                if (rect instanceof RelativeMovable) {
-                    float momentum = ((RelativeMovable) rect).getMass() * xSpeed;
-                    pushBackX(momentum);
-                    ((RelativeMovable) rect).pushBackX(-momentum);
-                }
                 float fixMove = getX() + i*32 - rect.getX() - xMod - rect.getWidth();
-                if (rect instanceof Block) {
-                    fixMove /= 2;
-                    c("x", x - fixMove);
-                }
+                fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod);
@@ -132,16 +126,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int j1 = (int)          (rect.getY()        - getY())/32;
             int j2 = (int) Math.ceil(rect.getY2()       - getY())/32;
             if (collides(i, j1) || collides(i, j2)) {
-                if (rect instanceof RelativeMovable) {
-                    float momentum = ((RelativeMovable) rect).getMass() * xSpeed;
-                    pushBackX(momentum);
-                    ((RelativeMovable) rect).pushBackX(-momentum);
-                }
                 float fixMove = getX() + i*32 + 32 - rect.getX() - xMod;
-                if (rect instanceof Block) {
-                    fixMove /= 2;
-                    c("x", x - fixMove);
-                }
+                fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod);
@@ -152,22 +138,14 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     }
 
     public float collideRectangleY(Rectangle rect, float ySpeed) { return collideRectangleY(rect, ySpeed, 0); }
-    public float collideRectangleY(Rectangle rect, float ySpeed, float yMod) { //TODO
+    public float collideRectangleY(Rectangle rect, float ySpeed, float yMod) {
         if (ySpeed > 0) {
             int i1 = (int)          (rect.getX()         - getX())/32;
             int i2 = (int) Math.ceil(rect.getX2()        - getX())/32;
             int j  = (int) Math.ceil(rect.getY2() + yMod - getY())/32;
             if (collides(i1, j) || collides(i2, j)) {
-                if (rect instanceof RelativeMovable) {
-                    float momentum = ((RelativeMovable) rect).getMass() * ySpeed;
-                    pushBackY(momentum);
-                    ((RelativeMovable) rect).pushBackY(-momentum);
-                }
                 float fixMove = getY() + j*32 - rect.getY() - yMod - rect.getHeight();
-                if (rect instanceof Block) {
-                    fixMove /= 2;
-                    c("y", y - fixMove);
-                }
+                fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod);
@@ -177,16 +155,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int i2 = (int) Math.ceil(rect.getX2()       - getX())/32;
             int j  = (int)          (rect.getY() + yMod - getY())/32;
             if (collides(i1, j) || collides(i2, j)) {
-                if (rect instanceof RelativeMovable) {
-                    float momentum = ((RelativeMovable) rect).getMass() * ySpeed;
-                    pushBackY(momentum);
-                    ((RelativeMovable) rect).pushBackY(-momentum);
-                }
                 float fixMove = getY() + j*32 + 32 - rect.getY() - yMod;
-                if (rect instanceof Block) {
-                    fixMove /= 2;
-                    c("y", y - fixMove);
-                }
+                fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod);
