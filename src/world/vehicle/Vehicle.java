@@ -4,25 +4,20 @@
  */
 package world.vehicle;
 
-import media.Renderable;
-
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 
-import ship.Updatable;
-import world.Position;
 import world.Rectangle;
 import world.RelativeMovable;
 import world.World;
 import world.vehicle.block.Block;
 import collisiongrid.CollisionGrid;
-import dataverse.datanode.ChangeListener;
 
 /**
  *
  * @author elegios
  */
-public class Vehicle extends CollisionGrid implements Position, Renderable, Updatable, RelativeMovable, Rectangle, ChangeListener {
+public class Vehicle extends CollisionGrid {
 
     private Block[][] tiles;
 
@@ -65,8 +60,9 @@ public class Vehicle extends CollisionGrid implements Position, Renderable, Upda
             ((RelativeMovable) rect).pushBackX(-momentum);
         }
         if (rect instanceof Block) {
-            fixMove /= 2;
+            float ret = fixMove / 2;
             c("x", x - fixMove);
+            return ret;
         }
 
         return fixMove;
@@ -79,8 +75,9 @@ public class Vehicle extends CollisionGrid implements Position, Renderable, Upda
             ((RelativeMovable) rect).pushBackY(-momentum);
         }
         if (rect instanceof Block) {
-            fixMove /= 2;
+            float ret = fixMove / 2;
             c("y", y - fixMove);
+            return ret;
         }
 
         return fixMove;

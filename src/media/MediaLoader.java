@@ -19,10 +19,15 @@ import org.newdawn.slick.SpriteSheet;
  */
 public class MediaLoader {
 
+    private static final String EXT = ".png";
+
     private File artDir;
 
     private Map<String, ManagedSpriteSheet> spriteSheets;
     private Map<String, ManagedImage> images;
+
+    private int tw;
+    private int th;
 
     public MediaLoader(File artDir) {
         this.artDir = artDir;
@@ -37,11 +42,16 @@ public class MediaLoader {
         } else {
             ManagedImage image =
                     new ManagedImage(identifier,
-                                     new Image(artDir.getPath() + "/" + identifier + ".png"),
+                                     new Image(artDir.getPath() + "/" + identifier + EXT),
                                      this);
             images.put(identifier, image);
             return image;
         }
+    }
+
+    public void setSpriteSheetSize(int tw, int th) {
+        this.tw = tw;
+        this.th = th;
     }
 
     public ManagedSpriteSheet loadManagedSpriteSheet(String identifier) throws SlickException {
@@ -49,7 +59,7 @@ public class MediaLoader {
             return spriteSheets.get(identifier).use();
         else {
             ManagedSpriteSheet spriteSheet = new ManagedSpriteSheet(identifier,
-                                                                    new SpriteSheet(artDir.getPath() + "/" + identifier + ".png", 32, 32), this);
+                                                                    new SpriteSheet(artDir.getPath() + "/" + identifier + EXT, tw, th), this);
             spriteSheets.put(identifier, spriteSheet);
             return spriteSheet;
         }
@@ -65,7 +75,7 @@ public class MediaLoader {
     }
 
     public Image loadImage(String identifier) throws SlickException {
-        return new Image(artDir.getPath() + "/" + identifier + ".png");
+        return new Image(artDir.getPath() + "/" + identifier + EXT);
     }
 
     public void release(ManagedSpriteSheet spriteSheet) {
@@ -79,11 +89,11 @@ public class MediaLoader {
     public void reloadAll() throws SlickException {
         for (String identifier : spriteSheets.keySet()) {
             spriteSheets.get(identifier).getSpriteSheet().destroy();
-            spriteSheets.get(identifier).setSpriteSheet(new SpriteSheet(artDir.getPath() + "/" + identifier + ".png", 32, 32));
+            spriteSheets.get(identifier).setSpriteSheet(new SpriteSheet(artDir.getPath() + "/" + identifier + EXT, 32, 32));
         }
         for (String identifier : images.keySet()) {
             images.get(identifier).getImage().destroy();
-            images.get(identifier).setImage(new Image(artDir.getPath() + "/" + identifier + ".png"));
+            images.get(identifier).setImage(new Image(artDir.getPath() + "/" + identifier + EXT));
         }
     }
 }

@@ -73,16 +73,16 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
     }
 
     private void moveX(int diff) {
-        player.moveX(diff);
         vehicle.moveX(diff);
+        player.moveX(diff);
     }
     private void collideX() {
         vehicle.collideWithCollisionGridX(island);
         collidePlayerX(player);
     }
     private void moveY(int diff) {
-        player.moveY(diff);
         vehicle.moveY(diff);
+        player.moveY(diff);
     }
     private void collideY() {
         vehicle.collideWithCollisionGridY(island);
@@ -128,10 +128,12 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
 
         player.render(gc, g);
 
-        g.drawString("player x: " +player.getX()+ "\n" +
-        		     "       y: " +player.getY(), 10, 100);
-        g.drawString("vehicle x: " +vehicle.getX()+ "\n" +
-        		     "        y: " +vehicle.getY(), 10, 140);
+        g.drawString("player  x: " +player.getX()+ "\n" +
+        		     "        y: " +player.getY()+ "\n" +
+        		     "absxSpeed: " +player.getAbsXSpeed()+ "\n" +
+                     "absySpeed: " +player.getAbsYSpeed()+ "\n" +
+        		     "vehicle x: " +vehicle.getX() +"\n" +
+        		     "        y: " +vehicle.getY(), 10, 100);
     }
 
     public View view() { return view; }

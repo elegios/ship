@@ -4,13 +4,9 @@
  */
 package world.island;
 
-import media.Renderable;
-
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 
-import ship.Updatable;
-import world.Position;
 import world.Rectangle;
 import world.RelativeMovable;
 import world.World;
@@ -20,7 +16,7 @@ import collisiongrid.CollisionGrid;
  *
  * @author elegios
  */
-public class Island extends CollisionGrid implements Position, Renderable, Updatable, RelativeMovable, Rectangle {  //too slow to use normal node to store data
+public class Island extends CollisionGrid {  //too slow to use normal node to store data
 
     private byte[][] tiles;
 
@@ -33,10 +29,9 @@ public class Island extends CollisionGrid implements Position, Renderable, Updat
         for (int i = 0; i < WIDTH; i++)
             for (int j = 0; j < HEIGHT; j++)
                 tile(i, j, 0, false);
-        tile(0, 1, 1, false);
-        tile(2, 4, 1, false);
         for (int i = 0; i < WIDTH; i++)
-            tile(i, 5, 1, false);
+            for (int j = 0; j < 3; j++)
+                tile(i, 20 + j, 1, false);
     }
 
     protected Rectangle getRectAt (int x, int y) { return null; }

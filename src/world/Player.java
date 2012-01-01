@@ -171,6 +171,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
                 case "mass":
                     mass = data;
                     break;
+                default:
+                    System.out.println("Unsupported variable in Player: " +id);
             }
         }
     }

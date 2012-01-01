@@ -10,6 +10,7 @@ import ship.Updatable;
 import world.Rectangle;
 import world.RelativeMovable;
 import world.vehicle.Vehicle;
+import collisiongrid.CollisionGrid;
 
 /**
  *
@@ -54,11 +55,11 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     public final int ix() { return Math.round(getX()); }
     public final int iy() { return Math.round(getY()); }
 
-    public final float getX() { return parent.getX() + x*32; }
-    public final float getY() { return parent.getY() + y*32; }
+    public final float getX() { return parent.getX() + x*CollisionGrid.TW; }
+    public final float getY() { return parent.getY() + y*CollisionGrid.TH; }
 
-    public final int  getWidth() { return 32; }
-    public final int getHeight() { return 32; }
+    public final int  getWidth() { return CollisionGrid.TW; }
+    public final int getHeight() { return CollisionGrid.TH; }
 
     public final float getX2() { return getX() +  getWidth() - 1; }
     public final float getY2() { return getY() + getHeight() - 1; }
