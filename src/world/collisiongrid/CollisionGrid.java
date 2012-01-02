@@ -89,6 +89,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     protected abstract float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove);
     protected abstract float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove);
 
+    public World world() { return world; }
+
     public void collideWithCollisionGridX(CollisionGrid other) {
         if (other.overlaps(this) || this.overlaps(other))
             for (int i = 0; i < WIDTH; i++)
@@ -195,7 +197,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                     tileset.getSpriteSheet().renderInUse(ix() + i*TW,
                                                          iy() + j*TH,
                                                          tileAt(i, j)%tileset.getSpriteSheet().getHorizontalCount(),
-                                                         tileAt(i, j)/tileset.getSpriteSheet().getVerticalCount());
+                                                         tileAt(i, j)/tileset.getSpriteSheet().getHorizontalCount());
 
     }
 
@@ -209,8 +211,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         return false;
     }
 
-    public void moveX(int diff) { c("x", x + getAbsXMove(diff)); }
-    public void moveY(int diff) { c("y", y + getAbsYMove(diff)); }
+    public void moveX(int diff) { c("x", x + getAbsXMove(diff));}
+    public void moveY(int diff) { c("y", y + getAbsYMove(diff));}
 
     @Override
     public void update(GameContainer gc, int diff) {
@@ -218,7 +220,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             for (int j = 0; j < HEIGHT; j++)
                 updateAt(i, j, gc, diff);
 
-        c("ySpeed", ySpeed + world.actionsPerTick() * diff * world.gravity() * mass);
+        c("ySpeed", ySpeed + world.actionsPerTick() * diff * world.gravity());
     }
 
     public final void c(String id, Object data) { node.c(name+ "." +this.id+ "." +id, data); }

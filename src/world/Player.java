@@ -36,7 +36,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private float ySpeed;
 
     private boolean downMotion;
-    private boolean collided;
+    private RelativeMovable collided;
 
     //these are the absolute speeds of the object the player last stood on
     private float relativeXSpeed;
@@ -65,7 +65,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
         node.addChangeListener(this);
 
-        c("mass",  70.0f);
+        c("mass",  20.0f);
         c("x", (float) x);
         c("y", (float) y);
         c("xSpeed", 0.0f);
@@ -83,31 +83,27 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             c("xSpeed", -MOVE_SPEED);
         if (!input.isKeyDown(Input.KEY_LEFT) &&  input.isKeyDown(Input.KEY_RIGHT))
             c("xSpeed", MOVE_SPEED);
-        if (collided && downMotion && input.isKeyDown(Input.KEY_UP))
-                c("ySpeed", JUMP_SPEED);
+        if (collided != null && downMotion && input.isKeyDown(Input.KEY_UP)) {
+            collided.pushBackY(-JUMP_SPEED * mass);
+            c("ySpeed", JUMP_SPEED);
+        }
 
-        c("ySpeed", ySpeed + world.actionsPerTick() * diff * mass * world.gravity());
-        //c("ySpeed", 160.0f);
+        c("ySpeed", ySpeed + world.actionsPerTick() * diff * world.gravity());
+
+        pushBackX(-xSpeed/mass * world.airResist());
+        pushBackY(-ySpeed/mass * world.airResist());
 
         downMotion = ySpeed > 0;
-        collided = false;
+        collided = null;
     }
 
     public void collisionFixPosX(float xMove, RelativeMovable collisionOrigin) {
         c("x", x + xMove);
-        collided = true;
     }
 
     public void collisionFixPosY(float yMove, RelativeMovable collisionOrigin) {
         c("y", y + yMove);
-        collided = true;
-    }
-
-    private void updateCollision(RelativeMovable collisionOrigin) {
-        c("relativeXSpeed", collisionOrigin.getAbsXSpeed());
-        c("relativeYSpeed", collisionOrigin.getAbsYSpeed());
-
-        collided = true;
+        collided = collisionOrigin;
     }
 
     public void render(GameContainer gc, Graphics g) {

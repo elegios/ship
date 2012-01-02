@@ -23,10 +23,10 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     private int x;
     private int y;
 
-    protected byte tile;
+    private byte tile;
 
-    protected boolean collide;
-    protected boolean render;
+    private boolean collide;
+    private boolean render;
 
     protected float mass;
 

@@ -44,16 +44,16 @@ public class Island extends CollisionGrid {  //too slow to use normal node to st
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove) {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = ((RelativeMovable) rect);
-            rel.pushBackX(-rel.getMass() * xSpeed);
             rel.pushBackY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction());
+            rel.pushBackX(-rel.getMass() * xSpeed);
         }
         return fixMove;
     }
     protected float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove) {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = ((RelativeMovable) rect);
-            rel.pushBackY(-rel.getMass() * ySpeed);
             rel.pushBackX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction());
+            rel.pushBackY(-rel.getMass() * ySpeed);
         }
         return fixMove;
     }

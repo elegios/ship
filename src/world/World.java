@@ -39,16 +39,12 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
     private float actionsPerTick;
     private float gravity;
     private float frictionFraction;
+    private float airResist;
 
     public World(View view) throws SlickException {
         this.view = view;
 
         node   = view.node();
-
-        island  = new Island(this, 0,  0, 0);
-        tileset = view.loader().loadManagedSpriteSheet("tiles");
-        player  = new Player(this, 0, 32, 0);
-        vehicle = new Vehicle(this, 0, 128, -32);
 
         node.addChangeListener(this);
 
@@ -56,8 +52,14 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
         y = 0;
 
         c("actionsPerTick",   1.0f/1000);
-        c("gravity",          9.8f);
-        c("frictionFraction", 0.1f);
+        c("gravity",          9.8f * 50);
+        c("frictionFraction",  0.1f);
+        c("airResist",         1.0f);
+
+        island  = new Island(this, 0,  0, 0);
+        tileset = view.loader().loadManagedSpriteSheet("tiles");
+        player  = new Player(this, 0, 32, 0);
+        vehicle = new Vehicle(this, 0, 128, -32);
     }
 
     @Override
@@ -135,7 +137,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
         		     "absxSpeed: " +player.getAbsXSpeed()+ "\n" +
                      "absySpeed: " +player.getAbsYSpeed()+ "\n" +
         		     "vehicle x: " +vehicle.getX() +"\n" +
-        		     "        y: " +vehicle.getY(), 10, 100);
+        		     "        y: " +vehicle.getY() +"\n" +
+        		     "absxSpeed: " +vehicle.getAbsXSpeed()+ "\n" +
+        		     "absySpeed: " +vehicle.getAbsYSpeed(), 10, 100);
     }
 
     public View view() { return view; }
@@ -143,6 +147,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
     public float actionsPerTick()   { return actionsPerTick; }
     public float gravity()          { return gravity; }
     public float frictionFraction() { return frictionFraction; }
+    public float airResist()        { return airResist; }
 
     public float getX() { return -x; }
     public float getY() { return -y; }
@@ -165,6 +170,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
                 break;
             case "world.frictionFraction":
                 frictionFraction = data;
+                break;
+            case "world.airResist":
+                airResist = data;
                 break;
         }
     }
