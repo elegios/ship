@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package world.vehicle;
+package world.collisiongrid.vehicle;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
@@ -10,8 +10,8 @@ import org.newdawn.slick.SlickException;
 import world.Rectangle;
 import world.RelativeMovable;
 import world.World;
-import world.vehicle.block.Block;
-import collisiongrid.CollisionGrid;
+import world.collisiongrid.CollisionGrid;
+import world.collisiongrid.vehicle.block.Block;
 
 /**
  *
@@ -26,18 +26,20 @@ public class Vehicle extends CollisionGrid {
 
         tiles = new Block[WIDTH][HEIGHT];
 
-        addTile(new Block(WIDTH/2,     HEIGHT/2, 1, 100, true, true).setParent(this));
-        addTile(new Block(WIDTH/2 - 1, HEIGHT/2, 1, 100, true, true).setParent(this));
+        for (int i = 0; i < 20; i++)
+            addTile(new Block(WIDTH/2 + i,     HEIGHT/2, 1, 100, true, true));
     }
 
     public final void addTile(Block tile) {
         c("mass", mass + tile.mass());
         tile(tile.x(), tile.y(), tile);
+        tile.setParent(this);
     }
 
     public final void remTile(Block tile) {
         c("mass", mass - tile.mass());
         tile(tile.x(), tile.y(), null);
+        tile.setParent(this);
     }
 
     protected Rectangle getRectAt(int x, int y) { return tile(x, y); }
@@ -55,9 +57,11 @@ public class Vehicle extends CollisionGrid {
 
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove) {
         if (rect instanceof RelativeMovable) {
-            float momentum = ((RelativeMovable) rect).getMass() * xSpeed;
+            RelativeMovable rel = (RelativeMovable) rect;
+            float momentum = rel.getMass() * xSpeed;
             pushBackX(momentum);
-            ((RelativeMovable) rect).pushBackX(-momentum);
+            rel.pushBackX(-momentum);
+            rel.pushBackY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction());
         }
         if (rect instanceof Block) {
             float ret = fixMove / 2;
@@ -70,9 +74,11 @@ public class Vehicle extends CollisionGrid {
 
     protected float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove) {
         if (rect instanceof RelativeMovable) {
-            float momentum = ((RelativeMovable) rect).getMass() * ySpeed;
+            RelativeMovable rel = (RelativeMovable) rect;
+            float momentum = rel.getMass() * ySpeed;
             pushBackY(momentum);
-            ((RelativeMovable) rect).pushBackY(-momentum);
+            rel.pushBackY(-momentum);
+            rel.pushBackX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction());
         }
         if (rect instanceof Block) {
             float ret = fixMove / 2;

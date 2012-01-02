@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package world.island;
+package world.collisiongrid.island;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
@@ -10,7 +10,7 @@ import org.newdawn.slick.SlickException;
 import world.Rectangle;
 import world.RelativeMovable;
 import world.World;
-import collisiongrid.CollisionGrid;
+import world.collisiongrid.CollisionGrid;
 
 /**
  *
@@ -29,6 +29,7 @@ public class Island extends CollisionGrid {  //too slow to use normal node to st
         for (int i = 0; i < WIDTH; i++)
             for (int j = 0; j < HEIGHT; j++)
                 tile(i, j, 0, false);
+
         for (int i = 0; i < WIDTH; i++)
             for (int j = 0; j < 3; j++)
                 tile(i, 20 + j, 1, false);
@@ -41,13 +42,19 @@ public class Island extends CollisionGrid {  //too slow to use normal node to st
     protected void      updateAt  (int x, int y, GameContainer gc, int diff) {}
 
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove) {
-        if (rect instanceof RelativeMovable)
-            ((RelativeMovable) rect).pushBackX(-((RelativeMovable) rect).getMass() * xSpeed);
+        if (rect instanceof RelativeMovable) {
+            RelativeMovable rel = ((RelativeMovable) rect);
+            rel.pushBackX(-rel.getMass() * xSpeed);
+            rel.pushBackY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction());
+        }
         return fixMove;
     }
     protected float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove) {
-        if (rect instanceof RelativeMovable)
-            ((RelativeMovable) rect).pushBackY(-((RelativeMovable) rect).getMass() * ySpeed);
+        if (rect instanceof RelativeMovable) {
+            RelativeMovable rel = ((RelativeMovable) rect);
+            rel.pushBackY(-rel.getMass() * ySpeed);
+            rel.pushBackX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction());
+        }
         return fixMove;
     }
 

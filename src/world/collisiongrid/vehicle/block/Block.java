@@ -2,15 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package world.vehicle.block;
+package world.collisiongrid.vehicle.block;
 
 import org.newdawn.slick.GameContainer;
 
 import ship.Updatable;
 import world.Rectangle;
 import world.RelativeMovable;
-import world.vehicle.Vehicle;
-import collisiongrid.CollisionGrid;
+import world.collisiongrid.CollisionGrid;
+import world.collisiongrid.vehicle.Vehicle;
 
 /**
  *

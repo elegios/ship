@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package collisiongrid;
+package world.collisiongrid;
 
 import media.ManagedSpriteSheet;
 import media.Renderable;
@@ -119,7 +119,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int j2 = (int) Math.ceil(rect.getY2()        - getY())/TH;
             if (collides(i, j1) || collides(i, j2)) {
                 float fixMove = getX() + i*TW - rect.getX() - xMod - rect.getWidth();
-                fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove);
+                if (xMod == 0)
+                    fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod);
@@ -130,7 +131,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int j2 = (int) Math.ceil(rect.getY2()       - getY())/TH;
             if (collides(i, j1) || collides(i, j2)) {
                 float fixMove = getX() + i*TW + TW - rect.getX() - xMod;
-                fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove);
+                if (xMod == 0)
+                    fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod);
@@ -148,7 +150,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int j  = (int) Math.ceil(rect.getY2() + yMod - getY())/TH;
             if (collides(i1, j) || collides(i2, j)) {
                 float fixMove = getY() + j*TH - rect.getY() - yMod - rect.getHeight();
-                fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove);
+                if (yMod == 0)
+                    fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod);
@@ -159,7 +162,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int j  = (int)          (rect.getY() + yMod - getY())/TH;
             if (collides(i1, j) || collides(i2, j)) {
                 float fixMove = getY() + j*TH + TH - rect.getY() - yMod;
-                fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove);
+                if (yMod == 0)
+                    fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove);
                 if (fixMove == 0)
                     return 0;
                 return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod);

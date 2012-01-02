@@ -83,8 +83,6 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             c("xSpeed", -MOVE_SPEED);
         if (!input.isKeyDown(Input.KEY_LEFT) &&  input.isKeyDown(Input.KEY_RIGHT))
             c("xSpeed", MOVE_SPEED);
-        if (!input.isKeyDown(Input.KEY_LEFT) && !input.isKeyDown(Input.KEY_RIGHT))
-            c("xSpeed", 0.0f);
         if (collided && downMotion && input.isKeyDown(Input.KEY_UP))
                 c("ySpeed", JUMP_SPEED);
 
@@ -97,14 +95,12 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     public void collisionFixPosX(float xMove, RelativeMovable collisionOrigin) {
         c("x", x + xMove);
-
-        updateCollision(collisionOrigin);
+        collided = true;
     }
 
     public void collisionFixPosY(float yMove, RelativeMovable collisionOrigin) {
         c("y", y + yMove);
-
-        updateCollision(collisionOrigin);
+        collided = true;
     }
 
     private void updateCollision(RelativeMovable collisionOrigin) {

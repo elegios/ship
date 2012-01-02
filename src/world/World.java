@@ -13,8 +13,8 @@ import org.newdawn.slick.SlickException;
 
 import ship.Updatable;
 import ship.View;
-import world.island.Island;
-import world.vehicle.Vehicle;
+import world.collisiongrid.island.Island;
+import world.collisiongrid.vehicle.Vehicle;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.EasyNode;
 
@@ -38,6 +38,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
 
     private float actionsPerTick;
     private float gravity;
+    private float frictionFraction;
 
     public World(View view) throws SlickException {
         this.view = view;
@@ -54,8 +55,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
         x = 0;
         y = 0;
 
-        c("actionsPerTick", 1.0f/1000);
-        c("gravity"       , 9.8f);
+        c("actionsPerTick",   1.0f/1000);
+        c("gravity",          9.8f);
+        c("frictionFraction", 0.1f);
     }
 
     @Override
@@ -138,8 +140,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
 
     public View view() { return view; }
 
-    public float actionsPerTick() { return actionsPerTick; }
-    public float gravity()        { return gravity; }
+    public float actionsPerTick()   { return actionsPerTick; }
+    public float gravity()          { return gravity; }
+    public float frictionFraction() { return frictionFraction; }
 
     public float getX() { return -x; }
     public float getY() { return -y; }
@@ -159,6 +162,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener {
                 break;
             case "world.gravity":
                 gravity = data;
+                break;
+            case "world.frictionFraction":
+                frictionFraction = data;
                 break;
         }
     }
