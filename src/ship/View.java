@@ -15,7 +15,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 
 import world.World;
-import dataverse.datanode.EasyNode;
+import dataverse.datanode.easy.EasyNode;
 
 /**
  *

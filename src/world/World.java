@@ -16,7 +16,7 @@ import ship.View;
 import world.collisiongrid.island.Island;
 import world.collisiongrid.vehicle.Vehicle;
 import dataverse.datanode.ChangeListener;
-import dataverse.datanode.EasyNode;
+import dataverse.datanode.easy.EasyNode;
 
 /**
  *

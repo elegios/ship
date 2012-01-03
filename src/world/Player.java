@@ -15,7 +15,7 @@ import org.newdawn.slick.SlickException;
 
 import ship.Updatable;
 import dataverse.datanode.ChangeListener;
-import dataverse.datanode.EasyNode;
+import dataverse.datanode.easy.EasyNode;
 
 /**
  *

@@ -7,8 +7,8 @@ package ship;
 import org.newdawn.slick.SlickException;
 
 import dataverse.cliaccess.CLIAccess;
-import dataverse.datanode.EasyBlockingNode;
-import dataverse.datanode.EasyNode;
+import dataverse.datanode.easy.EasyBlockingNode;
+import dataverse.datanode.easy.EasyNode;
 import dataverse.datanode.flat.FlatNode;
 
 /**

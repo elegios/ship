@@ -18,7 +18,7 @@ import world.Rectangle;
 import world.RelativeMovable;
 import world.World;
 import dataverse.datanode.ChangeListener;
-import dataverse.datanode.EasyNode;
+import dataverse.datanode.easy.EasyNode;
 
 /**
  *
