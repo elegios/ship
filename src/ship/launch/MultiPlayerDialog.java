@@ -63,7 +63,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
     }
 
     private void host() {
-        netNodeInit("^((?!player)).+|player\\.0\\..+");
+        netNodeInit("^((?!player)).+|player\\.\\d+\\.pos\\..+|player\\.0\\.o\\..+");
         id = 0;
         numPlayers = 1;
 
@@ -240,7 +240,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
 
         if (id.equals("request.granted." +this.id)) {
             this.id = data;
-            netNode.setPattern("player\\." +this.id+ "\\..+");
+            netNode.setPattern("player\\." +this.id+ "\\.o\\..+");
             textArea.append("Got the id " +this.id+ " from the server. And set pattern to \"" +netNode.getPattern()+ "\"\n");
         }
 

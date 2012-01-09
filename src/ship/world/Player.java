@@ -78,11 +78,11 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
         node.addChangeListener(this);
 
-        c("mass",  BASE_MASS);
-        c("x", (float) x);
-        c("y", (float) y);
-        c("xSpeed", 0.0f);
-        c("ySpeed", 0.0f);
+        c("o.mass",  BASE_MASS);
+        c("pos.x", (float) x);
+        c("pos.y", (float) y);
+        c("pos.xSpeed", 0.0f);
+        c("pos.ySpeed", 0.0f);
     }
 
     public void moveX(int diff) {
@@ -136,11 +136,11 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         collidedWithImobileX = false;
         collidedWithImobileY = false;
 
-        if (world.updatePos() && world.currPlayer() == this) {
-            c("x", x);
-            c("y", y);
-            c("xSpeed", xSpeed);
-            c("ySpeed", ySpeed);
+        if (world.updatePos() && world.view().playerId() == 0) {
+            c("pos.x", x);
+            c("pos.y", y);
+            c("pos.xSpeed", xSpeed);
+            c("pos.ySpeed", ySpeed);
         }
 
     }
@@ -206,15 +206,15 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         if (id.startsWith("player." +this.id+ ".")) {
             String var = id.substring(("player." +this.id+ ".").length());
             switch (var) {
-                case "moveRight":
+                case "o.moveRight":
                     moveRight = data;
                     break;
 
-                case "moveLeft":
+                case "o.moveLeft":
                     moveLeft = data;
                     break;
 
-                case "jump":
+                case "o.jump":
                     jump = data;
                     break;
             }
@@ -224,23 +224,23 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         if (id.startsWith("player." +this.id+ ".")) {
             String var = id.substring(("player." +this.id+ ".").length());
             switch (var) {
-                case "x":
+                case "pos.x":
                     toSetX = data;
                     toSetXb = true;
                     break;
-                case "y":
+                case "pos.y":
                     toSetY = data;
                     toSetYb = true;
                     break;
-                case "xSpeed":
+                case "pos.xSpeed":
                     toSetXSpeed = data;
                     toSetXSpe = true;
                     break;
-                case "ySpeed":
+                case "pos.ySpeed":
                     toSetYSpeed = data;
                     toSetYSpe = true;
                     break;
-                case "mass":
+                case "o.mass":
                     mass = data;
                     break;
                 default:
@@ -252,15 +252,15 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     public boolean keyPressed(int key, char c) {
         switch (key) {
             case Input.KEY_RIGHT:
-                c("moveRight", true);
+                c("o.moveRight", true);
                 return true;
 
             case Input.KEY_LEFT:
-                c("moveLeft", true);
+                c("o.moveLeft", true);
                 return true;
 
             case Input.KEY_UP:
-                c("jump", true);
+                c("o.jump", true);
                 return true;
 
             case Input.KEY_SPACE:
@@ -274,15 +274,15 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     public boolean keyReleased(int key, char c) {
         switch (key) {
             case Input.KEY_RIGHT:
-                c("moveRight", false);
+                c("o.moveRight", false);
                 return true;
 
             case Input.KEY_LEFT:
-                c("moveLeft", false);
+                c("o.moveLeft", false);
                 return true;
 
             case Input.KEY_UP:
-                c("jump", false);
+                c("o.jump", false);
                 return true;
         }
 

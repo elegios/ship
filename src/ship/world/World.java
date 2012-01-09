@@ -205,7 +205,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                 int vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
                 if (vehX >= 0 && vehX < vehicle.WIDTH() &&
                     vehY >= 0 && vehY < vehicle.HEIGHT())
-                    player.c("activate", "vehicle." +vehicle.getID()+ ".tile."
+                    player.c("o.activate", "vehicle." +vehicle.getID()+ ".tile."
                              + vehX +"."
                              + vehY +".activate");
             }
