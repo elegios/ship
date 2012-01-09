@@ -54,9 +54,9 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
             for (int i = 0; i < block.numSubs(); i++) {
                 if (selected == i)
                     if (focus)
-                        highlight.getSpriteSheet().getSprite(1, 0).draw(ix() + getWidth()/2 - HIGHLIGHT_W/2, iy() + i*ITEM_HEIGHT + Y_OFF - 4);
-                    else
                         highlight.getSpriteSheet().getSprite(0, 0).draw(ix() + getWidth()/2 - HIGHLIGHT_W/2, iy() + i*ITEM_HEIGHT + Y_OFF - 4);
+                    else
+                        highlight.getSpriteSheet().getSprite(1, 0).draw(ix() + getWidth()/2 - HIGHLIGHT_W/2, iy() + i*ITEM_HEIGHT + Y_OFF - 4);
                 tiles
                 .getSpriteSheet()
                 .getSprite(block.subTile(i) % tiles.getSpriteSheet().getHorizontalCount(),

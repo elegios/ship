@@ -31,7 +31,7 @@ public class Controller {
                                                "Single Player");
 
         if (opt == 0) { //Single player
-            View.create(1900, 1080, node, 0, 1);
+            View.create(1920, 1080, node, 0, 1);
         } else if (opt == 1) { //Multi player
             new MultiPlayerDialog(node).setVisible(true);
         }

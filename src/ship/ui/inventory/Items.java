@@ -19,16 +19,21 @@ import ship.world.collisiongrid.CollisionGrid;
 
 public class Items extends Box implements KeyReceiver, Focusable {
     public static final int WIDTH = 8;
+
     public static final int X_OFF = 15;
     public static final int TEXT_X_OFF = 42;
     public static final int Y_OFF = 15;
     public static final int TEXT_Y_OFF = 5;
+
     public static final int ITEM_HEIGHT = 40;
+
+    public static final int HIGHLIGHT_W = 300;
 
     private Inventory parent;
 
     private FontHolder         fonts;
     private ManagedSpriteSheet tiles;
+    private ManagedSpriteSheet highlight;
 
     private List<BlockCreator> items;
     private int selected;
@@ -39,8 +44,9 @@ public class Items extends Box implements KeyReceiver, Focusable {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;
 
-        fonts = parent.view().fonts();
-        tiles = parent.view().loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
+        fonts     = parent.view().fonts();
+        tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles", CollisionGrid.TW, CollisionGrid.TH);
+        highlight = parent.view().loader().loadManagedSpriteSheet("item_highlight",      HIGHLIGHT_W,      ITEM_HEIGHT);
 
         this.items = new ArrayList<BlockCreator>(items);
     }
@@ -90,18 +96,20 @@ public class Items extends Box implements KeyReceiver, Focusable {
 
 
         for (int i = 0; i < items.size(); i++) {
+            if (i == selected) {
+                if (focus)
+                    highlight.getSpriteSheet().getSprite(0, 0).draw(ix() + getWidth()/2 - HIGHLIGHT_W/2, iy() + i*ITEM_HEIGHT + Y_OFF - 4);
+                else
+                    highlight.getSpriteSheet().getSprite(1, 0).draw(ix() + getWidth()/2 - HIGHLIGHT_W/2, iy() + i*ITEM_HEIGHT + Y_OFF - 4);
+                fonts.invSelected().drawString(ix() +X_OFF +TEXT_X_OFF, iy() +i*ITEM_HEIGHT +Y_OFF +TEXT_Y_OFF, items.get(i).getName());
+            } else
+                fonts.inv().drawString(ix() +X_OFF +TEXT_X_OFF, iy() +i*ITEM_HEIGHT +Y_OFF +TEXT_Y_OFF, items.get(i).getName());
+
             tiles
               .getSpriteSheet()
               .getSprite(items.get(i).getIcon() % tiles.getSpriteSheet().getHorizontalCount(),
                          items.get(i).getIcon() / tiles.getSpriteSheet().getHorizontalCount())
                 .draw(ix() + X_OFF, iy() + i*ITEM_HEIGHT + Y_OFF);
-
-            if (focus && i == selected)
-                fonts.invSelected().drawString(ix() +X_OFF +TEXT_X_OFF, iy() +i*ITEM_HEIGHT +Y_OFF +TEXT_Y_OFF, items.get(i).getName());
-            else if (!focus && i == selected)
-                fonts.invHighlight().drawString(ix() +X_OFF +TEXT_X_OFF, iy() +i*ITEM_HEIGHT +Y_OFF +TEXT_Y_OFF, items.get(i).getName());
-            else
-                fonts.inv().drawString(ix() +X_OFF +TEXT_X_OFF, iy() +i*ITEM_HEIGHT +Y_OFF +TEXT_Y_OFF, items.get(i).getName());
         }
     }
 

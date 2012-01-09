@@ -24,7 +24,6 @@ import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
 public class Inventory implements Renderable, Updatable, ChangeListener, Position, KeyReceiver {
-    public static final int TAGS_XOFFSET = -220;
     public static final int X_ORIGIN = 20;
     public static final int Y_ORIGIN = 20;
 
@@ -70,7 +69,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         subItems = new SubItems(this, X_ORIGIN + (int) items.getX2(), Y_ORIGIN);
         updateSubMenu();
 
-        setXPos();
+        x.force(-subItems.getX2() - 1);
     }
     private void addTileCreators() {
         tileCreators.add(new         ThrusterCreator());
@@ -104,15 +103,13 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         currentFocus.setFocus(false);
         currentFocus = focus;
         currentFocus.setFocus(true);
-
-        setXPos();
     }
 
     private void setXPos() {
-        if (currentFocus == tags)
+        if (visible)
             x.set(0);
         else
-            x.set(TAGS_XOFFSET);
+            x.set(-subItems.getX2() - 1);
     }
 
     @Override
@@ -123,17 +120,18 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        if (visible) {
+        //if (visible) {
             tags    .render(gc, g);
             items   .render(gc, g);
             subItems.render(gc, g);
-        }
+        //}
     }
 
     @Override
     public boolean keyPressed(int key, char c) {
         if (key == Input.KEY_TAB) {
             visible = !visible;
+            setXPos();
 
             return true;
 

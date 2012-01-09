@@ -22,7 +22,7 @@ public class AnimateFloat {
         if (!atTarget) {
             if (Math.abs(current - target) <= 0.001f)
                 current = target;
-            current += (target - current) / (1 + (float)diff/10);
+            current += (target - current) / (1 + (float)diff/20);
             if (current == target)
                 atTarget = true;
         }

@@ -1,7 +1,7 @@
 package ship.ui.inventory;
 
 import media.FontHolder;
-import media.ManagedImage;
+import media.ManagedSpriteSheet;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -13,10 +13,6 @@ import ship.View;
 import ship.ui.Box;
 
 public class Tags extends Box implements KeyReceiver, Focusable {
-    public static final int WIDTH = 6;
-    public static final int TEXT_HEIGHT = 40;
-    public static final int X_OFF = 15;
-    public static final int Y_OFF = 15;
 
     public static final Tag[] TAGS = new Tag[] { new Tag(0, "All"),
                                                  new Tag(1, "Colliding"),
@@ -43,12 +39,20 @@ public class Tags extends Box implements KeyReceiver, Focusable {
     public static final Tag INTERACTIVE     = TAGS[9];
     public static final Tag CONTAINERS      = TAGS[10];
 
+
+    public static final int WIDTH = 5;
+    public static final int TEXT_HEIGHT = 40;
+    public static final int X_OFF = 15;
+    public static final int Y_OFF = 15;
+
+    public static final int HIGHLIGHT_W = 180;
+
     private FontHolder fonts;
     private int selected;
 
     private boolean focus;
 
-    private ManagedImage tagsTag;
+    private ManagedSpriteSheet highlight;
 
     private Inventory parent;
 
@@ -56,8 +60,8 @@ public class Tags extends Box implements KeyReceiver, Focusable {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;
 
-        fonts = parent.view().fonts();
-        tagsTag = parent.view().loader().loadManagedImage("tags_tag");
+        fonts     = parent.view().fonts();
+        highlight = parent.view().loader().loadManagedSpriteSheet("tag_highlight", HIGHLIGHT_W, TEXT_HEIGHT);
 
         selected = 0;
     }
@@ -68,13 +72,16 @@ public class Tags extends Box implements KeyReceiver, Focusable {
         super.render(gc, g);
 
         for (Tag tag : TAGS) {
-            if (tag.getID() == selected)
+            if (tag.getID() == selected) {
+                if (focus)
+                    highlight.getSpriteSheet().getSprite(0, 0).draw(ix() + X_OFF - 5, iy() + tag.getID()*TEXT_HEIGHT +Y_OFF - 5);
+                else
+                    highlight.getSpriteSheet().getSprite(1, 0).draw(ix() + X_OFF - 5, iy() + tag.getID()*TEXT_HEIGHT +Y_OFF - 5);
                 fonts.invSelected().drawString(ix() +X_OFF, iy() +tag.getID()*TEXT_HEIGHT +Y_OFF, tag.getName());
-            else
+            } else {
                 fonts.inv().drawString(ix() +X_OFF, iy() +tag.getID()*TEXT_HEIGHT +Y_OFF, tag.getName());
+            }
         }
-
-        tagsTag.getImage().draw(ix() + getWidth() - tagsTag.getImage().getWidth(), iy() + getHeight()/2 - tagsTag.getImage().getHeight()/2);
     }
 
     public void setFocus(boolean val) { focus = val; }

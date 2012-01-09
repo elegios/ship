@@ -198,23 +198,23 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     public final void c(String id, Object data) { node.c("player." +this.id+ "." +id, data); }
 
     public void dataChanged(String id, String data) {
-        if (id.equals("player." +this.id+ ".activate"))
+        if (id.equals("player." +this.id+ ".o.activate"))
             node.c(data, true);
     }
     public void intChanged(String id, int data) {}
     public void booleanChanged(String id, boolean data) {
-        if (id.startsWith("player." +this.id+ ".")) {
-            String var = id.substring(("player." +this.id+ ".").length());
+        if (id.startsWith("player." +this.id+ ".o.")) {
+            String var = id.substring(("player." +this.id+ ".o.").length());
             switch (var) {
-                case "o.moveRight":
+                case "moveRight":
                     moveRight = data;
                     break;
 
-                case "o.moveLeft":
+                case "moveLeft":
                     moveLeft = data;
                     break;
 
-                case "o.jump":
+                case "jump":
                     jump = data;
                     break;
             }
