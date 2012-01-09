@@ -5,7 +5,9 @@
 package ship;
 
 import java.io.File;
+import java.nio.file.FileSystems;
 
+import media.FontHolder;
 import media.MediaLoader;
 
 import org.newdawn.slick.AppGameContainer;
@@ -14,7 +16,8 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 
-import world.World;
+import ship.ui.inventory.Inventory;
+import ship.world.World;
 import dataverse.datanode.easy.EasyNode;
 
 /**
@@ -27,17 +30,24 @@ public class View extends BasicGame {
     private EasyNode node;
 
     private MediaLoader loader;
+    private FontHolder  fonts;
 
-    private World world;
+    private World     world;
+    private Inventory inventory;
 
-    public View(EasyNode node) {
+    private int playerId;
+    private int numPlayers;
+
+    public View(EasyNode node, int playerId, int numPlayers) {
         super("Game");
 
-        this.node = node;
+        this.node       = node;
+        this.playerId   = playerId;
+        this.numPlayers = numPlayers;
     }
 
-    public static void create(int width, int height, EasyNode node) throws SlickException {
-        window = new AppGameContainer(new View(node));
+    public static void create(int width, int height, EasyNode node, int playerId, int numPlayers) throws SlickException {
+        window = new AppGameContainer(new View(node, playerId, numPlayers));
         window.setDisplayMode(width, height, false);
         window.setTargetFrameRate(60);
         window.setShowFPS(true);
@@ -49,23 +59,45 @@ public class View extends BasicGame {
     @Override
     public void init(GameContainer gc) throws SlickException {
         loader = new MediaLoader(new File("gfx"));
+        fonts  = new FontHolder(FileSystems.getDefault().getPath("gfx"));
 
         world  = new World(this);
+
+        inventory = new Inventory(this);
     }
 
     @Override
     public void update(GameContainer gc, int diff) throws SlickException {
         world.update(gc, diff);
+        inventory.update(gc, diff);
     }
 
     @Override
-    public void render(GameContainer gc, Graphics grphcs) throws SlickException {
-        world.render(gc, grphcs);
+    public void render(GameContainer gc, Graphics g) throws SlickException {
+        world.render(gc, g);
+        inventory.render(gc, g);
     }
 
-    public EasyNode    node()   { return node; }
-    public MediaLoader loader() { return loader; }
-    public World       world()  { return world; }
+    @Override
+    public void keyPressed(int key, char c) {
+        if (inventory.keyPressed(key, c))
+            return;
+        world.keyPressed(key, c);
+    }
+
+    @Override
+    public void keyReleased(int key, char c) {
+        if (inventory.keyReleased(key, c))
+            return;
+        world.keyReleased(key, c);
+    }
+
+    public EasyNode    node()       { return node;       }
+    public MediaLoader loader()     { return loader;     }
+    public FontHolder  fonts()      { return fonts;      }
+    public World       world()      { return world;      }
+    public int         playerId()   { return playerId;   }
+    public int         numPlayers() { return numPlayers; }
 
     public static AppGameContainer window() { return window; }
 

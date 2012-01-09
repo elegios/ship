@@ -26,9 +26,6 @@ public class MediaLoader {
     private Map<String, ManagedSpriteSheet> spriteSheets;
     private Map<String, ManagedImage> images;
 
-    private int tw;
-    private int th;
-
     public MediaLoader(File artDir) {
         this.artDir = artDir;
 
@@ -49,12 +46,7 @@ public class MediaLoader {
         }
     }
 
-    public void setSpriteSheetSize(int tw, int th) {
-        this.tw = tw;
-        this.th = th;
-    }
-
-    public ManagedSpriteSheet loadManagedSpriteSheet(String identifier) throws SlickException {
+    public ManagedSpriteSheet loadManagedSpriteSheet(String identifier, int tw, int th) throws SlickException {
         if (spriteSheets.containsKey(identifier))
             return spriteSheets.get(identifier).use();
         else {
@@ -89,7 +81,9 @@ public class MediaLoader {
     public void reloadAll() throws SlickException {
         for (String identifier : spriteSheets.keySet()) {
             spriteSheets.get(identifier).getSpriteSheet().destroy();
-            spriteSheets.get(identifier).setSpriteSheet(new SpriteSheet(artDir.getPath() + "/" + identifier + EXT, 32, 32));
+            spriteSheets.get(identifier).setSpriteSheet(new SpriteSheet(artDir.getPath() + "/" + identifier + EXT,
+                                                                        spriteSheets.get(identifier).tw(),
+                                                                        spriteSheets.get(identifier).th()));
         }
         for (String identifier : images.keySet()) {
             images.get(identifier).getImage().destroy();

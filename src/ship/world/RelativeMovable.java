@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package world;
+package ship.world;
 
 /**
  *
@@ -23,5 +23,11 @@ public interface RelativeMovable {
 
     void pushBackX(float momentum);
     void pushBackY(float momentum);
+
+    boolean collidedWithImmobileX();
+    boolean collidedWithImmobileY();
+
+    void collidedWithImmobileX(boolean val);
+    void collidedWithImmobileY(boolean val);
 
 }

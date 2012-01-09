@@ -19,6 +19,9 @@ public class ManagedSpriteSheet {
     private short useCount;
     private MediaLoader loader;
 
+    private int tw;
+    private int th;
+
     private String identifier;
 
     public ManagedSpriteSheet(String identifier, SpriteSheet spriteSheet, MediaLoader loader) {
@@ -30,6 +33,9 @@ public class ManagedSpriteSheet {
         this.identifier = identifier;
 
         this.spriteSheet = spriteSheet;
+
+        tw = spriteSheet.getWidth()  / spriteSheet.getHorizontalCount();
+        th = spriteSheet.getHeight() / spriteSheet.getVerticalCount  ();
     }
 
     public ManagedSpriteSheet use() {
@@ -56,5 +62,8 @@ public class ManagedSpriteSheet {
     }
     public SpriteSheet getSpriteSheet() { return spriteSheet; }
     public String      identifier()     { return identifier; }
+
+    public int tw() { return tw; }
+    public int th() { return th; }
 
 }

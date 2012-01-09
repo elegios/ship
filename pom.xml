@@ -54,7 +54,7 @@
             <manifest>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>ship.Ship</mainClass>
+              <mainClass>ship.launch.Controller</mainClass>
             </manifest>
           </archive>
         </configuration>
