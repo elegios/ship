@@ -121,6 +121,13 @@ public class Vehicle extends CollisionGrid {
             }
             if (rel.collidedWithImmobileX()) {
                 collidedWithImmobileX(true);
+                collisionLockX(-fixMove);
+                x -= fixMove;
+                return 0;
+            }
+            if ((rel.collisionLockX() < 0 && fixMove > 0) ||
+                (rel.collisionLockX() > 0 && fixMove < 0)) {
+                collisionLockX(-fixMove);
                 x -= fixMove;
                 return 0;
             }
@@ -140,9 +147,16 @@ public class Vehicle extends CollisionGrid {
             }
             if (rel.collidedWithImmobileY()) {
                 collidedWithImmobileY(true);
+                collisionLockY(-fixMove);
                 y -= fixMove;
                 return 0;
             }
+            if ((rel.collisionLockY() < 0 && fixMove > 0) ||
+                (rel.collisionLockY() > 0 && fixMove < 0)) {
+                    collisionLockY(-fixMove);
+                    y -= fixMove;
+                    return 0;
+                }
         }
 
         return fixMove;

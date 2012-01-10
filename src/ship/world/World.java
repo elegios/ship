@@ -84,8 +84,6 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     @Override
     public void update(GameContainer gc, int diff) {
-        System.out.println("frame start");
-
         moveX(diff);
         collideX();
         moveY(diff);
@@ -139,33 +137,21 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     }
 
     public void collideVehicleX(Vehicle vehicle) {
-        byte restarts = 0;
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
             if (vehicles.get(i).getID() != vehicle.getID())
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleX(vehicles.get(i));
-                else if (vehicle.collideWithCollisionGridX(vehicles.get(i))) {
-                    System.out.println("restart vehicleX " +vehicle.getID()+ " i: " +i);
+                else if (vehicle.collideWithCollisionGridX(vehicles.get(i)))
                     i = -1;
-                    if (restarts > 20)
-                        return;
-                    restarts++;
-                }
     }
 
     public void collideVehicleY(Vehicle vehicle) {
-        byte restarts = 0; //TODO: better way to avoid infinite loops when an earlier ID is between two higher IDs
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
             if (vehicles.get(i).getID() != vehicle.getID())
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleY(vehicles.get(i));
-                else if (vehicle.collideWithCollisionGridY(vehicles.get(i))) {
-                    System.out.println("restart vehicleY " +vehicle.getID()+ " i: " +i);
+                else if (vehicle.collideWithCollisionGridY(vehicles.get(i)))
                     i = -1;
-                    if (restarts > 20)
-                        return;
-                    restarts++;
-                }
     }
 
     public void collidePlayerX(Player player) {

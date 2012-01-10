@@ -50,6 +50,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     private boolean collidedWithImmobileX;
     private boolean collidedWithImmobileY;
+    private float   collisionLockX;
+    private float   collisionLockY;
 
     protected World world;
 
@@ -112,8 +114,12 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                     if (collidesAt(i, j)) {
                         float fixMove = other.collideRectangleX(getRectAt(i, j), getAbsXSpeed() - other.getAbsXSpeed());
                         if (fixMove != 0) {
-                            if (!collidedWithImmobileX) {
+                            if (!collidedWithImmobileX &&
+                                  (fixMove < 0 && collisionLockX < 0) ||
+                                  (fixMove > 0 && collisionLockX > 0) ||
+                                  collisionLockX == 0) {
                                 x += fixMove;
+                                collisionLockX = fixMove;
                                 hasCollided = true;
                             }
                             if (other.collidedWithImmobileX())
@@ -137,8 +143,12 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                     if (collidesAt(i, j)) {
                         float fixMove = other.collideRectangleY(getRectAt(i, j), getAbsYSpeed() - other.getAbsYSpeed());
                         if (fixMove != 0) {
-                            if (!collidedWithImmobileY) {
+                            if (!collidedWithImmobileY &&
+                                  (fixMove < 0 && collisionLockY < 0) ||
+                                  (fixMove > 0 && collisionLockY < 0) ||
+                                  collisionLockY == 0) {
                                 y += fixMove;
+                                collisionLockY = fixMove;
                                 hasCollided = true;
                             }
                             if (other.collidedWithImmobileY())
@@ -229,6 +239,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     }
 
     public void moveX(int diff) {
+        collisionLockX = 0;
 
         if (toSetXb) {
             x = toSetX;
@@ -242,6 +253,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         x += getAbsXMove(diff);
     }
     public void moveY(int diff) {
+        collisionLockY = 0;
 
         if (toSetYb) {
             y = toSetY;
@@ -257,9 +269,13 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     public boolean collidedWithImmobileX() { return collidedWithImmobileX; }
     public boolean collidedWithImmobileY() { return collidedWithImmobileY; }
+    public float   collisionLockX()        { return collisionLockX; }
+    public float   collisionLockY()        { return collisionLockY; }
 
     public void collidedWithImmobileX(boolean val) { collidedWithImmobileX = val; }
     public void collidedWithImmobileY(boolean val) { collidedWithImmobileY = val; }
+    public void collisionLockX       (float   val) { collisionLockX        = val; }
+    public void collisionLockY       (float   val) { collisionLockY        = val; }
 
     public int getTileXUnderPos(float x) { return (int) (x - getX())/TW; }
     public int getTileYUnderPos(float y) { return (int) (y - getY())/TH; }

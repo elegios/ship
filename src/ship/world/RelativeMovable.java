@@ -26,8 +26,12 @@ public interface RelativeMovable {
 
     boolean collidedWithImmobileX();
     boolean collidedWithImmobileY();
+    float   collisionLockX       ();
+    float   collisionLockY       ();
 
     void collidedWithImmobileX(boolean val);
     void collidedWithImmobileY(boolean val);
+    void collisionLockX       (float   val);
+    void collisionLockY       (float   val);
 
 }

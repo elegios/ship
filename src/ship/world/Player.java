@@ -29,6 +29,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     private boolean collidedWithImobileX;
     private boolean collidedWithImobileY;
+    private float   collisionLockX;
+    private float   collisionLockY;
 
     private float mass;
 
@@ -191,9 +193,13 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     public boolean collidedWithImmobileX() { return collidedWithImobileX; }
     public boolean collidedWithImmobileY() { return collidedWithImobileY; }
+    public float   collisionLockX()        { return collisionLockX;       }
+    public float   collisionLockY()        { return collisionLockY;       }
 
     public void collidedWithImmobileX(boolean val) { collidedWithImobileX = val; }
     public void collidedWithImmobileY(boolean val) { collidedWithImobileY = val; }
+    public void collisionLockX       (float   val) { collisionLockX       = val; }
+    public void collisionLockY       (float   val) { collisionLockY       = val; }
 
     public final void c(String id, Object data) { node.c("player." +this.id+ "." +id, data); }
 

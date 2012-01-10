@@ -92,9 +92,13 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
 
     public boolean collidedWithImmobileX() { return parent.collidedWithImmobileX(); }
     public boolean collidedWithImmobileY() { return parent.collidedWithImmobileY(); }
+    public float   collisionLockX()        { return parent.collisionLockX();        }
+    public float   collisionLockY()        { return parent.collisionLockY();        }
 
     public void collidedWithImmobileX(boolean val) { parent.collidedWithImmobileX(val); }
     public void collidedWithImmobileY(boolean val) { parent.collidedWithImmobileY(val); }
+    public void collisionLockX       (float   val) { parent.collisionLockX       (val); }
+    public void collisionLockY       (float   val) { parent.collisionLockY       (val); }
 
     public float getAbsXMove(int diff) { return parent.getAbsXMove(diff); }
     public float getAbsYMove(int diff) { return parent.getAbsYMove(diff); }
