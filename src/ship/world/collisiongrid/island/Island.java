@@ -17,7 +17,7 @@ import ship.world.collisiongrid.CollisionGrid;
  *
  * @author elegios
  */
-public class Island extends CollisionGrid {  //too slow to use normal node to store data
+public class Island extends CollisionGrid {
     private static final int ISLAND_WIDTH  = 512;
     private static final int ISLAND_HEIGHT = 512;
 
@@ -40,7 +40,7 @@ public class Island extends CollisionGrid {  //too slow to use normal node to st
 
     protected Rectangle getRectAt (int x, int y) { return null; }
     protected boolean   collidesAt(int x, int y) { return tile(x, y) != 0; }
-    protected boolean   renderAt  (int x, int y) { return true; }
+    protected boolean   renderAt  (int x, int y) { return tile(x, y) != 0; }
     protected int       tileAt    (int x, int y) { return tile(x, y); }
     protected void      updateAt  (int x, int y, GameContainer gc, int diff) {}
 

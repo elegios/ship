@@ -7,6 +7,7 @@ package ship.world;
 import java.util.ArrayList;
 import java.util.List;
 
+import media.ManagedImage;
 import media.ManagedSpriteSheet;
 import media.Renderable;
 
@@ -28,6 +29,8 @@ import dataverse.datanode.easy.EasyNode;
  * @author elegios
  */
 public class World implements Position, Renderable, Updatable, ChangeListener, KeyReceiver {
+    public static final int SKY_GRADIENT_MINIMUM = 250 * CollisionGrid.TW;
+    public static final int SKY_GRADIENT_LENGTH  = 100 * CollisionGrid.TH;
 
     private View view;
 
@@ -36,8 +39,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     private int x;
     private int y;
 
-    private Island island;
     private ManagedSpriteSheet tileset;
+    private ManagedImage       sky;
+
+    private Island island;
     private Player[] players;
     private Player currPlayer;
     private List<Vehicle> vehicles;
@@ -66,8 +71,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         c("frictionFraction",  0.3f);
         c("airResist",         0.3f);
 
-        island  = new Island(this, 0,  0, 0);
         tileset = view.loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
+        sky     = view.loader().loadManagedImage      ("sky");
+
+        island  = new Island(this, 0,  0, 0);
         vehicles = new ArrayList<>();
         for (int i = 0; i < 10; i++)
             vehicles.add(new Vehicle(this, i, island.getWidth()/2 + 128 +i*350, -32));
@@ -187,8 +194,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     public void activateUnderPlayer(Player player) {
         for (Vehicle vehicle : vehicles)
             if (vehicle.overlaps(player)) {
-                int vehX = vehicle.getTileXUnderPos(player.getX() + player.getWidth ()/2);
-                int vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
+                long vehX = vehicle.getTileXUnderPos(player.getX() + player.getWidth ()/2);
+                long vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
                 if (vehX >= 0 && vehX < vehicle.WIDTH() &&
                     vehY >= 0 && vehY < vehicle.HEIGHT())
                     player.c("o.activate", "vehicle." +vehicle.getID()+ ".tile."
@@ -200,7 +207,26 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        g.setAntiAlias(false);
+        int w = View.window().getWidth()  / sky.getImage().getWidth();
+        int h = View.window().getHeight() / sky.getImage().getHeight();
+        for (int i = -1; i < w + 2; i++)
+            for (int j = -1; j < h + 2; j++) {
+                int deltaX = Math.abs(i*sky.getImage().getWidth () + ix()%sky.getImage().getWidth()  - island.ix() - island.getWidth ()/2);
+                int deltaY = Math.abs(j*sky.getImage().getHeight() + iy()%sky.getImage().getHeight() - island.iy() - island.getHeight()/2);
+                double dist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) - SKY_GRADIENT_MINIMUM;
+
+                if (i == w && j == h)
+                    g.drawString("deltaX: " +(deltaX^2)+ " deltaY: " +(deltaY^2)+ " dist: " +dist, 10, 100);
+
+                if (dist < 0)
+                    sky.getImage().setAlpha(1);
+                else
+                    sky.getImage().setAlpha(1.0f - (float) dist/SKY_GRADIENT_LENGTH);
+
+                sky.getImage().draw(i*sky.getImage().getWidth() + ix()%sky.getImage().getWidth(), j*sky.getImage().getHeight() + iy()%sky.getImage().getHeight());
+            }
+
+
 
         tileset.getSpriteSheet().startUse();
         island.render(gc, g);
@@ -211,14 +237,14 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         for (Player player : players)
             player.render(gc, g);
 
-        g.drawString("player  x: " +currPlayer.getX()+ "\n" +
+        /*g.drawString("player  x: " +currPlayer.getX()+ "\n" +
         		     "        y: " +currPlayer.getY()+ "\n" +
         		     "absxSpeed: " +currPlayer.getAbsXSpeed()+ "\n" +
                      "absySpeed: " +currPlayer.getAbsYSpeed()+ "\n" +
         		     "vehicle x: " +vehicles.get(0).getX() +"\n" +
         		     "        y: " +vehicles.get(0).getY() +"\n" +
         		     "absxSpeed: " +vehicles.get(0).getAbsXSpeed()+ "\n" +
-        		     "absySpeed: " +vehicles.get(0).getAbsYSpeed(), 10, 100);
+        		     "absySpeed: " +vehicles.get(0).getAbsYSpeed(), 10, 100); */
     }
 
     public boolean updatePos() { return updatePos; }
