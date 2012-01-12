@@ -12,6 +12,7 @@ import ship.control.Keys;
 import ship.ui.Box;
 import ship.ui.inventory.blockcreator.BlockCreator;
 import ship.world.collisiongrid.CollisionGrid;
+import dataverse.datanode.easy.EasyNode;
 
 public class SubItems extends Box implements KeyReceiver, Focusable {
     public static final int WIDTH = 2;
@@ -22,6 +23,9 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
     public static final int HIGHLIGHT_W = 60;
 
     private Inventory parent;
+
+    private EasyNode node;
+    private int playerID;
 
     private ManagedSpriteSheet tiles;
     private ManagedSpriteSheet highlight;
@@ -36,6 +40,9 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;
 
+        node     = parent.view().node();
+        playerID = parent.view().playerId();
+
         tiles = parent.view().loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
         highlight = parent.view().loader().loadManagedSpriteSheet("sub_item_highlight", HIGHLIGHT_W, ITEM_HEIGHT);
     }
@@ -43,12 +50,17 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
     public void updateSubs(BlockCreator block) {
         this.block = block;
 
+        updateSubs();
+    }
+    private void updateSubs() {
         if (block != null)
             selected = Math.max(0, Math.min(selected, block.numSubs() - 1));
+
+        node.c("player." +playerID+ ".selectedSubItem", selected);
     }
 
     public void render(GameContainer gc, Graphics g) {
-        if (block != null && block.numSubs() > 1) {
+        if (block != null) {
             super.render(gc, g);
 
             for (int i = 0; i < block.numSubs(); i++) {
@@ -77,12 +89,12 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
         if (focus) {
             if (key == keys.up()) {
                 selected--;
-                if (selected < 0)
-                    selected += block.numSubs();
+                updateSubs();
                 return true;
+
             } else if (key == keys.down()) {
                 selected++;
-                selected %= block.numSubs();
+                updateSubs();
                 return true;
             }
         }

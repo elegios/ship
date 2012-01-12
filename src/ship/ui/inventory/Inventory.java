@@ -174,4 +174,6 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
     public void booleanChanged(String id, boolean data) {}
     public void floatChanged  (String id, float   data) {}
 
+    public int getIndexOf(BlockCreator selected) { return tileCreators.indexOf(selected); }
+
 }

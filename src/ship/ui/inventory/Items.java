@@ -16,6 +16,7 @@ import ship.control.Keys;
 import ship.ui.Box;
 import ship.ui.inventory.blockcreator.BlockCreator;
 import ship.world.collisiongrid.CollisionGrid;
+import dataverse.datanode.easy.EasyNode;
 
 public class Items extends Box implements KeyReceiver, Focusable {
     public static final int WIDTH = 8;
@@ -31,6 +32,9 @@ public class Items extends Box implements KeyReceiver, Focusable {
 
     private Inventory parent;
 
+    private EasyNode node;
+    private int playerID;
+
     private FontHolder         fonts;
     private ManagedSpriteSheet tiles;
     private ManagedSpriteSheet highlight;
@@ -43,6 +47,9 @@ public class Items extends Box implements KeyReceiver, Focusable {
     public Items(Inventory parent, int x, int y, List<BlockCreator> items) throws SlickException {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;
+
+        node     = parent.view().node();
+        playerID = parent.view().playerId();
 
         fonts     = parent.view().fonts();
         tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles", CollisionGrid.TW, CollisionGrid.TH);
@@ -58,14 +65,12 @@ public class Items extends Box implements KeyReceiver, Focusable {
         if (focus) {
             if (key == keys.up()) {
                 selected--;
-                if (selected < 0)
-                    selected += items.size();
-                parent.updateSubMenu();
+                updateItems();
                 return true;
+
             } else if (key == keys.down()) {
                 selected++;
-                selected %= items.size();
-                parent.updateSubMenu();
+                updateItems();
                 return true;
             }
         }
@@ -79,8 +84,14 @@ public class Items extends Box implements KeyReceiver, Focusable {
             if (tile.matches(tag))
                 items.add(tile);
 
+        updateItems();
+    }
+    private void updateItems() {
         selected = Math.max(Math.min(items.size() - 1, selected), 0);
+        node.c("player." +playerID+ ".selectedItem", parent.getIndexOf(getSelected()));
+
         parent.updateSubMenu();
+
     }
 
     public BlockCreator getSelected() {
