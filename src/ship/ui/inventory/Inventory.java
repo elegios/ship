@@ -9,12 +9,12 @@ import media.Renderable;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import ship.KeyReceiver;
 import ship.Updatable;
 import ship.View;
+import ship.control.KeyReceiver;
+import ship.control.Keys;
 import ship.ui.inventory.blockcreator.AirFuelTransportCreator;
 import ship.ui.inventory.blockcreator.BlockCreator;
 import ship.ui.inventory.blockcreator.FuelTransportCreator;
@@ -128,25 +128,24 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
     }
 
     @Override
-    public boolean keyPressed(int key, char c) {
-        if (key == Input.KEY_TAB) {
+    public boolean keyPressed(Keys keys, int key, char c) {
+        if (key == keys.inventory()) {
             visible = !visible;
             setXPos();
 
             return true;
 
         } else if (visible) {
-            if (((KeyReceiver) currentFocus).keyPressed(key, c))
+            if (((KeyReceiver) currentFocus).keyPressed(keys, key, c))
                 return true;
 
-            switch (key) {
-                case Input.KEY_LEFT:
-                    moveLeft();
-                    return true;
+            if (key == keys.left()) {
+                moveLeft();
+                return true;
 
-                case Input.KEY_RIGHT:
-                    moveRight();
-                    return true;
+            } if (key == keys.right()) {
+                moveRight();
+                return true;
             }
 
             return true;
@@ -156,7 +155,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
     }
 
     @Override
-    public boolean keyReleased(int key, char c) {
+    public boolean keyReleased(Keys keys, int key, char c) {
         return false;
     }
 

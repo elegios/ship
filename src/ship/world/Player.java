@@ -10,11 +10,11 @@ import media.Renderable;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import ship.KeyReceiver;
 import ship.Updatable;
+import ship.control.KeyReceiver;
+import ship.control.Keys;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -80,11 +80,11 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
         node.addChangeListener(this);
 
-        c("o.mass",  BASE_MASS);
-        c("pos.x", (float) x);
-        c("pos.y", (float) y);
-        c("pos.xSpeed", 0.0f);
-        c("pos.ySpeed", 0.0f);
+        c("mass",  BASE_MASS);
+        c("x", (float) x);
+        c("y", (float) y);
+        c("xSpeed", 0.0f);
+        c("ySpeed", 0.0f);
     }
 
     public void moveX(int diff) {
@@ -138,11 +138,11 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         collidedWithImobileX = false;
         collidedWithImobileY = false;
 
-        if (world.updatePos() && world.view().playerId() == 0) {
-            c("pos.x", x);
-            c("pos.y", y);
-            c("pos.xSpeed", xSpeed);
-            c("pos.ySpeed", ySpeed);
+        if (world.updatePos() && world.currPlayer() == this) {
+            c("x", x);
+            c("y", y);
+            c("xSpeed", xSpeed);
+            c("ySpeed", ySpeed);
         }
 
     }
@@ -204,13 +204,13 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     public final void c(String id, Object data) { node.c("player." +this.id+ "." +id, data); }
 
     public void dataChanged(String id, String data) {
-        if (id.equals("player." +this.id+ ".o.activate"))
+        if (id.equals("player." +this.id+ ".activate"))
             node.c(data, true);
     }
     public void intChanged(String id, int data) {}
     public void booleanChanged(String id, boolean data) {
-        if (id.startsWith("player." +this.id+ ".o.")) {
-            String var = id.substring(("player." +this.id+ ".o.").length());
+        if (id.startsWith("player." +this.id+ ".")) {
+            String var = id.substring(("player." +this.id+ ".").length());
             switch (var) {
                 case "moveRight":
                     moveRight = data;
@@ -230,23 +230,23 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         if (id.startsWith("player." +this.id+ ".")) {
             String var = id.substring(("player." +this.id+ ".").length());
             switch (var) {
-                case "pos.x":
+                case "x":
                     toSetX = data;
                     toSetXb = true;
                     break;
-                case "pos.y":
+                case "y":
                     toSetY = data;
                     toSetYb = true;
                     break;
-                case "pos.xSpeed":
+                case "xSpeed":
                     toSetXSpeed = data;
                     toSetXSpe = true;
                     break;
-                case "pos.ySpeed":
+                case "ySpeed":
                     toSetYSpeed = data;
                     toSetYSpe = true;
                     break;
-                case "o.mass":
+                case "mass":
                     mass = data;
                     break;
                 default:
@@ -255,41 +255,37 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         }
     }
 
-    public boolean keyPressed(int key, char c) {
-        switch (key) {
-            case Input.KEY_RIGHT:
-                c("o.moveRight", true);
-                return true;
+    public boolean keyPressed(Keys keys, int key, char c) {
+        if (key == keys.right()) {
+            c("moveRight", true);
+            return true;
 
-            case Input.KEY_LEFT:
-                c("o.moveLeft", true);
-                return true;
+        } if (key == keys.left()) {
+            c("moveLeft", true);
+            return true;
 
-            case Input.KEY_UP:
-                c("o.jump", true);
-                return true;
+        } if (key == keys.up()) {
+            c("jump", true);
+            return true;
 
-            case Input.KEY_SPACE:
-                world.activateUnderPlayer(this);
-                return true;
+        } if (key == keys.activateDevice()) {
+            world.activateUnderPlayer(this);
+            return true;
         }
 
         return false;
     }
 
-    public boolean keyReleased(int key, char c) {
-        switch (key) {
-            case Input.KEY_RIGHT:
-                c("o.moveRight", false);
-                return true;
-
-            case Input.KEY_LEFT:
-                c("o.moveLeft", false);
-                return true;
-
-            case Input.KEY_UP:
-                c("o.jump", false);
-                return true;
+    public boolean keyReleased(Keys keys, int key, char c) {
+        if (key == keys.right()) {
+            c("moveRight", false);
+            return true;
+        } else if (key == keys.left()) {
+            c("moveLeft", false);
+            return true;
+        } else if (key == keys.up()) {
+            c("jump", false);
+            return true;
         }
 
         return false;

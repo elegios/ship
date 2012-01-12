@@ -35,8 +35,7 @@ public class Controller {
         } else if (opt == 1) { //Multi player
             new MultiPlayerDialog(node).setVisible(true);
         }
-
-        //Anything is probably CLOSED_OPTION, in which case the program should close.
+        //Anything else is probably CLOSED_OPTION, in which case the program should close.
     }
 
     public static void main(String[] args) throws SlickException {

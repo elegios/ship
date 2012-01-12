@@ -16,6 +16,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 
+import ship.control.Keys;
 import ship.ui.inventory.Inventory;
 import ship.world.World;
 import dataverse.datanode.easy.EasyNode;
@@ -31,6 +32,8 @@ public class View extends BasicGame {
 
     private MediaLoader loader;
     private FontHolder  fonts;
+
+    private Keys keys;
 
     private World     world;
     private Inventory inventory;
@@ -61,6 +64,8 @@ public class View extends BasicGame {
         loader = new MediaLoader(new File("gfx"));
         fonts  = new FontHolder(FileSystems.getDefault().getPath("gfx"));
 
+        keys = new Keys();
+
         world  = new World(this);
 
         inventory = new Inventory(this);
@@ -80,21 +85,22 @@ public class View extends BasicGame {
 
     @Override
     public void keyPressed(int key, char c) {
-        if (inventory.keyPressed(key, c))
+        if (inventory.keyPressed(keys, key, c))
             return;
-        world.keyPressed(key, c);
+        world.keyPressed(keys, key, c);
     }
 
     @Override
     public void keyReleased(int key, char c) {
-        if (inventory.keyReleased(key, c))
+        if (inventory.keyReleased(keys, key, c))
             return;
-        world.keyReleased(key, c);
+        world.keyReleased(keys, key, c);
     }
 
     public EasyNode    node()       { return node;       }
     public MediaLoader loader()     { return loader;     }
     public FontHolder  fonts()      { return fonts;      }
+    public Keys        keys()       { return keys;       }
     public World       world()      { return world;      }
     public int         playerId()   { return playerId;   }
     public int         numPlayers() { return numPlayers; }

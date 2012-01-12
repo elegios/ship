@@ -8,11 +8,11 @@ import media.ManagedSpriteSheet;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import ship.KeyReceiver;
 import ship.View;
+import ship.control.KeyReceiver;
+import ship.control.Keys;
 import ship.ui.Box;
 import ship.ui.inventory.blockcreator.BlockCreator;
 import ship.world.collisiongrid.CollisionGrid;
@@ -54,21 +54,19 @@ public class Items extends Box implements KeyReceiver, Focusable {
     public void setFocus(boolean val) { focus = val; }
 
     @Override
-    public boolean keyPressed(int key, char c) {
+    public boolean keyPressed(Keys keys, int key, char c) {
         if (focus) {
-            switch (key) {
-                case Input.KEY_UP:
-                    selected--;
-                    if (selected < 0)
-                        selected += items.size();
-                    parent.updateSubMenu();
-                    return true;
-
-                case Input.KEY_DOWN:
-                    selected++;
-                    selected %= items.size();
-                    parent.updateSubMenu();
-                    return true;
+            if (key == keys.up()) {
+                selected--;
+                if (selected < 0)
+                    selected += items.size();
+                parent.updateSubMenu();
+                return true;
+            } else if (key == keys.down()) {
+                selected++;
+                selected %= items.size();
+                parent.updateSubMenu();
+                return true;
             }
         }
 
@@ -114,7 +112,7 @@ public class Items extends Box implements KeyReceiver, Focusable {
     }
 
     @Override
-    public boolean keyReleased(int key, char c) {
+    public boolean keyReleased(Keys keys, int key, char c) {
         return false;
     }
 

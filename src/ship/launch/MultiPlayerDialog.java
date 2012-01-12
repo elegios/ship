@@ -63,7 +63,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
     }
 
     private void host() {
-        netNodeInit("^((?!player)).+|player\\.\\d+\\.pos\\..+|player\\.0\\.o\\..+");
+        netNodeInit("^((?!player)).+|player\\.0\\..+");
         id = 0;
         numPlayers = 1;
 
@@ -155,6 +155,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
                         panel_1.setLayout(new GridLayout(0, 1, 0, 0));
 
                                 addressField = new JTextField();
+                                addressField.setText("90.130.22.183");
                                 panel_1.add(addressField);
                                 addressField.setColumns(10);
 
@@ -169,6 +170,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
                 panel_2.setLayout(new GridLayout(0, 1, 0, 0));
 
                         portField = new JTextField();
+                        portField.setText("80");
                         panel_2.add(portField);
                         portField.setColumns(10);
                         panel.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{addressField, portField}));
@@ -240,7 +242,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
 
         if (id.equals("request.granted." +this.id)) {
             this.id = data;
-            netNode.setPattern("player\\." +this.id+ "\\.o\\..+");
+            netNode.setPattern("player\\." +this.id+ "\\..+");
             textArea.append("Got the id " +this.id+ " from the server. And set pattern to \"" +netNode.getPattern()+ "\"\n");
         }
 

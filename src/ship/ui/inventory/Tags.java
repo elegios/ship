@@ -5,11 +5,11 @@ import media.ManagedSpriteSheet;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import ship.KeyReceiver;
 import ship.View;
+import ship.control.KeyReceiver;
+import ship.control.Keys;
 import ship.ui.Box;
 
 public class Tags extends Box implements KeyReceiver, Focusable {
@@ -47,14 +47,14 @@ public class Tags extends Box implements KeyReceiver, Focusable {
 
     public static final int HIGHLIGHT_W = 180;
 
+    private Inventory parent;
+
     private FontHolder fonts;
     private int selected;
 
     private boolean focus;
 
     private ManagedSpriteSheet highlight;
-
-    private Inventory parent;
 
     public Tags(Inventory parent, int x, int y) throws SlickException {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
@@ -87,30 +87,23 @@ public class Tags extends Box implements KeyReceiver, Focusable {
     public void setFocus(boolean val) { focus = val; }
 
     @Override
-    public boolean keyPressed(int key, char c) {
+    public boolean keyPressed(Keys keys, int key, char c) {
         if (focus) {
-            switch (key) {
-                case Input.KEY_UP:
-                    selected--;
-                    if (selected < 0)
-                        selected += TAGS.length;
-                    parent.updateTagFilter();
-                    return true;
-
-                case Input.KEY_DOWN:
-                    selected++;
-                    selected %= TAGS.length;
-                    parent.updateTagFilter();
-                    return true;
-
-                case Input.KEY_ENTER:
-                    parent.moveRight();
-                    return true;
-
-                case Input.KEY_LEFT:
-                    selected = 0;
-                    parent.updateTagFilter();
-                    return true;
+            if (key == keys.up()) {
+                selected--;
+                if (selected < 0)
+                    selected += TAGS.length;
+                parent.updateTagFilter();
+                return true;
+            } else if (key == keys.down()) {
+                selected++;
+                selected %= TAGS.length;
+                parent.updateTagFilter();
+                return true;
+            } else if (key == keys.left()) {
+                selected = 0;
+                parent.updateTagFilter();
+                return true;
             }
         }
 
@@ -118,7 +111,7 @@ public class Tags extends Box implements KeyReceiver, Focusable {
     }
 
     @Override
-    public boolean keyReleased(int key, char c) {
+    public boolean keyReleased(Keys keys, int key, char c) {
         return false;
     }
 

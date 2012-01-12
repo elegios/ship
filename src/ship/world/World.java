@@ -15,9 +15,10 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 
-import ship.KeyReceiver;
 import ship.Updatable;
 import ship.View;
+import ship.control.KeyReceiver;
+import ship.control.Keys;
 import ship.world.collisiongrid.CollisionGrid;
 import ship.world.collisiongrid.island.Island;
 import ship.world.collisiongrid.vehicle.Vehicle;
@@ -198,7 +199,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                 long vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
                 if (vehX >= 0 && vehX < vehicle.WIDTH() &&
                     vehY >= 0 && vehY < vehicle.HEIGHT())
-                    player.c("o.activate", "vehicle." +vehicle.getID()+ ".tile."
+                    player.c("activate", "vehicle." +vehicle.getID()+ ".tile."
                              + vehX +"."
                              + vehY +".activate");
             }
@@ -285,12 +286,12 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         }
     }
 
-    public boolean keyReleased(int key, char c) {
-        return currPlayer.keyReleased(key, c);
+    public boolean keyReleased(Keys keys, int key, char c) {
+        return currPlayer.keyReleased(keys, key, c);
     }
 
-    public boolean keyPressed(int key, char c) {
-        return currPlayer.keyPressed(key, c);
+    public boolean keyPressed(Keys keys, int key, char c) {
+        return currPlayer.keyPressed(keys, key, c);
     }
 
 }
