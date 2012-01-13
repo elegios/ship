@@ -99,12 +99,13 @@ public class Vehicle extends CollisionGrid {
 
     protected Rectangle getRectAt(int x, int y) { return tile(x, y); }
     protected int       tileAt   (int x, int y) { return tile(x, y).tile(); }
-    protected boolean   collidesAt(int x, int y) {
+    public    boolean   collidesAt(int x, int y) {
         return tile(x, y) != null && tile(x, y).collide();
     }
     protected boolean renderAt(int x, int y) {
         return tile(x, y) != null && tile(x, y).render();
     }
+    public boolean existsAt(int x, int y) { return tile(x, y) != null; }
     protected void updateAt(int x, int y, GameContainer gc, int diff) {
         if (tile(x, y) != null)
             tile(x, y).update(gc, diff);

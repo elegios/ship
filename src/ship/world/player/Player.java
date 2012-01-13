@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ship.world;
+package ship.world.player;
 
 import media.ManagedImage;
 import media.MediaLoader;
@@ -15,6 +15,10 @@ import org.newdawn.slick.SlickException;
 import ship.Updatable;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
+import ship.world.Position;
+import ship.world.Rectangle;
+import ship.world.RelativeMovable;
+import ship.world.World;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -57,6 +61,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private boolean downMotion;
     private RelativeMovable collided;
 
+    private Builder builder;
+
     private int width;
     private int height;
 
@@ -85,6 +91,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         c("y", (float) y);
         c("xSpeed", 0.0f);
         c("ySpeed", 0.0f);
+
+        builder = new Builder(world.view().inventory(), this);
     }
 
     public void moveX(int diff) {
@@ -166,6 +174,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     public void render(GameContainer gc, Graphics g) {
         player.getImage().draw(ix(), iy());
+        builder.render(gc, g);
     }
 
     public void pushBackX(float momentum) { xSpeed += momentum / mass; }
@@ -201,13 +210,20 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     public void collisionLockX       (float   val) { collisionLockX       = val; }
     public void collisionLockY       (float   val) { collisionLockY       = val; }
 
+    public Builder builder() { return builder; }
+
+    public World world() { return world; }
+
     public final void c(String id, Object data) { node.c("player." +this.id+ "." +id, data); }
 
     public void dataChanged(String id, String data) {
         if (id.equals("player." +this.id+ ".activate"))
             node.c(data, true);
     }
-    public void intChanged(String id, int data) {}
+    public void intChanged(String id, int data) {
+        if (id.startsWith("player." +this.id+ "."))
+            builder.updateInt(id.substring(("player." +this.id+ ".").length()), data);
+    }
     public void booleanChanged(String id, boolean data) {
         if (id.startsWith("player." +this.id+ ".")) {
             String var = id.substring(("player." +this.id+ ".").length());
@@ -223,6 +239,9 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
                 case "jump":
                     jump = data;
                     break;
+
+                default:
+                    builder.updateBoolean(var, data);
             }
         }
     }
@@ -234,21 +253,26 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
                     toSetX = data;
                     toSetXb = true;
                     break;
+
                 case "y":
                     toSetY = data;
                     toSetYb = true;
                     break;
+
                 case "xSpeed":
                     toSetXSpeed = data;
                     toSetXSpe = true;
                     break;
+
                 case "ySpeed":
                     toSetYSpeed = data;
                     toSetYSpe = true;
                     break;
+
                 case "mass":
                     mass = data;
                     break;
+
                 default:
                     System.out.println("Unsupported variable in Player: " +id);
             }
@@ -273,22 +297,24 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             return true;
         }
 
-        return false;
+        return builder.keyPressed(keys, key, c);
     }
 
     public boolean keyReleased(Keys keys, int key, char c) {
         if (key == keys.right()) {
             c("moveRight", false);
             return true;
+
         } else if (key == keys.left()) {
             c("moveLeft", false);
             return true;
+
         } else if (key == keys.up()) {
             c("jump", false);
             return true;
         }
 
-        return false;
+        return builder.keyReleased(keys, key, c);
     }
 
 }

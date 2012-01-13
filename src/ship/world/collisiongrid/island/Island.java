@@ -39,8 +39,9 @@ public class Island extends CollisionGrid {
     }
 
     protected Rectangle getRectAt (int x, int y) { return null; }
-    protected boolean   collidesAt(int x, int y) { return tile(x, y) != 0; }
+    public    boolean   collidesAt(int x, int y) { return tile(x, y) != 0; }
     protected boolean   renderAt  (int x, int y) { return tile(x, y) != 0; }
+    public    boolean   existsAt  (int x, int y) { return tile(x, y) != 0; }
     protected int       tileAt    (int x, int y) { return tile(x, y); }
     protected void      updateAt  (int x, int y, GameContainer gc, int diff) {}
 

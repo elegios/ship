@@ -83,8 +83,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     }
 
     protected abstract Rectangle getRectAt (int x, int y);
-    protected abstract boolean   collidesAt(int x, int y);
+    public    abstract boolean   collidesAt(int x, int y);
     protected abstract boolean   renderAt  (int x, int y);
+    public    abstract boolean   existsAt  (int x, int y);
     protected abstract int       tileAt    (int x, int y);
     protected abstract void      updateAt  (int x, int y, GameContainer gc, int diff);
 

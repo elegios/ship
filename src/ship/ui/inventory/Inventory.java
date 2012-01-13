@@ -42,7 +42,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
 
     private int playerID;
 
-    private List<BlockCreator> tileCreators;
+    private List<BlockCreator> blockCreators;
 
     public Inventory(View view) throws SlickException {
         this.view = view;
@@ -56,13 +56,13 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
 
         visible = false;
 
-        tileCreators = new ArrayList<>();
+        blockCreators = new ArrayList<>();
         addTileCreators();
-        Collections.sort(tileCreators);
+        Collections.sort(blockCreators);
 
         tags = new Tags(this, X_ORIGIN, Y_ORIGIN);
 
-        items = new Items(this, X_ORIGIN + (int) tags.getX2(), Y_ORIGIN, tileCreators);
+        items = new Items(this, X_ORIGIN + (int) tags.getX2(), Y_ORIGIN, blockCreators);
         items.setFocus(true);
         currentFocus = items;
 
@@ -72,13 +72,15 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         x.force(-subItems.getX2() - 1);
     }
     private void addTileCreators() {
-        tileCreators.add(new         ThrusterCreator());
-        tileCreators.add(new    FuelTransportCreator());
-        tileCreators.add(new AirFuelTransportCreator());
+        blockCreators.add(new         ThrusterCreator());
+        blockCreators.add(new    FuelTransportCreator());
+        blockCreators.add(new AirFuelTransportCreator());
     }
 
+    public BlockCreator getBlockAt(int index) { return blockCreators.get(index); }
+
     public void updateTagFilter() {
-        items.rebuildItemList(tileCreators, tags.getSelected());
+        items.rebuildItemList(blockCreators, tags.getSelected());
     }
 
     public void updateSubMenu() {
@@ -139,11 +141,11 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
             if (((KeyReceiver) currentFocus).keyPressed(keys, key, c))
                 return true;
 
-            if (key == keys.left()) {
+            if (key == keys.left() || key == keys.buildLeft()) {
                 moveLeft();
                 return true;
 
-            } if (key == keys.right()) {
+            } if (key == keys.right() || key == keys.buildRight()) {
                 moveRight();
                 return true;
             }
@@ -174,6 +176,6 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
     public void booleanChanged(String id, boolean data) {}
     public void floatChanged  (String id, float   data) {}
 
-    public int getIndexOf(BlockCreator selected) { return tileCreators.indexOf(selected); }
+    public int getIndexOf(BlockCreator selected) { return blockCreators.indexOf(selected); }
 
 }

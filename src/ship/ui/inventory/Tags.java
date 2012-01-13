@@ -89,18 +89,20 @@ public class Tags extends Box implements KeyReceiver, Focusable {
     @Override
     public boolean keyPressed(Keys keys, int key, char c) {
         if (focus) {
-            if (key == keys.up()) {
+            if (key == keys.up() || key == keys.buildUp()) {
                 selected--;
                 if (selected < 0)
                     selected += TAGS.length;
                 parent.updateTagFilter();
                 return true;
-            } else if (key == keys.down()) {
+
+            } else if (key == keys.down() || key == keys.buildDown()) {
                 selected++;
                 selected %= TAGS.length;
                 parent.updateTagFilter();
                 return true;
-            } else if (key == keys.left()) {
+
+            } else if (key == keys.left() || key == keys.buildLeft()) {
                 selected = 0;
                 parent.updateTagFilter();
                 return true;

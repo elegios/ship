@@ -66,9 +66,9 @@ public class View extends BasicGame {
 
         keys = new Keys();
 
-        world  = new World(this);
-
         inventory = new Inventory(this);
+
+        world  = new World(this);
     }
 
     @Override
@@ -101,6 +101,7 @@ public class View extends BasicGame {
     public MediaLoader loader()     { return loader;     }
     public FontHolder  fonts()      { return fonts;      }
     public Keys        keys()       { return keys;       }
+    public Inventory   inventory()  { return inventory;  }
     public World       world()      { return world;      }
     public int         playerId()   { return playerId;   }
     public int         numPlayers() { return numPlayers; }
