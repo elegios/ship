@@ -38,6 +38,8 @@ public class Builder implements Renderable, KeyReceiver, Position {
         highlight = player.world().view().loader().loadManagedImage("builder_highlight");
     }
 
+    public String getMakeString() { return item +"."+ subItem; }
+
     @Override
     public void render(GameContainer gc, Graphics g) {
         if (buildMode) {
@@ -120,6 +122,8 @@ public class Builder implements Renderable, KeyReceiver, Position {
         } if (key == keys.build()) {
             if (!buildMode)
                 player.c("buildMode", true);
+            else
+                player.world().buildUnderPlayerBuilder(player);
             return true;
 
         } if (key == keys.buildCancel()) {

@@ -17,8 +17,7 @@ public class FuelTransport extends Block {
     }
 
     public boolean fuelFrom(int direction) {
-        int     outDir = 0;
-        fuel(false);
+        int outDir = 0;
 
         if (straight) {
             if (direction == this.direction) {
@@ -40,23 +39,27 @@ public class FuelTransport extends Block {
         }
 
         if (fueled()) {
+            Block out = null;
             switch (outDir) {
                 case UP:
-                    parent.tile(x(),     y() - 1).fuelFrom(DOWN);
+                    out = parent.tile(x(),     y() - 1);
                     break;
 
                 case RIGHT:
-                    parent.tile(x() + 1, y()    ).fuelFrom(LEFT);
+                    out = parent.tile(x() + 1, y()    );
                     break;
 
                 case DOWN:
-                    parent.tile(x(),     y() + 1).fuelFrom(UP);
+                    out = parent.tile(x(),     y() + 1);
                     break;
 
                 case LEFT:
-                    parent.tile(x() - 1, y()    ).fuelFrom(RIGHT);
+                    out = parent.tile(x() - 1, y()    );
                     break;
             }
+
+            if (out != null)
+                out.fuelFrom((outDir + 2)%4);
 
             return true;
         }

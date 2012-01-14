@@ -6,6 +6,7 @@ import java.util.Set;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
+import ship.world.collisiongrid.vehicle.block.Block;
 
 public abstract class BlockCreator implements Comparable<BlockCreator> {
 
@@ -22,9 +23,9 @@ public abstract class BlockCreator implements Comparable<BlockCreator> {
         this.tags.add(Tags.ALL);
     }
 
-    public abstract void create (int x, int y);
-    public abstract int  numSubs();
-    public abstract int  subTile(int sub);
+    public abstract Block create (int sub, int x, int y);
+    public abstract int   numSubs();
+    public abstract int   subTile(int sub);
 
     public boolean matches(Tag tag) { return tags.contains(tag); }
 

@@ -14,9 +14,8 @@ public class ThrusterCreator extends BlockCreator {
     }
 
     @Override
-    public void create(int x, int y) {
-        // TODO Auto-generated method stub
-
+    public Thruster create(int sub, int x, int y) {
+        return new Thruster(x, y, sub);
     }
 
     @Override

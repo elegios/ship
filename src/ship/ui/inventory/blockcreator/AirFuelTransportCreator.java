@@ -14,9 +14,11 @@ public class AirFuelTransportCreator extends BlockCreator {
     }
 
     @Override
-    public void create(int x, int y) {
-        // TODO Auto-generated method stub
-
+    public AirFuelTransport create(int sub, int x, int y) {
+        if (sub <= 1)
+            return new AirFuelTransport(x, y, true, sub);
+        else
+            return new AirFuelTransport(x, y, false, sub - 2);
     }
 
     @Override

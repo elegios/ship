@@ -9,6 +9,7 @@ import java.util.Scanner;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 
+import ship.ui.inventory.Inventory;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
@@ -35,8 +36,11 @@ public class Vehicle extends CollisionGrid {
     private int topY;
     private int botY;
 
+    private Inventory inv;
+
     public Vehicle(World world, int id, int x, int y) throws SlickException {
         super(world, id, x, y, true, "vehicle");
+        inv = world.view().inventory();
 
         tiles = new Block[WIDTH()][HEIGHT()];
 
@@ -198,12 +202,16 @@ public class Vehicle extends CollisionGrid {
         }
     }
     protected void updateBoolean(String id, boolean data) {
-        if (id.startsWith("tile.")) {
+        if (id.startsWith("tile.") || id.startsWith("make.")) {
             Scanner s = new Scanner(id.substring(5));
             s.useDelimiter("\\.");
-            Block tile = tile(s.nextInt(), s.nextInt());
-            if (tile != null)
-                tile.updateBoolean(s.nextLine().substring(1), data);
+            if (id.startsWith("tile.")) {
+                Block tile = tile(s.nextInt(), s.nextInt());
+                if (tile != null)
+                    tile.updateBoolean(s.nextLine().substring(1), data);
+            } else {
+                this.addTile(inv.getBlockAt(s.nextInt()).create(s.nextInt(), s.nextInt(), s.nextInt()));
+            }
         }
     }
     protected void updateInt(String id, int data) {

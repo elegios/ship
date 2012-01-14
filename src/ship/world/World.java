@@ -22,6 +22,7 @@ import ship.control.Keys;
 import ship.world.collisiongrid.CollisionGrid;
 import ship.world.collisiongrid.island.Island;
 import ship.world.collisiongrid.vehicle.Vehicle;
+import ship.world.player.Builder;
 import ship.world.player.Player;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
@@ -207,6 +208,24 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     }
 
+    public void buildUnderPlayerBuilder(Player player) {
+        for (Vehicle vehicle : vehicles) {
+            int tx = vehicle.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
+            int ty = vehicle.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
+            if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
+                ty >= 1 && ty < vehicle.HEIGHT() - 1)
+                if (!vehicle.existsAt(tx, ty) &&
+                        (vehicle.existsAt(tx    , ty - 1) ||
+                         vehicle.existsAt(tx + 1, ty    ) ||
+                         vehicle.existsAt(tx    , ty + 1) ||
+                         vehicle.existsAt(tx - 1, ty    ))) {
+                    player.c("makeTile", "vehicle." +vehicle.getID()+ ".make." +player.builder().getMakeString()+ "." +tx+ "." +ty);
+                    break;
+                }
+        }
+
+    }
+
     @Override
     public void render(GameContainer gc, Graphics g) {
         int w = View.window().getWidth()  / sky.getImage().getWidth();
@@ -236,22 +255,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             vehicle.render(gc, g);
         tileset.getSpriteSheet().endUse();
 
-        if (currPlayer.builder().buildMode()) {
-            for (Vehicle vehicle : vehicles) {
-                int tx = vehicle.getTileXUnderPos(currPlayer.builder().getX() + currPlayer.builder().getWidth ()/2);
-                int ty = vehicle.getTileYUnderPos(currPlayer.builder().getY() + currPlayer.builder().getHeight()/2);
-                if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
-                    ty >= 1 && ty < vehicle.HEIGHT() - 1)
-                    if (!vehicle.existsAt(tx, ty) &&
-                            (vehicle.existsAt(tx    , ty - 1) ||
-                             vehicle.existsAt(tx + 1, ty    ) ||
-                             vehicle.existsAt(tx    , ty + 1) ||
-                             vehicle.existsAt(tx - 1, ty    ))) {
-                        currPlayer.builder().renderHighlight(gc, g, vehicle.ix() + tx*CollisionGrid.TW, vehicle.iy() + ty*CollisionGrid.TH);
-                        break;
-                    }
-            }
-        }
+        if (currPlayer.builder().buildMode())
+            renderBuilder(currPlayer.builder(), gc, g);
 
         for (Player player : players)
             player.render(gc, g);
@@ -264,6 +269,23 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         		     "        y: " +vehicles.get(0).getY() +"\n" +
         		     "absxSpeed: " +vehicles.get(0).getAbsXSpeed()+ "\n" +
         		     "absySpeed: " +vehicles.get(0).getAbsYSpeed(), 10, 100); */
+    }
+    private void renderBuilder(Builder builder, GameContainer gc, Graphics g) {
+        for (Vehicle vehicle : vehicles) {
+            int tx = vehicle.getTileXUnderPos(builder.getX() + builder.getWidth ()/2);
+            int ty = vehicle.getTileYUnderPos(builder.getY() + builder.getHeight()/2);
+            if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
+                ty >= 1 && ty < vehicle.HEIGHT() - 1)
+                if (!vehicle.existsAt(tx, ty) &&
+                        (vehicle.existsAt(tx    , ty - 1) ||
+                         vehicle.existsAt(tx + 1, ty    ) ||
+                         vehicle.existsAt(tx    , ty + 1) ||
+                         vehicle.existsAt(tx - 1, ty    ))) {
+                    builder.renderHighlight(gc, g, vehicle.ix() + tx*CollisionGrid.TW, vehicle.iy() + ty*CollisionGrid.TH);
+                    break;
+                }
+        }
+
     }
 
     public boolean updatePos() { return updatePos; }

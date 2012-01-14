@@ -14,8 +14,11 @@ public class FuelTransportCreator extends BlockCreator {
     }
 
     @Override
-    public void create(int x, int y) {
-        // TODO Auto-generated method stub
+    public FuelTransport create(int sub, int x, int y) {
+        if (sub <= 1)
+            return new FuelTransport(x, y, true, sub);
+        else
+            return new FuelTransport(x, y, false, sub - 2);
 
     }
 
