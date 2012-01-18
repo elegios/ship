@@ -1,5 +1,8 @@
 package ship.ui.inventory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import media.FontHolder;
 import media.ManagedSpriteSheet;
 
@@ -14,30 +17,25 @@ import ship.ui.Box;
 
 public class Tags extends Box implements KeyReceiver, Focusable {
 
-    public static final Tag[] TAGS = new Tag[] { new Tag(0, "All"),
-                                                 new Tag(1, "Colliding"),
-                                                 new Tag(2, "Noncolliding"),
-                                                 new Tag(3, "Fueldriven"),
-                                                 new Tag(4, "Fuelgenerating"),
-                                                 new Tag(5, "Fueltransport"),
-                                                 new Tag(6, "Powerdriven"),
-                                                 new Tag(7, "Powergenerating"),
-                                                 new Tag(8, "Powertransport"),
-                                                 new Tag(9, "Interactive"),
-                                                 new Tag(10, "Containers")
-                                               };
+    public static final List<Tag> TAGS = new ArrayList<>();
 
-    public static final Tag ALL             = TAGS[0];
-    public static final Tag COLLIDING       = TAGS[1];
-    public static final Tag NONCOLLIDING    = TAGS[2];
-    public static final Tag FUELDRIVEN      = TAGS[3];
-    public static final Tag FUELGENERATING  = TAGS[4];
-    public static final Tag FUELTRANSPORT   = TAGS[5];
-    public static final Tag POWERDRIVEN     = TAGS[6];
-    public static final Tag POWERGENERATING = TAGS[7];
-    public static final Tag POWERTRANSPORT  = TAGS[8];
-    public static final Tag INTERACTIVE     = TAGS[9];
-    public static final Tag CONTAINERS      = TAGS[10];
+    public static final Tag ALL             = new Tag("All");
+
+    public static final Tag COLLIDING       = new Tag("Colliding");
+    public static final Tag NONCOLLIDING    = new Tag("Noncolliding");
+
+    public static final Tag FUELRELATED     = new Tag("Fuel related");
+    public static final Tag FUELDRIVEN      = new Tag("Fuel driven");
+    public static final Tag FUELSOURCE      = new Tag("Fuel source");
+    public static final Tag FUELTRANSPORT   = new Tag("Fuel transport");
+
+    public static final Tag POWERRELATED    = new Tag("Power related");
+    public static final Tag POWERDRIVEN     = new Tag("Power driven");
+    public static final Tag POWERSOURCE     = new Tag("Power source");
+    public static final Tag POWERTRANSPORT  = new Tag("Power transport");
+
+    public static final Tag INTERACTIVE     = new Tag("Interactive");
+    public static final Tag CONTAINERS      = new Tag("Containers");
 
 
     public static final int WIDTH = 5;
@@ -63,23 +61,42 @@ public class Tags extends Box implements KeyReceiver, Focusable {
         fonts     = parent.view().fonts();
         highlight = parent.view().loader().loadManagedSpriteSheet("tag_highlight", HIGHLIGHT_W, TEXT_HEIGHT);
 
+        TAGS.add(ALL);
+
+        TAGS.add(COLLIDING);
+        TAGS.add(NONCOLLIDING);
+
+        TAGS.add(FUELRELATED);
+        TAGS.add(FUELDRIVEN);
+        TAGS.add(FUELSOURCE);
+        TAGS.add(FUELTRANSPORT);
+
+        TAGS.add(POWERRELATED);
+        TAGS.add(POWERDRIVEN);
+        TAGS.add(POWERSOURCE);
+        TAGS.add(POWERTRANSPORT);
+
+        TAGS.add(INTERACTIVE);
+        TAGS.add(CONTAINERS);
+
         selected = 0;
     }
 
-    public Tag getSelected() { return TAGS[selected]; }
+    public Tag getSelected() { return TAGS.get(selected); }
 
     public void render(GameContainer gc, Graphics g) {
         super.render(gc, g);
 
-        for (Tag tag : TAGS) {
-            if (tag.getID() == selected) {
+        for (int i = 0; i < TAGS.size(); i++) {
+            Tag tag = TAGS.get(i);
+            if (i == selected) {
                 if (focus)
-                    highlight.getSpriteSheet().getSprite(0, 0).draw(ix() + X_OFF - 5, iy() + tag.getID()*TEXT_HEIGHT +Y_OFF - 5);
+                    highlight.getSpriteSheet().getSprite(0, 0).draw(ix() + X_OFF - 5, iy() + i*TEXT_HEIGHT +Y_OFF - 5);
                 else
-                    highlight.getSpriteSheet().getSprite(1, 0).draw(ix() + X_OFF - 5, iy() + tag.getID()*TEXT_HEIGHT +Y_OFF - 5);
-                fonts.invSelected().drawString(ix() +X_OFF, iy() +tag.getID()*TEXT_HEIGHT +Y_OFF, tag.getName());
+                    highlight.getSpriteSheet().getSprite(1, 0).draw(ix() + X_OFF - 5, iy() + i*TEXT_HEIGHT +Y_OFF - 5);
+                fonts.invSelected().drawString(ix() +X_OFF, iy() +i*TEXT_HEIGHT +Y_OFF, tag.getName());
             } else {
-                fonts.inv().drawString(ix() +X_OFF, iy() +tag.getID()*TEXT_HEIGHT +Y_OFF, tag.getName());
+                fonts.inv().drawString(ix() +X_OFF, iy() +i*TEXT_HEIGHT +Y_OFF, tag.getName());
             }
         }
     }
@@ -92,13 +109,13 @@ public class Tags extends Box implements KeyReceiver, Focusable {
             if (key == keys.up() || key == keys.buildUp()) {
                 selected--;
                 if (selected < 0)
-                    selected += TAGS.length;
+                    selected += TAGS.size();
                 parent.updateTagFilter();
                 return true;
 
             } else if (key == keys.down() || key == keys.buildDown()) {
                 selected++;
-                selected %= TAGS.length;
+                selected %= TAGS.size();
                 parent.updateTagFilter();
                 return true;
 

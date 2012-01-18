@@ -28,7 +28,7 @@ public class Keys {
 
         activateDevice = Input.KEY_SPACE;
 
-        inventory = Input.KEY_NUMPADENTER;
+        inventory = Input.KEY_NUMPAD0;
 
         build       = Input.KEY_NUMPAD4;
         buildCancel = Input.KEY_NUMPAD6;

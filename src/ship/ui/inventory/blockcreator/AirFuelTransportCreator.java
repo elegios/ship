@@ -7,7 +7,7 @@ import ship.world.collisiongrid.vehicle.block.AirFuelTransport;
 public class AirFuelTransportCreator extends BlockCreator {
     public static final String NAME     = "Fuel Pipe (air)";
     public static final int    BASETILE = AirFuelTransport.BASETILE + 1;
-    public static final Tag[]  TAGS     = {Tags.NONCOLLIDING, Tags.FUELTRANSPORT};
+    public static final Tag[]  TAGS     = {Tags.NONCOLLIDING, Tags.FUELTRANSPORT, Tags.FUELRELATED};
 
     public AirFuelTransportCreator() {
         super(NAME, BASETILE, TAGS);

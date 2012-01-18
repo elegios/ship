@@ -16,8 +16,11 @@ import ship.View;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
 import ship.ui.inventory.blockcreator.AirFuelTransportCreator;
+import ship.ui.inventory.blockcreator.AirPowerTransportCreator;
 import ship.ui.inventory.blockcreator.BlockCreator;
 import ship.ui.inventory.blockcreator.FuelTransportCreator;
+import ship.ui.inventory.blockcreator.PowerSwitchCreator;
+import ship.ui.inventory.blockcreator.PowerTransportCreator;
 import ship.ui.inventory.blockcreator.ThrusterCreator;
 import ship.world.Position;
 import dataverse.datanode.ChangeListener;
@@ -72,9 +75,12 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         x.force(-subItems.getX2() - 1);
     }
     private void addTileCreators() {
-        blockCreators.add(new         ThrusterCreator());
-        blockCreators.add(new    FuelTransportCreator());
-        blockCreators.add(new AirFuelTransportCreator());
+        blockCreators.add(new          ThrusterCreator());
+        blockCreators.add(new     FuelTransportCreator());
+        blockCreators.add(new  AirFuelTransportCreator());
+        blockCreators.add(new       PowerSwitchCreator());
+        blockCreators.add(new    PowerTransportCreator());
+        blockCreators.add(new AirPowerTransportCreator());
     }
 
     public BlockCreator getBlockAt(int index) { return blockCreators.get(index); }

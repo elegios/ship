@@ -7,7 +7,7 @@ import ship.world.collisiongrid.vehicle.block.Thruster;
 public class ThrusterCreator extends BlockCreator {
     public static final String NAME     = "Thruster";
     public static final int    BASETILE = Thruster.BASETILE;
-    public static final Tag[]  TAGS     = {Tags.COLLIDING, Tags.FUELDRIVEN};
+    public static final Tag[]  TAGS     = {Tags.COLLIDING, Tags.FUELDRIVEN, Tags.FUELRELATED};
 
     public ThrusterCreator() {
         super(NAME, BASETILE, TAGS);
