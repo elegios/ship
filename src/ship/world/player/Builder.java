@@ -1,6 +1,5 @@
 package ship.world.player;
 
-import media.ManagedImage;
 import media.ManagedSpriteSheet;
 import media.Renderable;
 
@@ -27,7 +26,7 @@ public class Builder implements Renderable, KeyReceiver, Position {
     private int subItem;
     private int direction;
 
-    private ManagedImage highlight;
+    private ManagedSpriteSheet highlight;
 
     public Builder(Inventory inv, Player player) throws SlickException {
         this.inv = inv;
@@ -35,7 +34,7 @@ public class Builder implements Renderable, KeyReceiver, Position {
         this.player = player;
 
         tiles     = player.world().view().loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
-        highlight = player.world().view().loader().loadManagedImage("builder_highlight");
+        highlight = player.world().view().loader().loadManagedSpriteSheet("builder_highlight", CollisionGrid.TW, CollisionGrid.TH);
     }
 
     public String getMakeString() { return item +"."+ subItem; }
@@ -50,8 +49,11 @@ public class Builder implements Renderable, KeyReceiver, Position {
         }
     }
 
-    public void renderHighlight(GameContainer gc, Graphics g, int x, int y) {
-        highlight.getImage().draw(x, y);
+    public void renderHighlight(GameContainer gc, Graphics g, int x, int y, boolean create) {
+        if (create)
+            highlight.getSpriteSheet().getSprite(0, 0).draw(x, y);
+        else
+            highlight.getSpriteSheet().getSprite(1, 0).draw(x, y);
     }
 
     public boolean buildMode() { return buildMode; }
@@ -124,6 +126,13 @@ public class Builder implements Renderable, KeyReceiver, Position {
                 player.c("buildMode", true);
             else
                 player.world().buildUnderPlayerBuilder(player);
+            return true;
+
+        } if (key == keys.destroy()) {
+            if (!buildMode)
+                player.c("buildMode", true);
+            else
+                player.world().destroyUnderPlayerBuilder(player);
             return true;
 
         } if (key == keys.buildCancel()) {

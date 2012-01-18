@@ -14,7 +14,7 @@ public class FuelSwitch extends Block {
     }
 
     public void update(GameContainer gc, int diff) {
-        if (active)
+        if (active && parent.tile(x(), y() + 1) != null)
             parent.tile(x(), y() + 1).fuelFrom(Block.UP);
     }
 

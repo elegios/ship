@@ -232,6 +232,20 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     }
 
+    public void destroyUnderPlayerBuilder(Player player) {
+        for (Vehicle vehicle : vehicles) {
+            int tx = vehicle.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
+            int ty = vehicle.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
+            if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
+                ty >= 1 && ty < vehicle.HEIGHT() - 1)
+                if (vehicle.existsAt(tx, ty)) {
+                    player.c("deleTile", "vehicle." +vehicle.getID()+ ".dele." +tx+ "." +ty);
+                    break;
+                }
+        }
+
+    }
+
     @Override
     public void render(GameContainer gc, Graphics g) {
         int w = View.window().getWidth()  / sky.getImage().getWidth();
@@ -284,7 +298,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                          vehicle.existsAt(tx + 1, ty    ) ||
                          vehicle.existsAt(tx    , ty + 1) ||
                          vehicle.existsAt(tx - 1, ty    ))) {
-                    builder.renderHighlight(gc, g, vehicle.ix() + tx*CollisionGrid.TW, vehicle.iy() + ty*CollisionGrid.TH);
+                    builder.renderHighlight(gc, g, vehicle.ix() + tx*CollisionGrid.TW, vehicle.iy() + ty*CollisionGrid.TH, true);
+                    break;
+                } else if (vehicle.existsAt(tx, ty)) {
+                    builder.renderHighlight(gc, g, vehicle.ix() + tx*CollisionGrid.TW, vehicle.iy() + ty*CollisionGrid.TH, false);
                     break;
                 }
         }

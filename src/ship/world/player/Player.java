@@ -226,6 +226,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
         } else if (id.equals("player." +this.id+ ".makeTile"))
             node.c(data, true);
+        else if (id.equals("player." +this.id+ ".deleTile"))
+            node.c(data, true);
     }
     public void intChanged(String id, int data) {
         if (id.startsWith("player." +this.id+ "."))

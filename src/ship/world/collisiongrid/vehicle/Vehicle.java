@@ -98,7 +98,6 @@ public class Vehicle extends CollisionGrid {
     public final void remTile(Block tile) {
         c("mass", mass - tile.mass());
         tile(tile.x(), tile.y(), null);
-        tile.setParent(this);
     }
 
     protected Rectangle getRectAt(int x, int y) { return tile(x, y); }
@@ -202,15 +201,19 @@ public class Vehicle extends CollisionGrid {
         }
     }
     protected void updateBoolean(String id, boolean data) {
-        if (id.startsWith("tile.") || id.startsWith("make.")) {
+        if (id.startsWith("tile.") || id.startsWith("make.") || id.startsWith("dele.")) {
             Scanner s = new Scanner(id.substring(5));
             s.useDelimiter("\\.");
             if (id.startsWith("tile.")) {
                 Block tile = tile(s.nextInt(), s.nextInt());
                 if (tile != null)
                     tile.updateBoolean(s.nextLine().substring(1), data);
-            } else {
+            } else if (id.startsWith("make.")){
                 this.addTile(inv.getBlockAt(s.nextInt()).create(s.nextInt(), s.nextInt(), s.nextInt()));
+            } else {
+                Block tile = tile(s.nextInt(), s.nextInt());
+                if (tile != null)
+                    this.remTile(tile);
             }
         }
     }
