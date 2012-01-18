@@ -14,13 +14,16 @@ public class Keys {
     private int inventory;
 
     private int build;
+    private int destroy;
     private int buildCancel;
+
+
     private int buildUp;
     private int buildRight;
     private int buildDown;
     private int buildLeft;
 
-    public Keys() {
+    public Keys() { //default is a somewhat neutral control scheme, except it requires numpad
         up    = Input.KEY_UP;
         right = Input.KEY_RIGHT;
         down  = Input.KEY_DOWN;
@@ -37,6 +40,55 @@ public class Keys {
         buildRight = Input.KEY_NUMPAD3;
         buildDown  = Input.KEY_NUMPAD2;
         buildLeft  = Input.KEY_NUMPAD1;
+
+        setDvorak(); //temporary
+    }
+
+    public void setDvorak() {
+        up    = Input.KEY_COMMA;
+        right = Input.KEY_E;
+        down  = Input.KEY_O;
+        left  = Input.KEY_A;
+
+        activateDevice = Input.KEY_SPACE;
+
+        inventory = Input.KEY_TAB;
+
+        build       = Input.KEY_G;
+        destroy     = Input.KEY_R;
+        buildCancel = Input.KEY_S;
+
+        buildUp    = Input.KEY_C;
+        buildRight = Input.KEY_N;
+        buildDown  = Input.KEY_T;
+        buildLeft  = Input.KEY_H;
+    }
+
+    public void setQwerty() {
+        up    = Input.KEY_W;
+        right = Input.KEY_D;
+        down  = Input.KEY_S;
+        left  = Input.KEY_A;
+
+        activateDevice = Input.KEY_SPACE;
+
+        inventory = Input.KEY_TAB;
+
+        build       = Input.KEY_U;
+        destroy     = Input.KEY_O;
+        buildCancel = Input.KEY_SEMICOLON;
+
+        buildUp    = Input.KEY_I;
+        buildRight = Input.KEY_L;
+        buildDown  = Input.KEY_K;
+        buildLeft  = Input.KEY_J;
+    }
+
+    public void setSweQwerty() {
+        setQwerty();
+
+        buildCancel = Input.KEY_EQUALS; //For some reason Ö is reported as 13, which is EQUALS according to Slick.
+                                        //(Å and Ä are also reported as 13, so here's a potential oddity)
     }
 
     public int up   () { return up; }
@@ -49,6 +101,7 @@ public class Keys {
     public int inventory() { return inventory; }
 
     public int build      () { return build;       }
+    public int destroy    () { return destroy;     }
     public int buildCancel() { return buildCancel; }
 
     public int buildUp   () { return buildUp;    }
@@ -67,6 +120,7 @@ public class Keys {
     public void inventory(int key) { inventory = key; }
 
     public void build      (int key) { build       = key; }
+    public void destroy    (int key) { destroy     = key; }
     public void buildCancel(int key) { buildCancel = key; }
 
     public void buildUp   (int key) { buildUp    = key; }

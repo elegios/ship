@@ -242,9 +242,6 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                 int deltaY = Math.abs(j*sky.getImage().getHeight() + iy()%sky.getImage().getHeight() - island.iy() - island.getHeight()/2);
                 double dist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) - SKY_GRADIENT_MINIMUM;
 
-                if (i == w && j == h)
-                    g.drawString("deltaX: " +(deltaX^2)+ " deltaY: " +(deltaY^2)+ " dist: " +dist, 10, 100);
-
                 if (dist < 0)
                     sky.getImage().setAlpha(1);
                 else
@@ -261,11 +258,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             vehicle.render(gc, g);
         tileset.getSpriteSheet().endUse();
 
-        if (currPlayer.builder().buildMode())
-            renderBuilder(currPlayer.builder(), gc, g);
-
         for (Player player : players)
             player.render(gc, g);
+
+        if (currPlayer.builder().buildMode())
+            renderBuilder(currPlayer.builder(), gc, g);
 
         /*g.drawString("player  x: " +currPlayer.getX()+ "\n" +
         		     "        y: " +currPlayer.getY()+ "\n" +
