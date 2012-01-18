@@ -21,6 +21,7 @@ import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
+import ship.world.collisiongrid.vehicle.Vehicle;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -62,6 +63,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     private boolean downMotion;
     private RelativeMovable collided;
+    private Vehicle lastVehicle;
+    private boolean airResistX;
 
     private Builder builder;
 
@@ -124,13 +127,19 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     public void update(GameContainer gc, int diff) {
         if ( moveLeft && !moveRight)
-            if (collided != null)
-                xSpeed = collided.getAbsXSpeed() - MOVE_SPEED;
+            if (collided != null || airResistX)
+                if (airResistX)
+                    xSpeed = lastVehicle.getAbsXSpeed() - MOVE_SPEED;
+                else
+                    xSpeed = collided.getAbsXSpeed() - MOVE_SPEED;
             else
                 xSpeed = -MOVE_SPEED;
         if (!moveLeft &&  moveRight )
-            if (collided != null)
-                xSpeed = collided.getAbsXSpeed() + MOVE_SPEED;
+            if (collided != null || airResistX)
+                if (airResistX)
+                    xSpeed = lastVehicle.getAbsXSpeed() + MOVE_SPEED;
+                else
+                    xSpeed = collided.getAbsXSpeed() + MOVE_SPEED;
             else
                 xSpeed = MOVE_SPEED;
         if (collided != null && downMotion && jump) {
@@ -138,8 +147,14 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             ySpeed = JUMP_SPEED;
         }
 
-        pushBackX(-xSpeed * world.airResist());
-        pushBackY(-ySpeed * world.airResist());
+        if (collided != null)
+            if (collided instanceof Vehicle)
+                lastVehicle = (Vehicle) collided;
+            else
+                lastVehicle = null;
+
+        doAirResistX();
+        doAirResistY();
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
@@ -155,6 +170,69 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             c("ySpeed", ySpeed);
         }
 
+    }
+
+    private void doAirResistX() {
+        if (lastVehicle != null) {
+            int playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
+            int playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
+
+            if (xSpeed > 0) {
+                for (int i = playX; i < lastVehicle.WIDTH(); i++) {
+                    if (lastVehicle.existsAt(i, playY)) {
+                        pushBackX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
+                        airResistX = true;
+                        return;
+                    }
+                }
+
+                airResistX = false;
+                pushBackX(-xSpeed * world.airResist());
+            } else if (xSpeed < 0) {
+                for (int i = playX; i > 0; i--) {
+                    if (lastVehicle.existsAt(i, playY)) {
+                        pushBackX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
+                        airResistX = true;
+                        return;
+                    }
+                }
+
+                airResistX = false;
+                pushBackX(-xSpeed * world.airResist());
+            }
+        } else {
+            airResistX = false;
+            pushBackX(-xSpeed * world.airResist());
+        }
+    }
+
+    private void doAirResistY() {
+        if (lastVehicle != null) {
+            int playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
+            int playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
+
+            if (ySpeed > 0) {
+                for (int j = playY; j < lastVehicle.WIDTH(); j++) {
+                    if (lastVehicle.existsAt(playX, j)) {
+                        pushBackY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
+                        return;
+                    }
+                }
+
+                pushBackY(-ySpeed * world.airResist());
+            } else if (ySpeed < 0) {
+                for (int j = playY; j > 0; j--) {
+                    if (lastVehicle.existsAt(playX, j)) {
+                        pushBackY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
+                        return;
+                    }
+                }
+
+                pushBackY(-ySpeed * world.airResist());
+            }
+        } else {
+            pushBackY(-ySpeed * world.airResist());
+        }
     }
 
     public void collisionFixPosX(float xMove, RelativeMovable collisionOrigin) {
