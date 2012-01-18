@@ -4,6 +4,8 @@
  */
 package ship.world.player;
 
+import java.util.Scanner;
+
 import media.ManagedImage;
 import media.MediaLoader;
 import media.Renderable;
@@ -217,9 +219,12 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     public final void c(String id, Object data) { node.c("player." +this.id+ "." +id, data); }
 
     public void dataChanged(String id, String data) {
-        if (id.equals("player." +this.id+ ".activate"))
-            node.c(data, true);
-        else if (id.equals("player." +this.id+ ".makeTile"))
+        if (id.equals("player." +this.id+ ".activate")) {
+            Scanner s = new Scanner(data);
+            s.useDelimiter("\\.");
+            world.activateOnVehicle(s.nextInt(), s.nextInt(), s.nextInt());
+
+        } else if (id.equals("player." +this.id+ ".makeTile"))
             node.c(data, true);
     }
     public void intChanged(String id, int data) {

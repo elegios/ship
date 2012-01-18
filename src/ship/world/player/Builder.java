@@ -42,7 +42,7 @@ public class Builder implements Renderable, KeyReceiver, Position {
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        if (buildMode) {
+        if (buildMode && item != -1) {
             int tileX = inv.getBlockAt(item).subTile(subItem)%tiles.getSpriteSheet().getHorizontalCount();
             int tileY = inv.getBlockAt(item).subTile(subItem)/tiles.getSpriteSheet().getHorizontalCount();
 

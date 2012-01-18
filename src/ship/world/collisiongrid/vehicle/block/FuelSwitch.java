@@ -14,9 +14,8 @@ public class FuelSwitch extends Block {
     }
 
     public void update(GameContainer gc, int diff) {
-        if (active) {
+        if (active)
             parent.tile(x(), y() + 1).fuelFrom(Block.UP);
-        }
     }
 
     public int tile() {
@@ -26,19 +25,13 @@ public class FuelSwitch extends Block {
             return super.tile();
     }
 
-    public void activate() {
-        c("active", !active);
-    }
+    public void activate() { c("active", !active); }
 
     @Override
     public void updateBoolean(String id, boolean data) {
         switch (id) {
             case "active":
                 active = data;
-                break;
-
-            case "activate":
-                activate();
                 break;
         }
     }

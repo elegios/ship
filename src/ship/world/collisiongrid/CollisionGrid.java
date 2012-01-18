@@ -17,6 +17,7 @@ import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
+import ship.world.collisiongrid.island.Island;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -115,10 +116,11 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                     if (collidesAt(i, j)) {
                         float fixMove = other.collideRectangleX(getRectAt(i, j), getAbsXSpeed() - other.getAbsXSpeed());
                         if (fixMove != 0) {
-                            if (!collidedWithImmobileX &&
-                                  (fixMove < 0 && collisionLockX < 0) ||
+                            if ((!collidedWithImmobileX &&
+                                 ((fixMove < 0 && collisionLockX < 0) ||
                                   (fixMove > 0 && collisionLockX > 0) ||
-                                  collisionLockX == 0) {
+                                  collisionLockX == 0)) ||
+                                  other instanceof Island) {
                                 x += fixMove;
                                 collisionLockX = fixMove;
                                 hasCollided = true;
@@ -144,10 +146,11 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                     if (collidesAt(i, j)) {
                         float fixMove = other.collideRectangleY(getRectAt(i, j), getAbsYSpeed() - other.getAbsYSpeed());
                         if (fixMove != 0) {
-                            if (!collidedWithImmobileY &&
-                                  (fixMove < 0 && collisionLockY < 0) ||
-                                  (fixMove > 0 && collisionLockY < 0) ||
-                                  collisionLockY == 0) {
+                            if ((!collidedWithImmobileY &&
+                                 ((fixMove < 0 && collisionLockY < 0) ||
+                                  (fixMove > 0 && collisionLockY > 0) ||
+                                  collisionLockY == 0)) ||
+                                  other instanceof Island) {
                                 y += fixMove;
                                 collisionLockY = fixMove;
                                 hasCollided = true;
@@ -169,7 +172,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int j1 = (int)          (rect.getY()         - getY())/TH;
             int j2 = (int) Math.ceil(rect.getY2()        - getY())/TH;
             if (collides(i2, j1) || collides(i2, j2)) {
-                float fixMove = getX() + i2*TW - rect.getX() - xMod - rect.getWidth() - 0.001f;
+                float fixMove = getX() + i2*TW - rect.getX() - xMod - rect.getWidth() - 0.002f;
                 if (fixMove == 0)
                     return 0;
                 fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, xMod == 0);
@@ -177,7 +180,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             }
             int i1  = (int) (rect.getX() + xMod - getX())/TW;
             if (collides(i1, j1) || collides(i1, j2)) {
-                float fixMove = getX() + i1*TW + TW - rect.getX() - xMod + 0.001f;
+                float fixMove = getX() + i1*TW + TW - rect.getX() - xMod + 0.002f;
                 if (fixMove == 0)
                     return 0;
                 fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, xMod == 0);
@@ -192,7 +195,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             int i2 = (int) Math.ceil(rect.getX2()        - getX())/TW;
             int j2 = (int) Math.ceil(rect.getY2() + yMod - getY())/TH;
             if (collides(i1, j2) || collides(i2, j2)) {
-                float fixMove = getY() + j2*TH - rect.getY() - yMod - rect.getHeight() - 0.001f;
+                float fixMove = getY() + j2*TH - rect.getY() - yMod - rect.getHeight() - 0.002f;
                 if (fixMove == 0)
                     return 0;
                 fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, yMod == 0);
@@ -200,7 +203,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             }
             int j1 = (int) (rect.getY() + yMod - getY())/TH;
             if (collides(i1, j1) || collides(i2, j1)) {
-                float fixMove = getY() + j1*TH + TH - rect.getY() - yMod + 0.001f;
+                float fixMove = getY() + j1*TH + TH - rect.getY() - yMod + 0.002f;
                 if (fixMove == 0)
                     return 0;
                 fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, yMod == 0);
@@ -246,6 +249,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     }
 
     public void moveX(int diff) {
+        collidedWithImmobileX = false;
         collisionLockX = 0;
 
         if (toSetXb) {
@@ -260,6 +264,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         x += getAbsXMove(diff);
     }
     public void moveY(int diff) {
+        collidedWithImmobileY = false;
         collisionLockY = 0;
 
         if (toSetYb) {
@@ -294,8 +299,6 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                 updateAt(i, j, gc, diff);
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
-        collidedWithImmobileX = false;
-        collidedWithImmobileY = false;
 
         if (world.updatePos() && world.view().playerId() == 0) {
             c("x", x);

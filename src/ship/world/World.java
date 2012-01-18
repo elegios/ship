@@ -148,20 +148,26 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     public void collideVehicleX(Vehicle vehicle) {
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
-            if (vehicles.get(i).getID() != vehicle.getID())
+            if (vehicles.get(i).getID() != vehicle.getID()) {
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleX(vehicles.get(i));
                 else if (vehicle.collideWithCollisionGridX(vehicles.get(i)))
                     i = -1;
+                if (i == vehicles.size() - 1 && vehicle.collideWithCollisionGridX(island))
+                    i = -1;
+            }
     }
 
     public void collideVehicleY(Vehicle vehicle) {
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
-            if (vehicles.get(i).getID() != vehicle.getID())
+            if (vehicles.get(i).getID() != vehicle.getID()) {
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleY(vehicles.get(i));
                 else if (vehicle.collideWithCollisionGridY(vehicles.get(i)))
                     i = -1;
+                if (i == vehicles.size() - 1 && vehicle.collideWithCollisionGridY(island))
+                    i = -1;
+            }
     }
 
     public void collidePlayerX(Player player) {
@@ -197,16 +203,16 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     public void activateUnderPlayer(Player player) {
         for (Vehicle vehicle : vehicles)
             if (vehicle.overlaps(player)) {
-                long vehX = vehicle.getTileXUnderPos(player.getX() + player.getWidth ()/2);
-                long vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
+                int vehX = vehicle.getTileXUnderPos(player.getX() + player.getWidth ()/2);
+                int vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
                 if (vehX >= 0 && vehX < vehicle.WIDTH() &&
-                    vehY >= 0 && vehY < vehicle.HEIGHT())
-                    player.c("activate", "vehicle." +vehicle.getID()+ ".tile."
-                             + vehX +"."
-                             + vehY +".activate");
+                    vehY >= 0 && vehY < vehicle.HEIGHT() &&
+                    vehicle.tile(vehX, vehY) != null)
+                    player.c("activate", vehicle.getID() +"."+ vehX +"."+ vehY);
             }
 
     }
+    public void activateOnVehicle(int vehicle, int x, int y) { vehicles.get(vehicle).tile(x, y).activate(); }
 
     public void buildUnderPlayerBuilder(Player player) {
         for (Vehicle vehicle : vehicles) {

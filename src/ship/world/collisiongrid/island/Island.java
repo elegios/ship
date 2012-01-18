@@ -53,6 +53,7 @@ public class Island extends CollisionGrid {
                 rel.pushBackX(-rel.getMass() * xSpeed);
             }
         }
+
         return fixMove;
     }
     protected float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first) {
@@ -63,6 +64,7 @@ public class Island extends CollisionGrid {
                 rel.pushBackY(-rel.getMass() * ySpeed);
             }
         }
+
         return fixMove;
     }
 
