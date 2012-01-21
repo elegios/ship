@@ -83,6 +83,7 @@ public class Vehicle extends CollisionGrid {
     public final void addTile(Block tile) {
         c("mass", mass + tile.mass());
         tile(tile.x(), tile.y(), tile);
+        setCollidesAt(tile.x(), tile.y(), tile.collide());
         tile.setParent(this);
 
         if (tile.x() < leftX)
@@ -98,13 +99,11 @@ public class Vehicle extends CollisionGrid {
     public final void remTile(Block tile) {
         c("mass", mass - tile.mass());
         tile(tile.x(), tile.y(), null);
+        setCollidesAt(tile.x(), tile.y(), false);
     }
 
     protected Rectangle getRectAt(int x, int y) { return tile(x, y); }
     protected int       tileAt   (int x, int y) { return tile(x, y).tile(); }
-    public    boolean   collidesAt(int x, int y) {
-        return tile(x, y) != null && tile(x, y).collide();
-    }
     protected boolean renderAt(int x, int y) {
         return tile(x, y) != null && tile(x, y).render();
     }
@@ -113,6 +112,11 @@ public class Vehicle extends CollisionGrid {
         if (tile(x, y) != null)
             tile(x, y).update(gc, diff);
     }
+
+    protected int leftX () { return leftX;  }
+    protected int rightX() { return rightX; }
+    protected int topY  () { return topY;   }
+    protected int botY  () { return botY;   }
 
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first) {
         if (rect instanceof RelativeMovable) {

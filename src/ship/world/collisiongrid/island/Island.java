@@ -35,7 +35,7 @@ public class Island extends CollisionGrid {
 
         for (int i = 0; i < WIDTH(); i++)
             for (int j = 0; j < 3; j++)
-                tile(i, 20 + j, 1, false);
+                tile(i, HEIGHT()/2 + j, 1, false);
     }
 
     protected Rectangle getRectAt (int x, int y) { return null; }
@@ -44,6 +44,11 @@ public class Island extends CollisionGrid {
     public    boolean   existsAt  (int x, int y) { return tile(x, y) != 0; }
     protected int       tileAt    (int x, int y) { return tile(x, y); }
     protected void      updateAt  (int x, int y, GameContainer gc, int diff) {}
+
+    protected int leftX () { return            0; }
+    protected int rightX() { return WIDTH () - 1; }
+    protected int topY  () { return            0; }
+    protected int botY  () { return HEIGHT() - 1; }
 
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first) {
         if (rect instanceof RelativeMovable) {
@@ -73,9 +78,11 @@ public class Island extends CollisionGrid {
     }
     private void tile(int x, int y, int val, boolean change) {
         if (change)
-            c(x+ "." +y, val);
-        else
+            c(x+ "." +y, val); //TODO: make this actually do something
+        else {
             tiles[x][y] = (byte) val;
+            setCollidesAt(x, y, val != 0);
+        }
     }
 
     public int WIDTH () { return ISLAND_WIDTH;  }

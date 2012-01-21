@@ -76,7 +76,7 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     public final float getX() { return parent.getX() + x*CollisionGrid.TW; }
     public final float getY() { return parent.getY() + y*CollisionGrid.TH; }
 
-    public final int  getWidth() { return CollisionGrid.TW; }
+    public final int getWidth () { return CollisionGrid.TW; }
     public final int getHeight() { return CollisionGrid.TH; }
 
     public final float getX2() { return getX() +  getWidth() - 1; }

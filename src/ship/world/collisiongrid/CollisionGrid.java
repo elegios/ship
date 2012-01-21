@@ -54,6 +54,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     private float   collisionLockX;
     private float   collisionLockY;
 
+    private boolean[][] collidesAt;
+
     protected World world;
 
     protected EasyNode    node;
@@ -71,6 +73,11 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
         node.addChangeListener(this);
 
+        collidesAt = new boolean[WIDTH()][HEIGHT()];
+        for (int i = 0; i < collidesAt.length; i++)
+            for (int j = 0; j < collidesAt[0].length; j++)
+                collidesAt[i][j] = false;
+
         if (centerInit) {
             this.x = x - getWidth()/2;
             this.y = y - getHeight()/2;
@@ -84,11 +91,15 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     }
 
     protected abstract Rectangle getRectAt (int x, int y);
-    public    abstract boolean   collidesAt(int x, int y);
     protected abstract boolean   renderAt  (int x, int y);
     public    abstract boolean   existsAt  (int x, int y);
     protected abstract int       tileAt    (int x, int y);
     protected abstract void      updateAt  (int x, int y, GameContainer gc, int diff);
+
+    protected abstract int leftX();
+    protected abstract int rightX();
+    protected abstract int topY();
+    protected abstract int botY();
 
     protected abstract void updateData   (String id, String  data);
     protected abstract void updateInt    (String id, int     data);
@@ -104,6 +115,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     protected abstract float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first);
     protected abstract float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first);
 
+    public    boolean collidesAt(int x, int y)            { return collidesAt[x][y]; }
+    protected void setCollidesAt(int x, int y, boolean collides) { collidesAt[x][y] = collides; }
+
     public World world() { return world; }
 
     public boolean collideWithCollisionGridX(CollisionGrid other) {
@@ -111,9 +125,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         boolean hasCollided = false;
 
         if (other.overlaps(this) || this.overlaps(other))
-            for (int i = 0; i < WIDTH(); i++)
-                for (int j = 0; j < HEIGHT(); j++)
-                    if (collidesAt(i, j)) {
+            for (int i = leftX(); i <= rightX(); i++)
+                for (int j = topY(); j <= botY(); j++)
+                    if (collidesAt[i][j]) {
                         float fixMove = other.collideRectangleX(getRectAt(i, j), getAbsXSpeed() - other.getAbsXSpeed());
                         if (fixMove != 0) {
                             if ((!collidedWithImmobileX &&
@@ -141,9 +155,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         boolean hasCollided = false;
 
         if (other.overlaps(this) || this.overlaps(other))
-            for (int i = 0; i < WIDTH(); i++)
-                for (int j = 0; j < HEIGHT(); j++)
-                    if (collidesAt(i, j)) {
+            for (int i = leftX(); i <= rightX(); i++)
+                for (int j = topY(); j <= botY(); j++)
+                    if (collidesAt[i][j]) {
                         float fixMove = other.collideRectangleY(getRectAt(i, j), getAbsYSpeed() - other.getAbsYSpeed());
                         if (fixMove != 0) {
                             if ((!collidedWithImmobileY &&
@@ -214,23 +228,25 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     private boolean collides(int x, int y) {
         if (0 <= x && x < WIDTH() &&
-            0 <= y && y < HEIGHT() &&
-            collidesAt(x, y))
-            return true;
+            0 <= y && y < HEIGHT())
+            return collidesAt[x][y];
         return false;
     }
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        float xMax = (View.window().getWidth()  - getX() - world.getX())/TW;
-        float xMin = (                    - TW  - getX() - world.getX())/TW;
-        float yMax = (View.window().getHeight() - getY() - world.getY())/TH;
-        float yMin = (                     - TH - getY() - world.getY())/TH;
-        for (int i = 0; i < WIDTH(); i++)
-            for (int j = 0; j < HEIGHT(); j++)
-                if (renderAt(i, j) &&
-                    i <= xMax && i >= xMin &&
-                    j <= yMax && j >= yMin)
+        int xMax = (int) Math.min((View.window().getWidth()  - getX() - world.getX())/TW, WIDTH () - 1);
+        int xMin = (int) Math.max((                    - TW  - getX() - world.getX())/TW, 0);
+        int yMax = (int) Math.min((View.window().getHeight() - getY() - world.getY())/TH, HEIGHT() - 1);
+        int yMin = (int) Math.max((                     - TH - getY() - world.getY())/TH, 0);
+
+        if (xMax < 0 || xMin >= WIDTH() ||
+            yMax < 0 || yMin >= HEIGHT())
+            return;
+
+        for (int i = xMin; i <= xMax; i++)
+            for (int j = yMin; j <= yMax; j++)
+                if (renderAt(i, j))
                     tileset.getSpriteSheet().renderInUse(ix() + i*TW,
                                                          iy() + j*TH,
                                                          tileAt(i, j)%tileset.getSpriteSheet().getHorizontalCount(),
@@ -294,8 +310,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     @Override
     public void update(GameContainer gc, int diff) {
-        for (int i = 0; i < WIDTH(); i++)
-            for (int j = 0; j < HEIGHT(); j++)
+        for (int i = leftX(); i <= rightX(); i++)
+            for (int j = topY(); j <= botY(); j++)
                 updateAt(i, j, gc, diff);
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();

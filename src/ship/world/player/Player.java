@@ -125,7 +125,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         y += getAbsYMove(diff);
     }
 
-    public void update(GameContainer gc, int diff) {
+    public void update(GameContainer gc, int diff) { //TODO: fix player movement, not set speed, push in a direction. Also, profile entire thing.
         if ( moveLeft && !moveRight)
             if (collided != null || airResistX)
                 if (airResistX)
@@ -173,10 +173,16 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     }
 
     private void doAirResistX() {
+        int playX = 0;
+        int playY = 0;
         if (lastVehicle != null) {
-            int playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
-            int playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
+            playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
+            playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
+        }
 
+        if (lastVehicle != null &&
+            playX >= 0 && playX < lastVehicle.WIDTH() &&
+            playY >= 0 && playY < lastVehicle.HEIGHT()) {
             if (xSpeed > 0) {
                 for (int i = playX; i < lastVehicle.WIDTH(); i++) {
                     if (lastVehicle.existsAt(i, playY)) {
@@ -207,10 +213,16 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     }
 
     private void doAirResistY() {
+        int playX = 0;
+        int playY = 0;
         if (lastVehicle != null) {
-            int playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
-            int playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
+            playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
+            playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
+        }
 
+        if (lastVehicle != null &&
+            playX >= 0 && playX < lastVehicle.WIDTH() &&
+            playY >= 0 && playY < lastVehicle.HEIGHT()) {
             if (ySpeed > 0) {
                 for (int j = playY; j < lastVehicle.WIDTH(); j++) {
                     if (lastVehicle.existsAt(playX, j)) {

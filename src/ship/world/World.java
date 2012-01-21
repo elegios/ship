@@ -7,10 +7,10 @@ package ship.world;
 import java.util.ArrayList;
 import java.util.List;
 
-import media.ManagedImage;
 import media.ManagedSpriteSheet;
 import media.Renderable;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
@@ -32,8 +32,8 @@ import dataverse.datanode.easy.EasyNode;
  * @author elegios
  */
 public class World implements Position, Renderable, Updatable, ChangeListener, KeyReceiver {
-    public static final int SKY_GRADIENT_MINIMUM = 250 * CollisionGrid.TW;
-    public static final int SKY_GRADIENT_LENGTH  = 100 * CollisionGrid.TH;
+    public static final int SKY_GRADIENT_MINIMUM = 180 * CollisionGrid.TW;
+    public static final int SKY_GRADIENT_LENGTH  = 10;
 
     private View view;
 
@@ -43,7 +43,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     private int y;
 
     private ManagedSpriteSheet tileset;
-    private ManagedImage       sky;
+    private static Color[] skyColors;
 
     private Island island;
     private Player[] players;
@@ -60,6 +60,12 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     private int     updatePosInterval;
 
     public World(View view) throws SlickException {
+        if (skyColors == null) {
+            skyColors = new Color[256];
+            for (int i = 255; i >= 0; i--)
+                skyColors[255 - i] = new Color(0, 0, i);
+        }
+
         this.view = view;
 
         node = view.node();
@@ -75,7 +81,6 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         c("airResist",         0.3f);
 
         tileset = view.loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
-        sky     = view.loader().loadManagedImage      ("sky");
 
         island  = new Island(this, 0,  0, 0);
         vehicles = new ArrayList<>();
@@ -248,23 +253,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        int w = View.window().getWidth()  / sky.getImage().getWidth();
-        int h = View.window().getHeight() / sky.getImage().getHeight();
-        for (int i = -1; i < w + 2; i++)
-            for (int j = -1; j < h + 2; j++) {
-                int deltaX = Math.abs(i*sky.getImage().getWidth () + ix()%sky.getImage().getWidth()  - island.ix() - island.getWidth ()/2);
-                int deltaY = Math.abs(j*sky.getImage().getHeight() + iy()%sky.getImage().getHeight() - island.iy() - island.getHeight()/2);
-                double dist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) - SKY_GRADIENT_MINIMUM;
-
-                if (dist < 0)
-                    sky.getImage().setAlpha(1);
-                else
-                    sky.getImage().setAlpha(1.0f - (float) dist/SKY_GRADIENT_LENGTH);
-
-                sky.getImage().draw(i*sky.getImage().getWidth() + ix()%sky.getImage().getWidth(), j*sky.getImage().getHeight() + iy()%sky.getImage().getHeight());
-            }
-
-
+        renderBackgroundGradient();
 
         tileset.getSpriteSheet().startUse();
         island.render(gc, g);
@@ -306,6 +295,20 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                 }
         }
 
+    }
+    private void renderBackgroundGradient() {
+        int deltaX = View.window().getWidth ()/2 - island.ix() - island.getWidth ()/2;
+        int deltaY = View.window().getHeight()/2 - island.iy() - island.getHeight()/2;
+        float dist = (float) Math.sqrt(deltaX*deltaX + deltaY*deltaY) - SKY_GRADIENT_MINIMUM;
+
+        View.window().getGraphics().drawString("dist: " +dist, 10, 100);
+
+        int color = 0;
+        if (dist > 0)
+            color = Math.min(Math.round(dist/SKY_GRADIENT_LENGTH), 255);
+
+        View.window().getGraphics().setBackground(skyColors[color]);
+        View.window().getGraphics().flush();
     }
 
     public boolean updatePos() { return updatePos; }
