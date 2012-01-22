@@ -32,7 +32,7 @@ import dataverse.datanode.easy.EasyNode;
  * @author elegios
  */
 public class World implements Position, Renderable, Updatable, ChangeListener, KeyReceiver {
-    public static final int SKY_GRADIENT_MINIMUM = 180 * CollisionGrid.TW;
+    public static final int SKY_GRADIENT_MINIMUM = 220 * CollisionGrid.TW;
     public static final int SKY_GRADIENT_LENGTH  = 10;
     public static final int SKY_MAX_R = 62;
     public static final int SKY_MAX_G = 209;
@@ -47,6 +47,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     private ManagedSpriteSheet tileset;
     private static Color[] skyColors;
+
+    private ParallaxBackground paraBack;
 
     private Island island;
     private Player[] players;
@@ -71,6 +73,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         }
 
         this.view = view;
+
+        paraBack = new ParallaxBackground(this);
 
         node = view.node();
 
@@ -259,6 +263,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     public void render(GameContainer gc, Graphics g) {
         renderBackgroundGradient();
 
+        paraBack.render(gc, g);
+
         tileset.getSpriteSheet().startUse();
         island.render(gc, g);
         for (Vehicle vehicle : vehicles)
@@ -270,15 +276,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
         if (currPlayer.builder().buildMode())
             renderBuilder(currPlayer.builder(), gc, g);
-
-        /*g.drawString("player  x: " +currPlayer.getX()+ "\n" +
-        		     "        y: " +currPlayer.getY()+ "\n" +
-        		     "absxSpeed: " +currPlayer.getAbsXSpeed()+ "\n" +
-                     "absySpeed: " +currPlayer.getAbsYSpeed()+ "\n" +
-        		     "vehicle x: " +vehicles.get(0).getX() +"\n" +
-        		     "        y: " +vehicles.get(0).getY() +"\n" +
-        		     "absxSpeed: " +vehicles.get(0).getAbsXSpeed()+ "\n" +
-        		     "absySpeed: " +vehicles.get(0).getAbsYSpeed(), 10, 100); */
+        g.drawString("xSpeed: " +Math.round(currPlayer.getAbsXSpeed()/32)+ " squ/igs\n" +
+        		     "ySpeed: " +Math.round(currPlayer.getAbsYSpeed()/32)+ " squ/igs", 10, 100);
     }
     private void renderBuilder(Builder builder, GameContainer gc, Graphics g) {
         for (Vehicle vehicle : vehicles) {
@@ -301,11 +300,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     }
     private void renderBackgroundGradient() {
-        int deltaX = View.window().getWidth ()/2 - island.ix() - island.getWidth ()/2;
-        int deltaY = View.window().getHeight()/2 - island.iy() - island.getHeight()/2;
+        long deltaX = View.window().getWidth ()/2 - island.ix() - island.getWidth ()/2;
+        long deltaY = View.window().getHeight()/2 - island.iy() - island.getHeight()/2;
         float dist = (float) Math.sqrt(deltaX*deltaX + deltaY*deltaY) - SKY_GRADIENT_MINIMUM;
 
-        View.window().getGraphics().drawString("dist: " +dist, 10, 100);
+        View.window().getGraphics().drawString("dist: " + dist, 10, 200);
 
         int color = 0;
         if (dist > 0)

@@ -144,7 +144,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
                 xSpeed = MOVE_SPEED;
         if (collided != null && downMotion && jump) {
             collided.pushBackY(-JUMP_SPEED * mass);
-            ySpeed = JUMP_SPEED;
+            ySpeed = JUMP_SPEED + collided.getAbsYSpeed();
         }
 
         if (collided != null)

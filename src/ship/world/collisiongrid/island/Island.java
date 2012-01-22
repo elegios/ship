@@ -35,7 +35,7 @@ public class Island extends CollisionGrid {
 
         for (int i = 0; i < WIDTH(); i++)
             for (int j = 0; j < 3; j++)
-                tile(i, HEIGHT()/2 + j, 1, false);
+                tile(i, HEIGHT()/8 + j, 1, false);
     }
 
     protected Rectangle getRectAt (int x, int y) { return null; }
