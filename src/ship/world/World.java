@@ -34,6 +34,9 @@ import dataverse.datanode.easy.EasyNode;
 public class World implements Position, Renderable, Updatable, ChangeListener, KeyReceiver {
     public static final int SKY_GRADIENT_MINIMUM = 180 * CollisionGrid.TW;
     public static final int SKY_GRADIENT_LENGTH  = 10;
+    public static final int SKY_MAX_R = 62;
+    public static final int SKY_MAX_G = 209;
+    public static final int SKY_MAX_B = 255;
 
     private View view;
 
@@ -62,8 +65,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     public World(View view) throws SlickException {
         if (skyColors == null) {
             skyColors = new Color[256];
-            for (int i = 255; i >= 0; i--)
-                skyColors[255 - i] = new Color(0, 0, i);
+            for (int i = 0; i < 256; i++) {
+                skyColors[i] = new Color(Math.max(SKY_MAX_R - i, 0), Math.max(SKY_MAX_G - i, 0), Math.max(SKY_MAX_B - i, 0));
+            }
         }
 
         this.view = view;

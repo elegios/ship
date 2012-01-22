@@ -125,7 +125,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         y += getAbsYMove(diff);
     }
 
-    public void update(GameContainer gc, int diff) { //TODO: fix player movement, not set speed, push in a direction. Also, profile entire thing.
+    public void update(GameContainer gc, int diff) { //TODO: fix player movement, not set speed, push in a direction.
         if ( moveLeft && !moveRight)
             if (collided != null || airResistX)
                 if (airResistX)
