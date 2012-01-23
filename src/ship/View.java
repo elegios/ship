@@ -85,6 +85,8 @@ public class View extends BasicGame {
 
     @Override
     public void keyPressed(int key, char c) {
+        if (keys.keyPressed(keys, key, c))
+            return;
         if (inventory.keyPressed(keys, key, c))
             return;
         world.keyPressed(keys, key, c);

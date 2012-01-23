@@ -2,7 +2,7 @@ package ship.control;
 
 import org.newdawn.slick.Input;
 
-public class Keys {
+public class Keys implements KeyReceiver {
 
     private int up;
     private int right;
@@ -127,5 +127,27 @@ public class Keys {
     public void buildRight(int key) { buildRight = key; }
     public void buildDown (int key) { buildDown  = key; }
     public void buildLeft (int key) { buildLeft  = key; }
+
+    @Override
+    public boolean keyPressed(Keys keys, int key, char c) {
+        switch (key) {
+            case Input.KEY_F1:
+                setQwerty();
+                return true;
+
+            case Input.KEY_F2:
+                setSweQwerty();
+                return true;
+
+            case Input.KEY_F3:
+                setDvorak();
+                return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean keyReleased(Keys keys, int key, char c) { return false; }
 
 }
