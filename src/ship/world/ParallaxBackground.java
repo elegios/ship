@@ -45,8 +45,8 @@ public class ParallaxBackground implements Renderable {
         for (int l = NUM_LAYERS - 1; l >= 0; l--) {
             g.scale(1/LAYER_FACTOR, 1/LAYER_FACTOR);
 
-            int width  = (int) (View.window().getWidth () / Math.pow(LAYER_FACTOR, l));
-            int height = (int) (View.window().getHeight() / Math.pow(LAYER_FACTOR, l));
+            int width  = (int) (View.window().getWidth () / Math.pow(LAYER_FACTOR, l)) + sprite.getImage().getWidth ();
+            int height = (int) (View.window().getHeight() / Math.pow(LAYER_FACTOR, l)) + sprite.getImage().getHeight();
             for (int[] point : coords[l]) {
                 int x = ((point[0] + world.ix()) % width);
                 if (x < 0)
@@ -55,7 +55,7 @@ public class ParallaxBackground implements Renderable {
                 if (y < 0)
                     y += height;
 
-                sprite.getImage().draw(x, y);
+                sprite.getImage().draw(x - sprite.getImage().getWidth(), y - sprite.getImage().getHeight());
             }
         }
 
