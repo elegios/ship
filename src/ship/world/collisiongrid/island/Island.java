@@ -54,7 +54,7 @@ public class Island extends CollisionGrid {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = ((RelativeMovable) rect);
             if (first) {
-                rel.pushBackY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction());
+                rel.pushBackY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff());
                 rel.pushBackX(-rel.getMass() * xSpeed);
             }
         }
@@ -65,7 +65,7 @@ public class Island extends CollisionGrid {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = ((RelativeMovable) rect);
             if (first) {
-                rel.pushBackX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction());
+                rel.pushBackX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff());
                 rel.pushBackY(-rel.getMass() * ySpeed);
             }
         }

@@ -17,7 +17,8 @@ import ship.world.collisiongrid.CollisionGrid;
 import ship.world.collisiongrid.vehicle.block.Block;
 import ship.world.collisiongrid.vehicle.block.Thruster;
 import ship.world.collisiongrid.vehicle.block.fuel.AirFuelTransport;
-import ship.world.collisiongrid.vehicle.block.fuel.FuelSwitch;
+import ship.world.collisiongrid.vehicle.block.fuel.FuelTank;
+import ship.world.collisiongrid.vehicle.block.fuel.FuelTap;
 import ship.world.collisiongrid.vehicle.block.fuel.FuelTransport;
 import ship.world.player.Player;
 
@@ -44,41 +45,54 @@ public class Vehicle extends CollisionGrid {
         inv = world.view().inventory();
 
         tiles = new Block[WIDTH()][HEIGHT()];
+    }
 
-        addTile(new AirFuelTransport(WIDTH()/2 + 1, HEIGHT()/2 - 4, false, Block.DOWN));
-        for (int i = 1; i < 4; i++)
-            addTile(new AirFuelTransport(WIDTH()/2 + 1, HEIGHT()/2 - i, true, Block.UP));
-        addTile(new FuelTransport(WIDTH()/2 + 1, HEIGHT()/2, true, Block.UP));
-        addTile(new AirFuelTransport(WIDTH()/2 + 1, HEIGHT()/2 + 1, false, Block.RIGHT));
+    public void generateStandardVehicle() {
+        int mx = WIDTH ()/2;
+        int my = HEIGHT()/2;
 
-        addTile(new AirFuelTransport(WIDTH()/2 + 2, HEIGHT()/2 - 4, false, Block.LEFT));
-        addTile(new Thruster(WIDTH()/2 + 2, HEIGHT()/2 - 3, Block.RIGHT));
-        addTile(new FuelSwitch(WIDTH()/2 + 2, HEIGHT()/2 - 1));
-        addTile(new FuelTransport(WIDTH()/2 + 2, HEIGHT()/2, true, Block.UP));
-        addTile(new AirFuelTransport(WIDTH()/2 + 2, HEIGHT()/2 + 1, false, Block.UP));
+        addTile(new FuelTap(mx - 1, my, Block.RIGHT));
 
-        addTile(new FuelSwitch(WIDTH()/2 + 4, HEIGHT() / 2 - 1));
-        addTile(new Thruster(WIDTH()/2 + 4, HEIGHT() / 2,  Block.UP));
+        addTile(new AirFuelTransport(mx - 2, my - 1, false, Block.LEFT));
+        addTile(new FuelTank(mx - 2, my));
+        addTile(new FuelTransport(mx - 2, my + 1, false, Block.UP));
 
-        addTile(new FuelSwitch(WIDTH()/2 + 5, HEIGHT() / 2 - 1));
-        addTile(new Thruster(WIDTH()/2 + 5, HEIGHT() / 2, Block.UP));
+        addTile(new AirFuelTransport(mx - 3, my - 1, false, Block.DOWN));
+        addTile(new Thruster(mx - 3, my, Block.RIGHT));
+        addTile(new FuelTransport(mx - 3, my + 1, false, Block.RIGHT));
 
-        addTile(new FuelSwitch(WIDTH()/2 + 6, HEIGHT()/2 - 1));
-        addTile(new Thruster(WIDTH()/2 + 6, HEIGHT()/2, Block.RIGHT));
-        addTile(new FuelSwitch(WIDTH()/2 + 7, HEIGHT()/2 - 1));
-        addTile(new Thruster(WIDTH()/2 + 7, HEIGHT()/2, Block.LEFT));
 
-        addTile(new Block(WIDTH()/2, HEIGHT()/2 + 1, 1, 5, true, true));
+        addTile(new FuelTap(mx, my, Block.UP));
 
-        addTile(new FuelSwitch(WIDTH()/2 + 3, HEIGHT()/2 - 1));
-        addTile(new FuelTransport(WIDTH()/2 + 3, HEIGHT()/2, true, Block.UP));
-        addTile(new Thruster(WIDTH()/2 + 3, HEIGHT()/2 + 1, Block.UP));
+        addTile(new FuelTransport(mx - 1, my + 1, false, Block.DOWN));
+        addTile(new FuelTank(mx, my + 1));
+        addTile(new FuelTransport(mx + 1, my + 1, false, Block.LEFT));
 
-        addTile(new FuelSwitch(WIDTH()/2 - 2, HEIGHT() / 2 - 1));
-        addTile(new FuelTransport(WIDTH()/2 - 2, HEIGHT() / 2, false, Block.RIGHT));
-        addTile(new Thruster(WIDTH()/2 - 1,  HEIGHT() / 2, Thruster.UP));
-        addTile(new FuelTransport(WIDTH()/2, HEIGHT() / 2, false, Block.UP));
-        addTile(new FuelSwitch(WIDTH()/2, HEIGHT() / 2 - 1));
+        addTile(new AirFuelTransport(mx - 1, my + 2, false, Block.RIGHT));
+        addTile(new Thruster(mx, my + 2, Block.UP));
+        addTile(new AirFuelTransport(mx + 1, my + 2, false, Block.UP));
+
+
+        addTile(new FuelTap(mx + 1, my, Block.LEFT));
+
+        addTile(new AirFuelTransport(mx + 2, my - 1, false, Block.DOWN));
+        addTile(new FuelTank(mx + 2, my));
+        addTile(new FuelTransport(mx + 2, my + 1, false, Block.RIGHT));
+
+        addTile(new AirFuelTransport(mx + 3, my - 1, false, Block.LEFT));
+        addTile(new Thruster(mx + 3, my, Block.LEFT));
+        addTile(new FuelTransport(mx + 3, my + 1, false, Block.UP));
+
+
+        addTile(new Block(mx - 4, my + 1, 1, 5, true, true));
+        addTile(new Block(mx - 5, my + 2, 1, 5, true, true));
+
+        addTile(new Block(mx + 4, my + 1, 1, 5, true, true));
+        addTile(new Block(mx + 5, my + 2, 1, 5, true, true));
+
+        addTile(new Block(mx - 1, my - 2, 1, 5, true, true));
+        addTile(new Block(mx    , my - 2, 1, 5, true, true));
+        addTile(new Block(mx + 1, my - 2, 1, 5, true, true));
     }
 
     public final void addTile(Block tile) {

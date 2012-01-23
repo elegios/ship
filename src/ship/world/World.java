@@ -95,7 +95,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         island  = new Island(this, 0,  0, 0);
         vehicles = new ArrayList<>();
         for (int i = 0; i < 10; i++)
-            vehicles.add(new Vehicle(this, i, island.getWidth()/2 + 128 +i*350, -32));
+            vehicles.add(new Vehicle(this, i, island.getWidth()/2 + 128 +i*400, -32));
+        for (Vehicle vehicle : vehicles)
+            vehicle.generateStandardVehicle();
 
         players = new Player[view.numPlayers()];
         for (int i = 0; i < view.numPlayers(); i++)

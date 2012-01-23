@@ -8,13 +8,13 @@ import ship.world.player.Player;
 public class FuelTap extends Block {
     public static final int BASETILE = AirFuelTransport.BASETILE + 12;
 
-    public static final int FUELRATE_FACTOR = 4;
+    public static final int FUELRATE_FACTOR = 25;
 
-    public static final float FILL_AMOUNT = 10;
-    public static final float MAX_AMOUNT  = 30;
+    public static final float MAX_AMOUNT  = FuelTank.MAX_CONTENT/2;
+    public static final float FILL_AMOUNT = MAX_AMOUNT;
 
-    public static final float STAGE_ONE = 10;
-    public static final float STAGE_TWO = 20;
+    public static final float STAGE_ONE = MAX_AMOUNT / 3;
+    public static final float STAGE_TWO = 2 * STAGE_ONE;
 
     private int direction;
 
@@ -62,7 +62,7 @@ public class FuelTap extends Block {
     }
 
     public void activate(Player player) { //TODO: add checking for whether player has enough fuel in inventory
-        if (content + FILL_AMOUNT < MAX_AMOUNT)
+        if (content + FILL_AMOUNT <= MAX_AMOUNT)
             c("content", content + FILL_AMOUNT);
     }
 

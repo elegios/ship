@@ -5,8 +5,8 @@ import ship.world.collisiongrid.vehicle.block.Block;
 public class FuelTank extends Block {
     public static final int BASETILE = FuelTap.BASETILE + 16;
 
-    public static final float STAGE_SIZE  = 60;
-    public static final float MAX_CONTENT = 120;
+    public static final float MAX_CONTENT = 600;
+    public static final float STAGE_SIZE  = MAX_CONTENT / 4;
 
     private float content;
 
@@ -50,7 +50,7 @@ public class FuelTank extends Block {
     public int tile() {
         if (powered()) {
             power(false);
-            return super.tile() + Math.round(content/STAGE_SIZE) + 3;
+            return super.tile() + Math.round(content/STAGE_SIZE) + 5;
         } else
             return super.tile() + Math.round(content/STAGE_SIZE);
     }
