@@ -66,6 +66,6 @@ public class Thruster extends Block {
         return super.tile() + renderLevel*4;
     }
 
-    public boolean fuelFrom(int direction) { fuelLevel++; return true; }
+    public boolean fuelFrom(int direction, float amount) { fuelLevel++; return true; }
 
 }

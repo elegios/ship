@@ -2,7 +2,7 @@ package ship.ui.inventory.blockcreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.AirFuelTransport;
+import ship.world.collisiongrid.vehicle.block.fuel.AirFuelTransport;
 
 public class AirFuelTransportCreator extends BlockCreator {
     public static final String NAME     = "Fuel Pipe (air)";

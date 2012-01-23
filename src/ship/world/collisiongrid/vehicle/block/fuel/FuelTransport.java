@@ -1,7 +1,9 @@
-package ship.world.collisiongrid.vehicle.block;
+package ship.world.collisiongrid.vehicle.block.fuel;
+
+import ship.world.collisiongrid.vehicle.block.Block;
 
 public class FuelTransport extends Block {
-    public static final int BASETILE = 226;
+    public static final int BASETILE = FuelSwitch.BASETILE + 2;
 
     protected boolean straight;
     protected int     direction;
@@ -16,7 +18,7 @@ public class FuelTransport extends Block {
         super(x, y, tile, mass, collide, render);
     }
 
-    public boolean fuelFrom(int direction) {
+    public boolean fuelFrom(int direction, float amount) {
         int outDir = 0;
 
         if (straight) {
@@ -39,27 +41,10 @@ public class FuelTransport extends Block {
         }
 
         if (fueled()) {
-            Block out = null;
-            switch (outDir) {
-                case UP:
-                    out = parent.tile(x(),     y() - 1);
-                    break;
-
-                case RIGHT:
-                    out = parent.tile(x() + 1, y()    );
-                    break;
-
-                case DOWN:
-                    out = parent.tile(x(),     y() + 1);
-                    break;
-
-                case LEFT:
-                    out = parent.tile(x() - 1, y()    );
-                    break;
-            }
+            Block out = getFrom(outDir);
 
             if (out != null)
-                out.fuelFrom((outDir + 2)%4);
+                out.fuelFrom((outDir + 2)%4, amount);
 
             return true;
         }

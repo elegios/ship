@@ -54,6 +54,24 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
 
     public Block setParent(Vehicle parent) { this.parent = parent; return this; }
 
+    protected Block getFrom(int direction) {
+        switch (direction) {
+            case UP:
+                return parent.tile(x    , y - 1);
+
+            case RIGHT:
+                return parent.tile(x + 1, y    );
+
+            case DOWN:
+                return parent.tile(x    , y + 1);
+
+            case LEFT:
+                return parent.tile(x - 1, y    );
+        }
+
+        return null;
+    }
+
     public int     x()       { return x; }
     public int     y()       { return y; }
     public int     tile()    { return tile; }
@@ -66,8 +84,8 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     public void power(boolean power) { powered = power; }
     public void fuel (boolean fuel)  { fueled  = fuel;  }
 
-    public boolean powerFrom(int direction) { return false; }
-    public boolean fuelFrom (int direction) { return false; }
+    public boolean powerFrom(int direction              ) { return false; }
+    public boolean fuelFrom (int direction, float amount) { return false; }
 
     public void activate(Player player) {}
 

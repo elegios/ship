@@ -41,6 +41,8 @@ public class View extends BasicGame {
     private int playerId;
     private int numPlayers;
 
+    private int diff;
+
     public View(EasyNode node, int playerId, int numPlayers) {
         super("Game");
 
@@ -73,6 +75,7 @@ public class View extends BasicGame {
 
     @Override
     public void update(GameContainer gc, int diff) throws SlickException {
+        this.diff = diff;
         world.update(gc, diff);
         inventory.update(gc, diff);
     }
@@ -107,6 +110,7 @@ public class View extends BasicGame {
     public World       world()      { return world;      }
     public int         playerId()   { return playerId;   }
     public int         numPlayers() { return numPlayers; }
+    public int         diff()       { return diff;       }
 
     public static AppGameContainer window() { return window; }
 

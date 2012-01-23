@@ -3,7 +3,7 @@ package ship.ui.inventory.blockcreator;
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
 import ship.world.collisiongrid.vehicle.block.Block;
-import ship.world.collisiongrid.vehicle.block.PowerSwitch;
+import ship.world.collisiongrid.vehicle.block.power.PowerSwitch;
 
 public class PowerSwitchCreator extends BlockCreator {
     public static final String NAME     = "Power switch";

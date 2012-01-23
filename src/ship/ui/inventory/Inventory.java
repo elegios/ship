@@ -18,6 +18,8 @@ import ship.control.Keys;
 import ship.ui.inventory.blockcreator.AirFuelTransportCreator;
 import ship.ui.inventory.blockcreator.AirPowerTransportCreator;
 import ship.ui.inventory.blockcreator.BlockCreator;
+import ship.ui.inventory.blockcreator.FuelTankCreator;
+import ship.ui.inventory.blockcreator.FuelTapCreator;
 import ship.ui.inventory.blockcreator.FuelTransportCreator;
 import ship.ui.inventory.blockcreator.PowerSwitchCreator;
 import ship.ui.inventory.blockcreator.PowerTransportCreator;
@@ -81,6 +83,8 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         blockCreators.add(new       PowerSwitchCreator());
         blockCreators.add(new    PowerTransportCreator());
         blockCreators.add(new AirPowerTransportCreator());
+        blockCreators.add(new           FuelTapCreator());
+        blockCreators.add(new          FuelTankCreator());
     }
 
     public BlockCreator getBlockAt(int index) { return blockCreators.get(index); }

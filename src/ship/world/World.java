@@ -59,6 +59,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     private float gravity;
     private float frictionFraction;
     private float airResist;
+    private float fuelRate;
 
     private boolean updatePos;
     private int     timeTilUpdatePos;
@@ -83,10 +84,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         x = 0;
         y = 0;
 
-        c("actionsPerTick",   1.0f/1000);
-        c("gravity",          9.8f * 50);
+        c("actionsPerTick",    1.0f/1000);
+        c("gravity",           9.8f * 50);
         c("frictionFraction",  0.3f);
         c("airResist",         0.3f);
+        c("fuelRate",          1.0f/1000);
 
         tileset = view.loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
 
@@ -323,6 +325,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     public float  frictionFraction() { return frictionFraction; }
     public float  airResist()        { return airResist; }
     public Player currPlayer()       { return currPlayer; }
+    public float  fuelRate()         { return fuelRate; }
 
     public float getX() { return -x; }
     public float getY() { return -y; }
@@ -348,6 +351,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                 break;
             case "world.airResist":
                 airResist = data;
+                break;
+            case "world.fuelRate":
+                fuelRate = data;
                 break;
         }
     }

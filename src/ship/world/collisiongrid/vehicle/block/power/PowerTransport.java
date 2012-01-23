@@ -1,11 +1,11 @@
-package ship.world.collisiongrid.vehicle.block;
+package ship.world.collisiongrid.vehicle.block.power;
+
+import ship.world.collisiongrid.vehicle.block.Block;
 
 public class PowerTransport extends Block {
-    public static final int BASETILE = 264;
+    public static final int BASETILE = PowerSwitch.BASETILE + 8;
 
     private boolean[] directions;
-
-    private boolean powered;
 
     public PowerTransport(int x, int y, int type) {
         super(x, y, BASETILE + type, Block.STDMASS, true, true);
@@ -53,20 +53,20 @@ public class PowerTransport extends Block {
     }
 
     public boolean powerFrom(int direction) {
-        if (directions[direction] && !powered) {
-            powered = true;
+        if (directions[direction] && !powered()) {
+            power(true);
 
             Block block;
-            if (direction != Block.UP && directions[Block.UP] && (block = parent.tile(x(), y() - 1)) != null)
+            if (direction != Block.UP && directions[Block.UP] && (block = getFrom(UP)) != null)
                 block.powerFrom(Block.DOWN);
 
-            if (direction != Block.RIGHT && directions[Block.RIGHT] && (block = parent.tile(x() + 1, y())) != null)
+            if (direction != Block.RIGHT && directions[Block.RIGHT] && (block = getFrom(RIGHT)) != null)
                 block.powerFrom(Block.LEFT);
 
-            if (direction != Block.DOWN && directions[Block.DOWN] && (block = parent.tile(x(), y() + 1)) != null)
+            if (direction != Block.DOWN && directions[Block.DOWN] && (block = getFrom(DOWN)) != null)
                 block.powerFrom(Block.UP);
 
-            if (direction != Block.LEFT && directions[Block.LEFT] && (block = parent.tile(x() - 1, y())) != null)
+            if (direction != Block.LEFT && directions[Block.LEFT] && (block = getFrom(LEFT)) != null)
                 block.powerFrom(Block.RIGHT);
 
             return true;
@@ -76,8 +76,8 @@ public class PowerTransport extends Block {
     }
 
     public int tile() {
-        if (powered) {
-            powered = false;
+        if (powered()) {
+            power(false);
             return super.tile() + 11;
         }
 

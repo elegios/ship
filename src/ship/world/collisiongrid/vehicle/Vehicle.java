@@ -14,11 +14,11 @@ import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
 import ship.world.collisiongrid.CollisionGrid;
-import ship.world.collisiongrid.vehicle.block.AirFuelTransport;
 import ship.world.collisiongrid.vehicle.block.Block;
-import ship.world.collisiongrid.vehicle.block.FuelSwitch;
-import ship.world.collisiongrid.vehicle.block.FuelTransport;
 import ship.world.collisiongrid.vehicle.block.Thruster;
+import ship.world.collisiongrid.vehicle.block.fuel.AirFuelTransport;
+import ship.world.collisiongrid.vehicle.block.fuel.FuelSwitch;
+import ship.world.collisiongrid.vehicle.block.fuel.FuelTransport;
 
 
 /**

@@ -2,8 +2,8 @@ package ship.ui.inventory.blockcreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.AirPowerTransport;
 import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.block.power.AirPowerTransport;
 
 public class AirPowerTransportCreator extends BlockCreator {
     public static final String NAME     = "Power Pipe (air)";
