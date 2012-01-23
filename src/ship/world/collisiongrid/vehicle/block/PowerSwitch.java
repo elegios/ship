@@ -2,6 +2,8 @@ package ship.world.collisiongrid.vehicle.block;
 
 import org.newdawn.slick.GameContainer;
 
+import ship.world.player.Player;
+
 public class PowerSwitch extends Block {
     public static final int BASETILE = 256;
 
@@ -51,7 +53,7 @@ public class PowerSwitch extends Block {
         return super.tile();
     }
 
-    public void activate() { c("active", !active); }
+    public void activate(Player player) { c("active", !active); }
 
     @Override
     public void updateBoolean(String id, boolean data) {

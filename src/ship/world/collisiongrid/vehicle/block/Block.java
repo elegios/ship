@@ -11,6 +11,7 @@ import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.collisiongrid.CollisionGrid;
 import ship.world.collisiongrid.vehicle.Vehicle;
+import ship.world.player.Player;
 
 /**
  *
@@ -68,7 +69,7 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     public boolean powerFrom(int direction) { return false; }
     public boolean fuelFrom (int direction) { return false; }
 
-    public void activate() {}
+    public void activate(Player player) {}
 
     public final int ix() { return Math.round(getX()); }
     public final int iy() { return Math.round(getY()); }

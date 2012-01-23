@@ -2,6 +2,8 @@ package ship.world.collisiongrid.vehicle.block;
 
 import org.newdawn.slick.GameContainer;
 
+import ship.world.player.Player;
+
 public class FuelSwitch extends Block {
     public static final int BASETILE = 224;
 
@@ -25,7 +27,7 @@ public class FuelSwitch extends Block {
             return super.tile();
     }
 
-    public void activate() { c("active", !active); }
+    public void activate(Player player) { c("active", !active); }
 
     @Override
     public void updateBoolean(String id, boolean data) {

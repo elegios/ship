@@ -312,7 +312,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         if (id.equals("player." +this.id+ ".activate")) {
             Scanner s = new Scanner(data);
             s.useDelimiter("\\.");
-            world.activateOnVehicle(s.nextInt(), s.nextInt(), s.nextInt());
+            world.activateOnVehicle(this, s.nextInt(), s.nextInt(), s.nextInt());
 
         } else if (id.equals("player." +this.id+ ".makeTile"))
             node.c(data, true);

@@ -225,7 +225,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             }
 
     }
-    public void activateOnVehicle(int vehicle, int x, int y) { vehicles.get(vehicle).tile(x, y).activate(); }
+    public void activateOnVehicle(Player player, int vehicle, int x, int y) { vehicles.get(vehicle).tile(x, y).activate(player); }
 
     public void buildUnderPlayerBuilder(Player player) {
         for (Vehicle vehicle : vehicles) {
