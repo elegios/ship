@@ -62,7 +62,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private boolean jump;
 
     private boolean downMotion;
-    private RelativeMovable collided;
+    private RelativeMovable collidedY;
     private Vehicle lastVehicle;
     private boolean airResistX;
 
@@ -125,31 +125,67 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         y += getAbsYMove(diff);
     }
 
-    public void update(GameContainer gc, int diff) { //TODO: fix player movement, not set speed, push in a direction.
+    public void controlUpdate(GameContainer gc, int diff) {
+        if (moveLeft && !moveRight)
+            if (airResistX) {
+                if (xSpeed > lastVehicle.getAbsXSpeed() - MOVE_SPEED) {
+                    if (!lastVehicle.collidedWithImmobileY())
+                        lastVehicle.pushBackX(mass * 32);
+                    xSpeed -= 32;
+                }
+            } else
+                if (xSpeed > - MOVE_SPEED)
+                    xSpeed -= 32;
+
+        if (!moveLeft && moveRight)
+            if (airResistX) {
+                if (xSpeed < lastVehicle.getAbsXSpeed() + MOVE_SPEED) {
+                    if (!lastVehicle.collidedWithImmobileY())
+                        lastVehicle.pushBackX(-mass * 32);
+                    xSpeed += 32;
+                }
+            } else
+                if (xSpeed < MOVE_SPEED)
+                    xSpeed += 32;
+        /*
         if ( moveLeft && !moveRight)
-            if (collided != null || airResistX)
-                if (airResistX)
+            if (collidedY != null || airResistX)
+                if (airResistX) {
+                    if (collidedY != null)
+                        lastVehicle.pushBackX(-(lastVehicle.getAbsXSpeed() - MOVE_SPEED + getAbsXSpeed()) * mass);
                     xSpeed = lastVehicle.getAbsXSpeed() - MOVE_SPEED;
-                else
-                    xSpeed = collided.getAbsXSpeed() - MOVE_SPEED;
+                } else
+                    xSpeed = collidedY.getAbsXSpeed() - MOVE_SPEED;
             else
                 xSpeed = -MOVE_SPEED;
+
+
         if (!moveLeft &&  moveRight )
-            if (collided != null || airResistX)
-                if (airResistX)
+            if (collidedY != null || airResistX)
+                if (airResistX) {
+                    if (collidedY != null)
+                        lastVehicle.pushBackX(-(lastVehicle.getAbsXSpeed() + MOVE_SPEED + getAbsXSpeed()) * mass);
                     xSpeed = lastVehicle.getAbsXSpeed() + MOVE_SPEED;
-                else
-                    xSpeed = collided.getAbsXSpeed() + MOVE_SPEED;
+                } else
+                    xSpeed = collidedY.getAbsXSpeed() + MOVE_SPEED;
             else
                 xSpeed = MOVE_SPEED;
-        if (collided != null && downMotion && jump) {
-            collided.pushBackY(-JUMP_SPEED * mass);
-            ySpeed = JUMP_SPEED + collided.getAbsYSpeed();
+        */
+        if (collidedY != null && downMotion && jump) {
+            collidedY.pushBackY(-JUMP_SPEED * mass);
+            ySpeed = JUMP_SPEED + collidedY.getAbsYSpeed();
         }
 
-        if (collided != null)
-            if (collided instanceof Vehicle)
-                lastVehicle = (Vehicle) collided;
+        downMotion = false;
+        collidedY = null;
+        collidedWithImobileX = false;
+        collidedWithImobileY = false;
+    }
+
+    public void update(GameContainer gc, int diff) { //TODO: fix player movement, not set speed, push in a direction.
+        if (collidedY != null)
+            if (collidedY instanceof Vehicle)
+                lastVehicle = (Vehicle) collidedY;
             else
                 lastVehicle = null;
 
@@ -157,11 +193,6 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         doAirResistY();
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
-
-        downMotion = false;
-        collided = null;
-        collidedWithImobileX = false;
-        collidedWithImobileY = false;
 
         if (world.updatePos() && world.currPlayer() == this) {
             c("x", x);
@@ -258,7 +289,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         y += yMove;
         if (yMove < 0)
             downMotion = true;
-        collided = collisionOrigin;
+        collidedY = collisionOrigin;
 
         if (collisionOrigin.collidedWithImmobileY())
             collidedWithImobileY = true;

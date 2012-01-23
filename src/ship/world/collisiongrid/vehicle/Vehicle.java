@@ -19,6 +19,7 @@ import ship.world.collisiongrid.vehicle.block.Thruster;
 import ship.world.collisiongrid.vehicle.block.fuel.AirFuelTransport;
 import ship.world.collisiongrid.vehicle.block.fuel.FuelSwitch;
 import ship.world.collisiongrid.vehicle.block.fuel.FuelTransport;
+import ship.world.player.Player;
 
 
 /**
@@ -122,7 +123,9 @@ public class Vehicle extends CollisionGrid {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = (RelativeMovable) rect;
             if (first) {
-                rel.pushBackY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction());
+                float frictionMomentum = rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff();
+                rel.pushBackY(-frictionMomentum);
+                pushBackY(frictionMomentum);
                 float momentum = rel.getMass() * xSpeed;
                 pushBackX(momentum);
                 rel.pushBackX(-momentum);
@@ -148,7 +151,10 @@ public class Vehicle extends CollisionGrid {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = (RelativeMovable) rect;
             if (first) {
-                rel.pushBackX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction());
+                float frictionMomentum = rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff();
+                rel.pushBackX(-frictionMomentum);
+                if (!(rect instanceof Player) || !collidedWithImmobileY())
+                    pushBackX(frictionMomentum);
                 float momentum = rel.getMass() * ySpeed;
                 pushBackY(momentum);
                 rel.pushBackY(-momentum);

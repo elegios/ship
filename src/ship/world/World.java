@@ -86,8 +86,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
         c("actionsPerTick",    1.0f/1000);
         c("gravity",           9.8f * 50);
-        c("frictionFraction",  0.3f);
-        c("airResist",         0.3f);
+        c("frictionFraction",  0.6f/100);
+        c("airResist",         0.2f);
         c("fuelRate",          1.0f/1000);
 
         tileset = view.loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
@@ -99,7 +99,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
         players = new Player[view.numPlayers()];
         for (int i = 0; i < view.numPlayers(); i++)
-            players[i] = new Player(this, i, island.getWidth()/2 + 32, 0);
+            players[i] = new Player(this, i, island.getWidth()/2 + 32, -100);
         currPlayer = players[view.playerId()];
 
         updatePos = false;
@@ -109,6 +109,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     @Override
     public void update(GameContainer gc, int diff) {
+        for (Player player : players)
+            player.controlUpdate(gc, diff);
+
         moveX(diff);
         collideX();
         moveY(diff);

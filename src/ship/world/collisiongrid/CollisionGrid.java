@@ -194,7 +194,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         }
         int i1  = (int) (rect.getX() + xMod - getX())/TW;
         if (collides(i1, j1) || collides(i1, j2)) {
-            float fixMove = getX() + i1*TW + TW - rect.getX() - xMod + 0.002f;
+            float fixMove = getX() - rect.getX() - xMod + i1*TW + TW + 0.002f;
             if (fixMove == 0)
                 return 0;
             fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, xMod == 0);
@@ -218,7 +218,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         }
         int j1 = (int) (rect.getY() + yMod - getY())/TH;
         if (collides(i1, j1) || collides(i2, j1)) {
-            float fixMove = getY() + j1*TH + TH - rect.getY() - yMod + 0.002f;
+            float fixMove = getY() - rect.getY() - yMod + j1*TH + TH + 0.002f;
             if (fixMove == 0)
                 return 0;
             fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, yMod == 0);
