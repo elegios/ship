@@ -7,6 +7,7 @@ import ship.world.player.Player;
 
 public class PowerSwitch extends Block {
     public static final int BASETILE = 288;
+    public static final int NEXTTILE = BASETILE + 8;
 
     private boolean active;
 

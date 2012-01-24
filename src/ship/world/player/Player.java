@@ -126,54 +126,37 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     }
 
     public void controlUpdate(GameContainer gc, int diff) {
+        //move left
         if (moveLeft && !moveRight)
             if (airResistX) {
                 if (xSpeed > lastVehicle.getAbsXSpeed() - MOVE_SPEED) {
                     if (!lastVehicle.collidedWithImmobileY())
-                        lastVehicle.pushBackX(mass * 32);
+                        lastVehicle.pushX(mass * 32);
                     xSpeed -= 32;
                 }
             } else
                 if (xSpeed > - MOVE_SPEED)
                     xSpeed -= 32;
 
+        //move right
         if (!moveLeft && moveRight)
             if (airResistX) {
                 if (xSpeed < lastVehicle.getAbsXSpeed() + MOVE_SPEED) {
                     if (!lastVehicle.collidedWithImmobileY())
-                        lastVehicle.pushBackX(-mass * 32);
+                        lastVehicle.pushX(-mass * 32);
                     xSpeed += 32;
                 }
             } else
                 if (xSpeed < MOVE_SPEED)
                     xSpeed += 32;
-        /*
-        if ( moveLeft && !moveRight)
-            if (collidedY != null || airResistX)
-                if (airResistX) {
-                    if (collidedY != null)
-                        lastVehicle.pushBackX(-(lastVehicle.getAbsXSpeed() - MOVE_SPEED + getAbsXSpeed()) * mass);
-                    xSpeed = lastVehicle.getAbsXSpeed() - MOVE_SPEED;
-                } else
-                    xSpeed = collidedY.getAbsXSpeed() - MOVE_SPEED;
-            else
-                xSpeed = -MOVE_SPEED;
 
-
-        if (!moveLeft &&  moveRight )
-            if (collidedY != null || airResistX)
-                if (airResistX) {
-                    if (collidedY != null)
-                        lastVehicle.pushBackX(-(lastVehicle.getAbsXSpeed() + MOVE_SPEED + getAbsXSpeed()) * mass);
-                    xSpeed = lastVehicle.getAbsXSpeed() + MOVE_SPEED;
-                } else
-                    xSpeed = collidedY.getAbsXSpeed() + MOVE_SPEED;
-            else
-                xSpeed = MOVE_SPEED;
-        */
+        //jump
         if (collidedY != null && downMotion && jump) {
-            collidedY.pushBackY(-JUMP_SPEED * mass);
-            ySpeed = JUMP_SPEED + collidedY.getAbsYSpeed();
+            collidedY.pushY(-JUMP_SPEED * mass);
+            if (collidedY.collidedWithImmobileY())
+                ySpeed = JUMP_SPEED;
+            else
+                ySpeed = JUMP_SPEED + collidedY.getAbsYSpeed();
         }
 
         downMotion = false;
@@ -182,7 +165,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         collidedWithImobileY = false;
     }
 
-    public void update(GameContainer gc, int diff) { //TODO: fix player movement, not set speed, push in a direction.
+    public void update(GameContainer gc, int diff) {
         if (collidedY != null)
             if (collidedY instanceof Vehicle)
                 lastVehicle = (Vehicle) collidedY;
@@ -217,29 +200,29 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             if (xSpeed > 0) {
                 for (int i = playX; i < lastVehicle.WIDTH(); i++) {
                     if (lastVehicle.existsAt(i, playY)) {
-                        pushBackX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
+                        pushX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
                         airResistX = true;
                         return;
                     }
                 }
 
                 airResistX = false;
-                pushBackX(-xSpeed * world.airResist());
+                pushX(-xSpeed * world.airResist());
             } else if (xSpeed < 0) {
                 for (int i = playX; i > 0; i--) {
                     if (lastVehicle.existsAt(i, playY)) {
-                        pushBackX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
+                        pushX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
                         airResistX = true;
                         return;
                     }
                 }
 
                 airResistX = false;
-                pushBackX(-xSpeed * world.airResist());
+                pushX(-xSpeed * world.airResist());
             }
         } else {
             airResistX = false;
-            pushBackX(-xSpeed * world.airResist());
+            pushX(-xSpeed * world.airResist());
         }
     }
 
@@ -257,24 +240,24 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             if (ySpeed > 0) {
                 for (int j = playY; j < lastVehicle.WIDTH(); j++) {
                     if (lastVehicle.existsAt(playX, j)) {
-                        pushBackY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
+                        pushY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
                         return;
                     }
                 }
 
-                pushBackY(-ySpeed * world.airResist());
+                pushY(-ySpeed * world.airResist());
             } else if (ySpeed < 0) {
                 for (int j = playY; j > 0; j--) {
                     if (lastVehicle.existsAt(playX, j)) {
-                        pushBackY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
+                        pushY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
                         return;
                     }
                 }
 
-                pushBackY(-ySpeed * world.airResist());
+                pushY(-ySpeed * world.airResist());
             }
         } else {
-            pushBackY(-ySpeed * world.airResist());
+            pushY(-ySpeed * world.airResist());
         }
     }
 
@@ -300,8 +283,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         builder.render(gc, g);
     }
 
-    public void pushBackX(float momentum) { xSpeed += momentum / mass; }
-    public void pushBackY(float momentum) { ySpeed += momentum / mass; }
+    public void pushX(float momentum) { xSpeed += momentum / mass; }
+    public void pushY(float momentum) { ySpeed += momentum / mass; }
 
     public float getAbsXSpeed() { return xSpeed; }
     public float getAbsYSpeed() { return ySpeed; }

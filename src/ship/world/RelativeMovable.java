@@ -21,8 +21,8 @@ public interface RelativeMovable {
 
     float getMass();
 
-    void pushBackX(float momentum);
-    void pushBackY(float momentum);
+    void pushX(float momentum);
+    void pushY(float momentum);
 
     boolean collidedWithImmobileX();
     boolean collidedWithImmobileY();

@@ -54,8 +54,8 @@ public class Island extends CollisionGrid {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = ((RelativeMovable) rect);
             if (first) {
-                rel.pushBackY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff());
-                rel.pushBackX(-rel.getMass() * xSpeed);
+                rel.pushY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff());
+                rel.pushX(-rel.getMass() * xSpeed);
             }
         }
 
@@ -65,8 +65,8 @@ public class Island extends CollisionGrid {
         if (rect instanceof RelativeMovable) {
             RelativeMovable rel = ((RelativeMovable) rect);
             if (first) {
-                rel.pushBackX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff());
-                rel.pushBackY(-rel.getMass() * ySpeed);
+                rel.pushX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff());
+                rel.pushY(-rel.getMass() * ySpeed);
             }
         }
 
@@ -97,8 +97,8 @@ public class Island extends CollisionGrid {
     public boolean collidedWithImmobileX() { return true; }
     public boolean collidedWithImmobileY() { return true; }
 
-    public void pushBackX(float momentum) {}
-    public void pushBackY(float momentum) {}
+    public void pushX(float momentum) {}
+    public void pushY(float momentum) {}
 
     protected void updateData   (String id, String  data) {}
     protected void updateInt    (String id, int     data) {}

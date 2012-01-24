@@ -18,8 +18,8 @@ import ship.world.collisiongrid.vehicle.block.Block;
 import ship.world.collisiongrid.vehicle.block.Thruster;
 import ship.world.collisiongrid.vehicle.block.fuel.AirFuelTransport;
 import ship.world.collisiongrid.vehicle.block.fuel.FuelTank;
-import ship.world.collisiongrid.vehicle.block.fuel.FuelTap;
 import ship.world.collisiongrid.vehicle.block.fuel.FuelTransport;
+import ship.world.collisiongrid.vehicle.block.power.PowerSwitch;
 import ship.world.player.Player;
 
 
@@ -45,16 +45,23 @@ public class Vehicle extends CollisionGrid {
         inv = world.view().inventory();
 
         tiles = new Block[WIDTH()][HEIGHT()];
+
+        leftX  = WIDTH()/2;
+        rightX = leftX;
+
+        topY   = HEIGHT()/2;
+        botY   = topY;
     }
 
     public void generateStandardVehicle() {
         int mx = WIDTH ()/2;
         int my = HEIGHT()/2;
 
-        addTile(new FuelTap(mx - 1, my, Block.RIGHT));
+        addTile(new PowerSwitch(mx - 1, my, Block.RIGHT));
 
         addTile(new AirFuelTransport(mx - 2, my - 1, false, Block.LEFT));
         addTile(new FuelTank(mx - 2, my));
+        tile(mx - 2, my).c("content", FuelTank.MAX_CONTENT);
         addTile(new FuelTransport(mx - 2, my + 1, false, Block.UP));
 
         addTile(new AirFuelTransport(mx - 3, my - 1, false, Block.DOWN));
@@ -62,10 +69,11 @@ public class Vehicle extends CollisionGrid {
         addTile(new FuelTransport(mx - 3, my + 1, false, Block.RIGHT));
 
 
-        addTile(new FuelTap(mx, my, Block.UP));
+        addTile(new PowerSwitch(mx, my, Block.UP));
 
         addTile(new FuelTransport(mx - 1, my + 1, false, Block.DOWN));
         addTile(new FuelTank(mx, my + 1));
+        tile(mx, my + 1).c("content", FuelTank.MAX_CONTENT);
         addTile(new FuelTransport(mx + 1, my + 1, false, Block.LEFT));
 
         addTile(new AirFuelTransport(mx - 1, my + 2, false, Block.RIGHT));
@@ -73,10 +81,11 @@ public class Vehicle extends CollisionGrid {
         addTile(new AirFuelTransport(mx + 1, my + 2, false, Block.UP));
 
 
-        addTile(new FuelTap(mx + 1, my, Block.LEFT));
+        addTile(new PowerSwitch(mx + 1, my, Block.LEFT));
 
         addTile(new AirFuelTransport(mx + 2, my - 1, false, Block.DOWN));
         addTile(new FuelTank(mx + 2, my));
+        tile(mx + 2, my).c("content", FuelTank.MAX_CONTENT);
         addTile(new FuelTransport(mx + 2, my + 1, false, Block.RIGHT));
 
         addTile(new AirFuelTransport(mx + 3, my - 1, false, Block.LEFT));
@@ -115,6 +124,49 @@ public class Vehicle extends CollisionGrid {
         c("mass", mass - tile.mass());
         tile(tile.x(), tile.y(), null);
         setCollidesAt(tile.x(), tile.y(), false);
+
+        if (tile.x() == leftX) {
+            for (int i = leftX; i <= rightX; i++)
+                for (int j = topY; j <= botY; j++)
+                    if (existsAt(i, j)) {
+                        leftX = i;
+                        System.out.println("leftX: " +leftX);
+                        i = rightX + 1; //To make the outer loop break;
+                        break;
+                    }
+        } else if (tile.x() == rightX) {
+            for (int i = rightX; i >= leftX; i--)
+                for (int j = topY; j <= botY; j++)
+                    if (existsAt(i, j)) {
+                        rightX = i;
+                        System.out.println("rightX: " +rightX);
+                        i = leftX - 1; //To make the outer loop break;
+                        break;
+                    }
+        }
+
+        if (tile.y() == topY) {
+            for (int j = topY; j <= botY; j++)
+                for (int i = leftX; i <= rightX; i++)
+                    if (existsAt(i, j)) {
+                        topY = j;
+                        System.out.println("topY: " +topY);
+                        j = botY + 1; //To make the outer loop break;
+                        break;
+                    }
+        } else if (tile.y() == botY) {
+            for (int j = botY; j >= topY; j--)
+                for (int i = leftX; i <= rightX; i++)
+                    if (existsAt(i, j)) {
+                        botY = j;
+                        System.out.println("botY: " +botY);
+                        j = topY - 1; //To make the outer loop break;
+                        break;
+                    }
+        }
+
+        if (leftX == rightX && topY == botY && !existsAt(leftX, topY))
+            world.removeVehicleFromList(this);
     }
 
     protected Rectangle getRectAt(int x, int y) { return tile(x, y); }
@@ -138,11 +190,11 @@ public class Vehicle extends CollisionGrid {
             RelativeMovable rel = (RelativeMovable) rect;
             if (first) {
                 float frictionMomentum = rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff();
-                rel.pushBackY(-frictionMomentum);
-                pushBackY(frictionMomentum);
+                rel.pushY(-frictionMomentum);
+                pushY(frictionMomentum);
                 float momentum = rel.getMass() * xSpeed;
-                pushBackX(momentum);
-                rel.pushBackX(-momentum);
+                pushX(momentum);
+                rel.pushX(-momentum);
             }
             if (rel.collidedWithImmobileX()) {
                 collidedWithImmobileX(true);
@@ -166,12 +218,12 @@ public class Vehicle extends CollisionGrid {
             RelativeMovable rel = (RelativeMovable) rect;
             if (first) {
                 float frictionMomentum = rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff();
-                rel.pushBackX(-frictionMomentum);
+                rel.pushX(-frictionMomentum);
                 if (!(rect instanceof Player) || !collidedWithImmobileY())
-                    pushBackX(frictionMomentum);
+                    pushX(frictionMomentum);
                 float momentum = rel.getMass() * ySpeed;
-                pushBackY(momentum);
-                rel.pushBackY(-momentum);
+                pushY(momentum);
+                rel.pushY(-momentum);
             }
             if (rel.collidedWithImmobileY()) {
                 collidedWithImmobileY(true);
@@ -190,19 +242,19 @@ public class Vehicle extends CollisionGrid {
         return fixMove;
     }
 
-    public void pushBackX(float momentum) {
+    public void pushX(float momentum) {
         xSpeed += momentum / mass;
     }
 
-    public void pushBackY(float momentum) {
+    public void pushY(float momentum) {
         ySpeed += momentum / mass;
     }
 
     public void update(GameContainer gc, int diff) {
         super.update(gc, diff);
 
-        pushBackX((float) (-xSpeed * world.airResist() * Math.pow(botY   - topY,  0.5)));
-        pushBackY((float) (-ySpeed * world.airResist() * Math.pow(rightX - leftX, 0.5)));
+        pushX((float) (-xSpeed * world.airResist() * Math.pow(botY   - topY,  0.5)));
+        pushY((float) (-ySpeed * world.airResist() * Math.pow(rightX - leftX, 0.5)));
     }
 
     public Block tile(int x, int y) {

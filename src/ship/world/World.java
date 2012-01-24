@@ -232,7 +232,13 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             }
 
     }
-    public void activateOnVehicle(Player player, int vehicle, int x, int y) { vehicles.get(vehicle).tile(x, y).activate(player); }
+    public void activateOnVehicle(Player player, int vehicleID, int x, int y) {
+        for (Vehicle vehicle : vehicles)
+            if (vehicle.getID() == vehicleID) {
+                vehicle.tile(x, y).activate(player);
+                return;
+            }
+    }
 
     public void buildUnderPlayerBuilder(Player player) {
         for (Vehicle vehicle : vehicles) {
@@ -264,6 +270,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                 }
         }
 
+    }
+
+    public void removeVehicleFromList(Vehicle vehicle) {
+        vehicles.remove(vehicle);
     }
 
     @Override

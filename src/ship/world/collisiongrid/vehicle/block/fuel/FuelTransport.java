@@ -3,7 +3,8 @@ package ship.world.collisiongrid.vehicle.block.fuel;
 import ship.world.collisiongrid.vehicle.block.Block;
 
 public class FuelTransport extends Block {
-    public static final int BASETILE = FuelSwitch.BASETILE + 2;
+    public static final int BASETILE = FuelSwitch.NEXTTILE;
+    public static final int NEXTTILE = BASETILE + 12;
 
     protected boolean straight;
     protected int     direction;

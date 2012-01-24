@@ -3,7 +3,8 @@ package ship.world.collisiongrid.vehicle.block.fuel;
 import ship.world.collisiongrid.vehicle.block.Block;
 
 public class FuelTank extends Block {
-    public static final int BASETILE = FuelTap.BASETILE + 16;
+    public static final int BASETILE = FuelTap.NEXTTILE;
+    public static final int NEXTTILE = BASETILE + 10;
 
     public static final float MAX_CONTENT = 600;
     public static final float STAGE_SIZE  = MAX_CONTENT / 4;

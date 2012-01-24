@@ -7,6 +7,7 @@ public class Thruster extends Block {
     public static final float STR1 = 20;
     public static final float STR2 = 60;
     public static final float STR3 = 180;
+    public static final float STR4 = 540;
 
     private int direction;
 
@@ -32,26 +33,30 @@ public class Thruster extends Block {
                     strength = STR2;
                     break;
 
-                default:
+                case 3:
                     strength = STR3;
+                    break;
+
+                default:
+                    strength = STR4;
                     break;
             }
 
             switch (direction) {
                 case UP:
-                    parent.pushBackY(-strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
+                    parent.pushY(-strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
                     break;
 
                 case RIGHT:
-                    parent.pushBackX( strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
+                    parent.pushX( strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
                     break;
 
                 case DOWN:
-                    parent.pushBackY( strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
+                    parent.pushY( strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
                     break;
 
                 case LEFT:
-                    parent.pushBackX(-strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
+                    parent.pushX(-strength * parent.world().gravity() * parent.world().actionsPerTick() * diff);
                     break;
             }
 

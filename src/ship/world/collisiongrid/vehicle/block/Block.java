@@ -124,8 +124,8 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
 
     public float getMass() { return parent.getMass(); }
 
-    public void pushBackX(float momentum) { parent.pushBackX(momentum); }
-    public void pushBackY(float momentum) { parent.pushBackY(momentum); }
+    public void pushX(float momentum) { parent.pushX(momentum); }
+    public void pushY(float momentum) { parent.pushY(momentum); }
 
     public void c(String id, Object data) { parent.c("tile." +x+ "." +y+ "." +id, data); }
 

@@ -53,8 +53,11 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
         updateSubs();
     }
     private void updateSubs() {
-        if (block != null)
-            selected = Math.max(0, Math.min(selected, block.numSubs() - 1));
+        if (block != null) {
+            selected = selected % block.numSubs();
+            if (selected == -1)
+                selected = block.numSubs() - 1;
+        }
 
         node.c("player." +playerID+ ".selectedSubItem", selected);
     }
@@ -80,7 +83,7 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
 
     public void setFocus(boolean val) {
         focus = val;
-        if (focus && (block == null || block.numSubs() <= 1))
+        if (focus && block == null)
             parent.moveLeft();
     }
 

@@ -6,7 +6,8 @@ import ship.world.collisiongrid.vehicle.block.Block;
 import ship.world.player.Player;
 
 public class FuelTap extends Block {
-    public static final int BASETILE = AirFuelTransport.BASETILE + 12;
+    public static final int BASETILE = AirFuelTransport.NEXTTILE;
+    public static final int NEXTTILE = BASETILE + 16;
 
     public static final int FUELRATE_FACTOR = 25;
 

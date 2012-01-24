@@ -87,7 +87,9 @@ public class Items extends Box implements KeyReceiver, Focusable {
         updateItems();
     }
     private void updateItems() {
-        selected = Math.max(Math.min(items.size() - 1, selected), 0);
+        selected = selected % items.size();
+        if (selected == -1)
+            selected = items.size() - 1;
         node.c("player." +playerID+ ".selectedItem", parent.getIndexOf(getSelected()));
 
         parent.updateSubMenu();

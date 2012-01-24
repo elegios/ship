@@ -3,7 +3,8 @@ package ship.world.collisiongrid.vehicle.block.power;
 import ship.world.collisiongrid.vehicle.block.Block;
 
 public class PowerTransport extends Block {
-    public static final int BASETILE = PowerSwitch.BASETILE + 8;
+    public static final int BASETILE = PowerSwitch.NEXTTILE;
+    public static final int NEXTTILE = BASETILE + 22;
 
     private boolean[] directions;
 
