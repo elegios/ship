@@ -65,28 +65,30 @@ public class Builder implements Renderable, KeyReceiver, Position {
                 return player.getX() - 1;
 
             case Block.RIGHT:
-                return player.getX2() + 1;
+                return player.getX2() + 1 + CollisionGrid.TW/2;
 
             case Block.LEFT:
-                return player.getX() - CollisionGrid.TW;
-        }
+                return player.getX() - CollisionGrid.TW - CollisionGrid.TW/2;
 
-        return Float.NaN;
+            default:
+                return Float.NaN;
+        }
     }
     public float getY() {
         switch (direction) {
             case Block.UP:
-                return player.getY() - CollisionGrid.TH;
+                return player.getY() - CollisionGrid.TH - CollisionGrid.TH/2;
 
             case Block.RIGHT:
             case Block.LEFT:
                 return player.getY() - 1;
 
             case Block.DOWN:
-                return player.getY2() + 1;
-        }
+                return player.getY2() + 1 + CollisionGrid.TH/2;
 
-        return Float.NaN;
+            default:
+                return Float.NaN;
+        }
     }
 
     public int ix() { return Math.round(player.world().getX() + getX()); }
