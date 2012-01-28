@@ -1,11 +1,11 @@
-package ship.world.collisiongrid.vehicle.block.fuel;
+package ship.world.collisiongrid.vehicle.tile.fuel;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.tile.Tile;
 import ship.world.player.Player;
 
-public class FuelSwitch extends Block {
+public class FuelSwitch extends Tile {
     public static final int BASETILE = 224;
     public static final int NEXTTILE = BASETILE + 2;
 
@@ -19,7 +19,7 @@ public class FuelSwitch extends Block {
 
     public void update(GameContainer gc, int diff) {
         if (active && getFrom(DOWN) != null)
-            getFrom(DOWN).fuelFrom(Block.UP, 0);
+            getFrom(DOWN).fuelFrom(Tile.UP, 0);
     }
 
     public int tile() {

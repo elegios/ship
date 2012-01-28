@@ -1,11 +1,11 @@
-package ship.ui.inventory.blockcreator;
+package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.Block;
-import ship.world.collisiongrid.vehicle.block.power.AirPowerTransport;
+import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.collisiongrid.vehicle.tile.power.AirPowerTransport;
 
-public class AirPowerTransportCreator extends BlockCreator {
+public class AirPowerTransportCreator extends TileCreator {
     public static final String NAME     = "Power Pipe (air)";
     public static final int    BASETILE = AirPowerTransport.BASETILE + 1;
     public static final Tag[]  TAGS     = {Tags.NONCOLLIDING, Tags.POWERTRANSPORT, Tags.POWERRELATED};
@@ -15,7 +15,7 @@ public class AirPowerTransportCreator extends BlockCreator {
     }
 
     @Override
-    public Block create(int sub, int x, int y) {
+    public Tile create(int sub, int x, int y) {
         return new AirPowerTransport(x, y, sub);
     }
 

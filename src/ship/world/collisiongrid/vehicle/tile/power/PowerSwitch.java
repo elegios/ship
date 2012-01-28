@@ -1,11 +1,11 @@
-package ship.world.collisiongrid.vehicle.block.power;
+package ship.world.collisiongrid.vehicle.tile.power;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.tile.Tile;
 import ship.world.player.Player;
 
-public class PowerSwitch extends Block {
+public class PowerSwitch extends Tile {
     public static final int BASETILE = 288;
     public static final int NEXTTILE = BASETILE + 8;
 
@@ -23,7 +23,7 @@ public class PowerSwitch extends Block {
 
     public void update(GameContainer gc, int diff) {
         if (active) {
-            Block out = getFrom((direction + 2) % 4);
+            Tile out = getFrom((direction + 2) % 4);
 
             if (out != null)
                 out.powerFrom(direction);

@@ -135,12 +135,23 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         y = Math.round(currPlayer.getY()) + currPlayer.getHeight()/2 - View.window().getHeight()/2;
     }
 
+    /**
+     * Moves all movable objects horizontally.
+     *
+     * This method should be called exactly once per frame,
+     * with one call to collideY following shortly thereafter.
+     * @param diff the time since the last frame
+     */
     private void moveX(int diff) {
         for (Vehicle vehicle : vehicles)
             vehicle.moveX(diff);
         for (Player player : players)
             player.moveX(diff);
     }
+    /**
+     * Checks for horizontal collision between all objects, moving them
+     * should a collision be detected.
+     */
     private void collideX() {
         for (Vehicle vehicle : vehicles)
             vehicle.collideWithCollisionGridX(island);
@@ -150,12 +161,23 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         for (Player player : players)
             collidePlayerX(player);
     }
+    /**
+     * Moves all movable objects vertically.
+     *
+     * This method should be called exactly once per frame,
+     * with one call to collideY following shortly thereafter.
+     * @param diff the time since the last frame
+     */
     private void moveY(int diff) {
         for (Vehicle vehicle : vehicles)
             vehicle.moveY(diff);
         for (Player player : players)
             player.moveY(diff);
     }
+    /**
+     * Checks for vertical collision between all objects, moving them
+     * should a collision be detected.
+     */
     private void collideY() {
         for (Vehicle vehicle : vehicles)
             vehicle.collideWithCollisionGridY(island);
@@ -166,6 +188,16 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             collidePlayerY(player);
     }
 
+    /**
+     * First collides <code>vehicle</code> with all vehicle with a higher ID,
+     * redoing collision with all vehicles, including those of lower ID, should
+     * a collision be detected. Those of lower ID will result in a call to
+     * collideVehicleX(other), while those with a higher ID will give a
+     * vehicle.collideWithCollisionGridX(other). This makes collisions a little
+     * bit more deterministic, since lower IDs will move out of the way of
+     * higher IDs if that is possible.
+     * @param vehicle the Vehicle which should be tested
+     */
     public void collideVehicleX(Vehicle vehicle) {
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
             if (vehicles.get(i).getID() != vehicle.getID()) {
@@ -178,6 +210,19 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             }
     }
 
+    /**
+     * First collides <code>vehicle</code> with all vehicle with a higher ID,
+     * redoing collision with all vehicles, including those of lower ID, should
+     * a collision be detected. Those of lower ID will result in a call to
+     * collideVehicleY(other), while those with a higher ID will give a
+     * vehicle.collideWithCollisionGridY(other). This makes collisions a little
+     * bit more deterministic, since lower IDs will move out of the way of
+     * higher IDs if that is possible.
+     *
+     * After that is complete collision is tested against all islands, once again
+     * restarting from the lowest ID vehicle should a collision be detected.
+     * @param vehicle the Vehicle which should be tested
+     */
     public void collideVehicleY(Vehicle vehicle) {
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
             if (vehicles.get(i).getID() != vehicle.getID()) {
@@ -190,6 +235,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             }
     }
 
+    /**
+     * Collides the <code>player</code> first with all vehicles, then with all islands,
+     * moving the <code>player</code> should it be necessary.
+     * @param player the Player to be checked
+     */
     public void collidePlayerX(Player player) {
         for (Vehicle vehicle : vehicles)
             if (vehicle.overlaps(player)) {
@@ -205,6 +255,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         }
     }
 
+    /**
+     * Collides the <code>player</code> first with all vehicles, then with all islands,
+     * moving the <code>player</code> should it be necessary.
+     * @param player the Player to be checked
+     */
     public void collidePlayerY(Player player) {
         for (Vehicle vehicle : vehicles)
             if (vehicle.overlaps(player)) {
@@ -220,6 +275,13 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         }
     }
 
+    /**
+     * Changes the player.ID.activate value to trigger an activate command
+     * on the tile that <code>player<code> is overlapping in a Vehicle. Will
+     * do nothing if there is no overlapping Vehicle or the overlapping
+     * tile is empty.
+     * @param player the player that is activating
+     */
     public void activateUnderPlayer(Player player) {
         for (Vehicle vehicle : vehicles)
             if (vehicle.overlaps(player)) {
@@ -232,6 +294,15 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             }
 
     }
+    /**
+     * Called as a result of player.ID.activate changing. Will call activate
+     * on the tile at (x, y) (internal coordinates) in the Vehicle with the
+     * given ID.
+     * @param player the Player that is activating the tile
+     * @param vehicleID the Vehicle the tile is located in
+     * @param x the internal x coordinate
+     * @param y the internal y coordinate
+     */
     public void activateOnVehicle(Player player, int vehicleID, int x, int y) {
         for (Vehicle vehicle : vehicles)
             if (vehicle.getID() == vehicleID) {
@@ -240,6 +311,13 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             }
     }
 
+    /**
+     * Changes the player.ID.makeTile value that will trigger the creation
+     * of a tile at the point underneath the player builder. Will do nothing
+     * if there is no overlapping vehicle, no block to support the construction,
+     * or already a block at the given point.
+     * @param player the player doing the building
+     */
     public void buildUnderPlayerBuilder(Player player) {
         for (Vehicle vehicle : vehicles) {
             int tx = vehicle.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
@@ -258,6 +336,13 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     }
 
+    /**
+     * Changes the player.ID.deleTile value that will trigger the
+     * destruction of the tile underneath the player builder. Does
+     * nothing if there is no vehicle overlapping or no tile in
+     * the given position
+     * @param player the player doing the destroying
+     */
     public void destroyUnderPlayerBuilder(Player player) {
         for (Vehicle vehicle : vehicles) {
             int tx = vehicle.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
@@ -272,6 +357,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     }
 
+    /**
+     * Removes a given Vehicle from the internal list, effectively
+     * destroying it.
+     * @param vehicle the Vehicle to be removed
+     */
     public void removeVehicleFromList(Vehicle vehicle) {
         vehicles.remove(vehicle);
     }
@@ -296,6 +386,13 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         g.drawString("xSpeed: " +Math.round(currPlayer.getAbsXSpeed()/32)+ " squ/igs\n" +
         		     "ySpeed: " +Math.round(currPlayer.getAbsYSpeed()/32)+ " squ/igs", 10, 100);
     }
+    /**
+     * Renders the highlight of the player builder, if in overlaps a position
+     * where either building or destruction can be done.
+     * @param builder the Builder whose highlight will be rendered.
+     * @param gc the GameContainer in which the current game exists
+     * @param g the Graphics object that draws everything
+     */
     private void renderBuilder(Builder builder, GameContainer gc, Graphics g) {
         for (Vehicle vehicle : vehicles) {
             int tx = vehicle.getTileXUnderPos(builder.getX() + builder.getWidth ()/2);
@@ -316,6 +413,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         }
 
     }
+    /**
+     * Renders the Background. Is no longer a gradient as that was to computationally
+     * expensive, instead renders one color that is darker the further away from
+     * the nearest island the player is.
+     */
     private void renderBackgroundGradient() {
         long deltaX = View.window().getWidth ()/2 - island.ix() - island.getWidth ()/2;
         long deltaY = View.window().getHeight()/2 - island.iy() - island.getHeight()/2;
@@ -331,6 +433,11 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         View.window().getGraphics().flush();
     }
 
+    /**
+     * Check whether objects should update their values in DataVerse.
+     * This will periodically be true.
+     * @return true if values should be updated, false otherwise
+     */
     public boolean updatePos() { return updatePos; }
 
     public View view() { return view; }

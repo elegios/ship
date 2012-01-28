@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ship.world.collisiongrid.vehicle.block;
+package ship.world.collisiongrid.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
@@ -17,7 +17,7 @@ import ship.world.player.Player;
  *
  * @author elegios
  */
-public class Block implements Updatable, Rectangle, RelativeMovable {
+public class Tile implements Updatable, Rectangle, RelativeMovable {
     public static final int UP    = 0;
     public static final int RIGHT = 1;
     public static final int DOWN  = 2;
@@ -40,7 +40,7 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     private boolean powered;
     private boolean fueled;
 
-    public Block(int x, int y, int tile, float mass, boolean collide, boolean render) {
+    public Tile(int x, int y, int tile, float mass, boolean collide, boolean render) {
         this.x = x;
         this.y = y;
 
@@ -52,9 +52,14 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
         this.render  = render;
     }
 
-    public Block setParent(Vehicle parent) { this.parent = parent; return this; }
+    public Tile setParent(Vehicle parent) { this.parent = parent; return this; }
 
-    protected Block getFrom(int direction) {
+    /**
+     * Get the Tile adjacent to the current Tile in the given direction.
+     * @param direction the direction in which the Tile is
+     * @return an adjacent Tile
+     */
+    protected Tile getFrom(int direction) {
         switch (direction) {
             case UP:
                 return parent.tile(x    , y - 1);

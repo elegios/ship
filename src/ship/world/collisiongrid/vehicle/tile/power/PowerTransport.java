@@ -1,10 +1,10 @@
-package ship.world.collisiongrid.vehicle.block.power;
+package ship.world.collisiongrid.vehicle.tile.power;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.tile.Tile;
 
-public class PowerTransport extends Block {
+public class PowerTransport extends Tile {
     public static final int BASETILE = PowerSwitch.NEXTTILE;
     public static final int NEXTTILE = BASETILE + 22;
 
@@ -13,7 +13,7 @@ public class PowerTransport extends Block {
     private boolean renderPowered;
 
     public PowerTransport(int x, int y, int type) {
-        super(x, y, BASETILE + type, Block.STDMASS, true, true);
+        super(x, y, BASETILE + type, Tile.STDMASS, true, true);
 
         setDirections(type);
 
@@ -26,7 +26,7 @@ public class PowerTransport extends Block {
     protected final void setDirections(int type) {
         directions = new boolean[4];
 
-        directions[Block.UP] = type == 0 ||
+        directions[Tile.UP] = type == 0 ||
                                type == 2 ||
                                type == 3 ||
                                type == 6 ||
@@ -34,7 +34,7 @@ public class PowerTransport extends Block {
                                type == 9 ||
                                type == 10;
 
-        directions[Block.RIGHT] = type == 1 ||
+        directions[Tile.RIGHT] = type == 1 ||
                                   type == 3 ||
                                   type == 4 ||
                                   type == 6 ||
@@ -42,7 +42,7 @@ public class PowerTransport extends Block {
                                   type == 8 ||
                                   type == 10;
 
-        directions[Block.DOWN] = type == 0 ||
+        directions[Tile.DOWN] = type == 0 ||
                                  type == 4 ||
                                  type == 5 ||
                                  type == 7 ||
@@ -50,7 +50,7 @@ public class PowerTransport extends Block {
                                  type == 9 ||
                                  type == 10;
 
-        directions[Block.LEFT] = type == 1 ||
+        directions[Tile.LEFT] = type == 1 ||
                                  type == 2 ||
                                  type == 5 ||
                                  type == 6 ||
@@ -64,18 +64,18 @@ public class PowerTransport extends Block {
             power(true);
             renderPowered = true;
 
-            Block block;
-            if (direction != Block.UP && directions[Block.UP] && (block = getFrom(UP)) != null)
-                block.powerFrom(Block.DOWN);
+            Tile block;
+            if (direction != Tile.UP && directions[Tile.UP] && (block = getFrom(UP)) != null)
+                block.powerFrom(Tile.DOWN);
 
-            if (direction != Block.RIGHT && directions[Block.RIGHT] && (block = getFrom(RIGHT)) != null)
-                block.powerFrom(Block.LEFT);
+            if (direction != Tile.RIGHT && directions[Tile.RIGHT] && (block = getFrom(RIGHT)) != null)
+                block.powerFrom(Tile.LEFT);
 
-            if (direction != Block.DOWN && directions[Block.DOWN] && (block = getFrom(DOWN)) != null)
-                block.powerFrom(Block.UP);
+            if (direction != Tile.DOWN && directions[Tile.DOWN] && (block = getFrom(DOWN)) != null)
+                block.powerFrom(Tile.UP);
 
-            if (direction != Block.LEFT && directions[Block.LEFT] && (block = getFrom(LEFT)) != null)
-                block.powerFrom(Block.RIGHT);
+            if (direction != Tile.LEFT && directions[Tile.LEFT] && (block = getFrom(LEFT)) != null)
+                block.powerFrom(Tile.RIGHT);
 
             return true;
         }

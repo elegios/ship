@@ -1,11 +1,11 @@
-package ship.ui.inventory.blockcreator;
+package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.Block;
-import ship.world.collisiongrid.vehicle.block.fuel.FuelTank;
+import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.collisiongrid.vehicle.tile.fuel.FuelTank;
 
-public class FuelTankCreator extends BlockCreator {
+public class FuelTankCreator extends TileCreator {
     public static final String NAME     = "Fuel Tank";
     public static final int    BASETILE = FuelTank.BASETILE;
     public static final Tag[]  TAGS     = {Tags.COLLIDING, Tags.FUELSOURCE, Tags.FUELDRIVEN, Tags.FUELRELATED, Tags.CONTAINERS, Tags.POWERDRIVEN, Tags.POWERRELATED};
@@ -15,7 +15,7 @@ public class FuelTankCreator extends BlockCreator {
     }
 
     @Override
-    public Block create(int sub, int x, int y) {
+    public Tile create(int sub, int x, int y) {
         return new FuelTank(x, y);
     }
 

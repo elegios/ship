@@ -1,8 +1,8 @@
-package ship.world.collisiongrid.vehicle.block;
+package ship.world.collisiongrid.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
-public class ToggleBlock extends Block {
+public class ToggleBlock extends Tile {
     public static final int BASETILE = Thruster.NEXTTILE;
     public static final int NEXTTILE = BASETILE + 2;
 

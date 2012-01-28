@@ -20,6 +20,12 @@ public class Controller {
         CLIAccess.startCLIAccess(System.in, System.out, node.getNode(), null);
     }
 
+    /**
+     * Asks whether the game should be played in single player or multiplayer.
+     * In the former case launches the game, in the latter case a new MultiPlayerDialog
+     * is created.
+     * @throws SlickException
+     */
     public void start() throws SlickException {
         int opt = JOptionPane.showOptionDialog(null,
                                                "How do you want to play?",
@@ -30,12 +36,15 @@ public class Controller {
                                                new String[] {"Single Player", "Multi Player"},
                                                "Single Player");
 
-        if (opt == 0) { //Single player
+        if (opt == 0) //Single player
             View.create(1920, 1080, node, 0, 1);
-        } else if (opt == 1) { //Multi player
+
+        else if (opt == 1) //Multi player
             new MultiPlayerDialog(node).setVisible(true);
-        }
-        //Anything else is probably CLOSED_OPTION, in which case the program should close.
+
+        else
+            System.exit(0);
+
     }
 
     public static void main(String[] args) throws SlickException {

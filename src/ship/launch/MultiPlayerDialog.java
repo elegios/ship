@@ -50,6 +50,11 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
     private int id;
     private int numPlayers;
 
+    /**
+     * Initializes netNode with the given <code>pattern</code>. Also
+     * disables all controls related to connecting or hosting.
+     * @param pattern regex matching the values netNode should pass on
+     */
     private void netNodeInit(String pattern) {
         addressField.setEnabled(false);
         portField.setEnabled(false);
@@ -62,6 +67,10 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
 
     }
 
+    /**
+     * Calls netNodeInit and hosts a server on the selected port. Also
+     * enables the Start button.
+     */
     private void host() {
         netNodeInit("^((?!player)).+|player\\.0\\..+");
         id = 0;
@@ -79,6 +88,10 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
         btnStart.setEnabled(true);
     }
 
+    /**
+     * Calls netNodeInit and connects to the selected address on the
+     * selected port. Will not enable anything ui related.
+     */
     private void connect() {
         netNodeInit("player.id.request");
 
@@ -92,10 +105,19 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
         }
     }
 
+    /**
+     * Sets the game.seed value, which will trigger all clients (and the server)
+     * to start the game.
+     */
     private void start() {
         node.c("game.seed", new Random().nextInt());
     }
 
+    /**
+     * Called when game.seed has been set. Disposes of the current window
+     * and starts the game client window.
+     * @param seed
+     */
     private void startGame(int seed) {
         netNode.remChangeListener (this);
         netNode.remConnectListener(this);
@@ -112,7 +134,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
     }
 
     /**
-     * Create the dialog.
+     * Create the graphical components of the dialog.
      */
     public MultiPlayerDialog(EasyNode node) {
         this.node = node;
@@ -216,11 +238,21 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
                         panel_3.add(btnStart);
     }
 
+    /**
+     * Called when a client has connected to the locally hosted server.
+     * Prints messages when a connection has been received, to give the
+     * hosting player some information regarding who has connected and
+     * who hasn't.
+     */
     @Override
     public void clientConnected(Socket sock) {
         textArea.append("Got a connection from "+ sock.getInetAddress() +"\n");
     }
 
+    /**
+     * Called when netNode has connected to a server. Prints a message to
+     * let the player know that the connection was successful.
+     */
     @Override
     public void connected() {
         textArea.append("Connection established, now all we have to do is wait for the server to start the game.\n");
@@ -231,7 +263,7 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
     public void floatChanged  (String id, float   data) {}
     public void intChanged    (String id, int     data) {
         if (id.equals("game.seed"))
-            new Thread(new GameRunnable(data)).start();
+            new Thread(new GameRunnable(data), "Main game thread").start();
 
         synchronized (this) {
             if (id.equals("player.id.request") && this.id == 0) {

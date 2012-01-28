@@ -1,11 +1,11 @@
-package ship.ui.inventory.blockcreator;
+package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.Balloon;
-import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.tile.Balloon;
+import ship.world.collisiongrid.vehicle.tile.Tile;
 
-public class BalloonCreator extends BlockCreator {
+public class BalloonCreator extends TileCreator {
     public static final String NAME     = "Balloon";
     public static final int    BASETILE = Balloon.BASETILE;
     public static final Tag[]  TAGS     = {Tags.COLLIDING};
@@ -15,7 +15,7 @@ public class BalloonCreator extends BlockCreator {
     }
 
     @Override
-    public Block create(int sub, int x, int y) {
+    public Tile create(int sub, int x, int y) {
         return new Balloon(x, y);
     }
 

@@ -1,10 +1,10 @@
-package ship.ui.inventory.blockcreator;
+package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.fuel.FuelTransport;
+import ship.world.collisiongrid.vehicle.tile.fuel.FuelTransport;
 
-public class FuelTransportCreator extends BlockCreator {
+public class FuelTransportCreator extends TileCreator {
     public static final String NAME     = "Fuel Pipe (block)";
     public static final int    BASETILE = FuelTransport.BASETILE + 1;
     public static final Tag[]  TAGS     = {Tags.COLLIDING, Tags.FUELTRANSPORT, Tags.FUELRELATED};

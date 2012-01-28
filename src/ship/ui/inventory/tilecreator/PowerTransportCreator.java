@@ -1,11 +1,11 @@
-package ship.ui.inventory.blockcreator;
+package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.Block;
-import ship.world.collisiongrid.vehicle.block.power.PowerTransport;
+import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.collisiongrid.vehicle.tile.power.PowerTransport;
 
-public class PowerTransportCreator extends BlockCreator {
+public class PowerTransportCreator extends TileCreator {
     public static final String NAME     = "Power Pipe (block)";
     public static final int    BASETILE = PowerTransport.BASETILE + 1;
     public static final Tag[]  TAGS     = {Tags.COLLIDING, Tags.POWERTRANSPORT, Tags.POWERRELATED};
@@ -14,7 +14,7 @@ public class PowerTransportCreator extends BlockCreator {
         super(NAME, BASETILE, TAGS);
     }
 
-    public Block create(int sub, int x, int y) {
+    public Tile create(int sub, int x, int y) {
         return new PowerTransport(x, y, sub);
     }
 

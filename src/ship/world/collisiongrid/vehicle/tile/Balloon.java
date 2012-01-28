@@ -1,8 +1,8 @@
-package ship.world.collisiongrid.vehicle.block;
+package ship.world.collisiongrid.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
-public class Balloon extends Block { //TODO: make these blow up when destroyed (by force)
+public class Balloon extends Tile { //TODO: make these blow up when destroyed (by force)
     public static final int BASETILE = ToggleBlock.NEXTTILE;
     public static final int NEXTTILE = BASETILE + 1;
 

@@ -12,7 +12,7 @@ import ship.control.Keys;
 import ship.ui.inventory.Inventory;
 import ship.world.Position;
 import ship.world.collisiongrid.CollisionGrid;
-import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.tile.Tile;
 
 public class Builder implements Renderable, KeyReceiver, Position {
 
@@ -60,14 +60,14 @@ public class Builder implements Renderable, KeyReceiver, Position {
 
     public float getX() {
         switch (direction) {
-            case Block.UP:
-            case Block.DOWN:
+            case Tile.UP:
+            case Tile.DOWN:
                 return player.getX() - 1;
 
-            case Block.RIGHT:
+            case Tile.RIGHT:
                 return player.getX2() + 1 + CollisionGrid.TW/2;
 
-            case Block.LEFT:
+            case Tile.LEFT:
                 return player.getX() - CollisionGrid.TW - CollisionGrid.TW/2;
 
             default:
@@ -76,14 +76,14 @@ public class Builder implements Renderable, KeyReceiver, Position {
     }
     public float getY() {
         switch (direction) {
-            case Block.UP:
+            case Tile.UP:
                 return player.getY() - CollisionGrid.TH - CollisionGrid.TH/2;
 
-            case Block.RIGHT:
-            case Block.LEFT:
+            case Tile.RIGHT:
+            case Tile.LEFT:
                 return player.getY() - 1;
 
-            case Block.DOWN:
+            case Tile.DOWN:
                 return player.getY2() + 1 + CollisionGrid.TH/2;
 
             default:
@@ -102,25 +102,25 @@ public class Builder implements Renderable, KeyReceiver, Position {
         if (key == keys.buildUp()) {
             if (!buildMode)
                 player.c("buildMode", true);
-            player.c("buildDirection", Block.UP);
+            player.c("buildDirection", Tile.UP);
             return true;
 
         } if (key == keys.buildRight()) {
             if (!buildMode)
                 player.c("buildMode", true);
-            player.c("buildDirection", Block.RIGHT);
+            player.c("buildDirection", Tile.RIGHT);
             return true;
 
         } if (key == keys.buildDown()) {
             if (!buildMode)
                 player.c("buildMode", true);
-            player.c("buildDirection", Block.DOWN);
+            player.c("buildDirection", Tile.DOWN);
             return true;
 
         } if (key == keys.buildLeft()) {
             if (!buildMode)
                 player.c("buildMode", true);
-            player.c("buildDirection", Block.LEFT);
+            player.c("buildDirection", Tile.LEFT);
             return true;
 
         } if (key == keys.build()) {

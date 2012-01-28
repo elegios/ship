@@ -188,7 +188,6 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             for (Vehicle vehicle : world.vehicles())
                 if (doAirResistY(vehicle)) {
                     airResisted = true;
-                    System.out.println("resisted y from vehicle " +vehicle.getID());
                     break;
                 }
             if (!airResisted)
@@ -338,7 +337,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             s.useDelimiter("\\.");
             world.activateOnVehicle(this, s.nextInt(), s.nextInt(), s.nextInt());
 
-        } else if (id.equals("player." +this.id+ ".makeTile"))
+        } else if (id.equals("player." +this.id+ ".makeTile")) //TODO: make this action only enter DataVerse once, the player message that triggered this will end up in every client
             node.c(data, true);
         else if (id.equals("player." +this.id+ ".deleTile"))
             node.c(data, true);

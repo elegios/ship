@@ -15,17 +15,17 @@ import ship.Updatable;
 import ship.View;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
-import ship.ui.inventory.blockcreator.AirFuelTransportCreator;
-import ship.ui.inventory.blockcreator.AirPowerTransportCreator;
-import ship.ui.inventory.blockcreator.BalloonCreator;
-import ship.ui.inventory.blockcreator.BlockCreator;
-import ship.ui.inventory.blockcreator.FuelTankCreator;
-import ship.ui.inventory.blockcreator.FuelTapCreator;
-import ship.ui.inventory.blockcreator.FuelTransportCreator;
-import ship.ui.inventory.blockcreator.PowerSwitchCreator;
-import ship.ui.inventory.blockcreator.PowerTransportCreator;
-import ship.ui.inventory.blockcreator.ThrusterCreator;
-import ship.ui.inventory.blockcreator.ToggleBlockCreator;
+import ship.ui.inventory.tilecreator.AirFuelTransportCreator;
+import ship.ui.inventory.tilecreator.AirPowerTransportCreator;
+import ship.ui.inventory.tilecreator.BalloonCreator;
+import ship.ui.inventory.tilecreator.TileCreator;
+import ship.ui.inventory.tilecreator.FuelTankCreator;
+import ship.ui.inventory.tilecreator.FuelTapCreator;
+import ship.ui.inventory.tilecreator.FuelTransportCreator;
+import ship.ui.inventory.tilecreator.PowerSwitchCreator;
+import ship.ui.inventory.tilecreator.PowerTransportCreator;
+import ship.ui.inventory.tilecreator.ThrusterCreator;
+import ship.ui.inventory.tilecreator.ToggleBlockCreator;
 import ship.world.Position;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
@@ -49,7 +49,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
 
     private int playerID;
 
-    private List<BlockCreator> blockCreators;
+    private List<TileCreator> blockCreators;
 
     public Inventory(View view) throws SlickException {
         this.view = view;
@@ -91,16 +91,34 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         blockCreators.add(new           BalloonCreator());
     }
 
-    public BlockCreator getBlockAt(int index) { return blockCreators.get(index); }
+    /**
+     * Returns the BlockCreator at point <code>index</code> in the cache.
+     * Since this list is never resorted or altered the same index will
+     * always return the same BlockCreator.
+     * @param index the index from which the BlockCreator should be taken
+     * @return the BlockCreator at <code>index</code>
+     */
+    public TileCreator getBlockAt(int index) { return blockCreators.get(index); }
 
+    /**
+     * Makes sure items displays only the items that match the
+     * currently selected tag.
+     */
     public void updateTagFilter() {
         items.rebuildItemList(blockCreators, tags.getSelected());
     }
 
+    /**
+     * Makes sure subItems displays variants of the correct item.
+     */
     public void updateSubMenu() {
         subItems.updateSubs(items.getSelected());
     }
 
+    /**
+     * Shifts focus one step to the right, unless currently
+     * focusing on subItems.
+     */
     public void moveRight() {
         if (currentFocus == tags)
             setFocus(items);
@@ -108,6 +126,10 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
             setFocus(subItems);
     }
 
+    /**
+     * Shifts focus one step to the left, unless currently
+     * focusing on tags.
+     */
     public void moveLeft() {
         if (currentFocus == items)
             setFocus(tags);
@@ -115,12 +137,21 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
             setFocus(items);
     }
 
+    /**
+     * Shifts the focus to <code>focus</code> making sure to
+     * first remove it from the currently focused Focusable
+     * @param focus
+     */
     private void setFocus(Focusable focus) {
         currentFocus.setFocus(false);
         currentFocus = focus;
         currentFocus.setFocus(true);
     }
 
+    /**
+     * Checks whether the inventory is open or closed and then initiates
+     * a move towards on- or off-screen, respectively
+     */
     private void setXPos() {
         if (visible)
             x.set(0);
@@ -136,11 +167,9 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        //if (visible) {
-            tags    .render(gc, g);
-            items   .render(gc, g);
-            subItems.render(gc, g);
-        //}
+        tags    .render(gc, g);
+        items   .render(gc, g);
+        subItems.render(gc, g);
     }
 
     @Override
@@ -173,9 +202,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
     }
 
     @Override
-    public boolean keyReleased(Keys keys, int key, char c) {
-        return false;
-    }
+    public boolean keyReleased(Keys keys, int key, char c) { return false; }
 
     public View view() { return view; }
 
@@ -192,6 +219,6 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
     public void booleanChanged(String id, boolean data) {}
     public void floatChanged  (String id, float   data) {}
 
-    public int getIndexOf(BlockCreator selected) { return blockCreators.indexOf(selected); }
+    public int getIndexOf(TileCreator selected) { return blockCreators.indexOf(selected); }
 
 }

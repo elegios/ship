@@ -24,26 +24,30 @@ public class ManagedImage {
     public ManagedImage(String identifier, Image image, MediaLoader loader) {
         useCount = 1;
 
-//        System.out.println(identifier + "++ => " + useCount); //REMOVE
-
         this.loader     = loader;
         this.identifier = identifier;
 
         this.image = image;
     }
 
+    /**
+     * Increases the number of users of this image.
+     * @return this, for chaining method calls
+     */
     public ManagedImage use() {
         useCount++;
-
-//        System.out.println(identifier + "++ => " + useCount); //REMOVE
 
         return this;
     }
 
+    /**
+     * Decreases the number of users of this image. If no
+     * users remain, the image is destroyed and released from
+     * the parent MediaLoader
+     * @throws SlickException
+     */
     public void release() throws SlickException {
         useCount--;
-
-//        System.out.println(identifier + "-- => " + useCount); //REMOVE
 
         if(useCount == 0) {
             loader.release(this);
@@ -51,6 +55,10 @@ public class ManagedImage {
         }
     }
 
+    /**
+     * Change the Image this ManagedImage represents
+     * @param image the new Image
+     */
     public void setImage(Image image) {
         this.image = image;
     }

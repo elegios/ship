@@ -25,6 +25,16 @@ public class Box implements Renderable, Position, Rectangle {
 
     private ManagedSpriteSheet spriteSheet;
 
+    /**
+     * Creates a new Box relative to <code>parent</code>
+     * @param parent the Box will be draw relative to this Position
+     * @param loader the MediaLoader responsible for the graphics of the Box
+     * @param x the x coordinate of the Box, relative to <code>parent</code>
+     * @param y the y coordinate of the Box, relative to <code>parent</code>
+     * @param width the number of tiles this box consists of, in width
+     * @param height the number of tiles this box consists of, in height
+     * @throws SlickException
+     */
     public Box(Position parent, MediaLoader loader, int x, int y, int width, int height) throws SlickException {
         this.parent = parent;
 
@@ -71,7 +81,6 @@ public class Box implements Renderable, Position, Rectangle {
         spriteSheet.getSpriteSheet().endUse();
     }
 
-    public void setAlpha(float alpha) { spriteSheet.getSpriteSheet().setAlpha(alpha); }
     public void setWidth (int width ) { this.width  = width;  }
     public void setHeight(int height) { this.height = height; }
 

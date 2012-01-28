@@ -14,12 +14,12 @@ import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
 import ship.world.collisiongrid.CollisionGrid;
-import ship.world.collisiongrid.vehicle.block.Block;
-import ship.world.collisiongrid.vehicle.block.Thruster;
-import ship.world.collisiongrid.vehicle.block.fuel.AirFuelTransport;
-import ship.world.collisiongrid.vehicle.block.fuel.FuelTank;
-import ship.world.collisiongrid.vehicle.block.fuel.FuelTransport;
-import ship.world.collisiongrid.vehicle.block.power.PowerSwitch;
+import ship.world.collisiongrid.vehicle.tile.Thruster;
+import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.collisiongrid.vehicle.tile.fuel.AirFuelTransport;
+import ship.world.collisiongrid.vehicle.tile.fuel.FuelTank;
+import ship.world.collisiongrid.vehicle.tile.fuel.FuelTransport;
+import ship.world.collisiongrid.vehicle.tile.power.PowerSwitch;
 import ship.world.player.Player;
 
 
@@ -31,7 +31,7 @@ public class Vehicle extends CollisionGrid {
     private static final int VEHICLE_WIDTH  = 65;
     private static final int VEHICLE_HEIGHT = 65;
 
-    private Block[][] tiles;
+    private Tile[][] tiles;
 
     private int leftX;
     private int rightX;
@@ -40,11 +40,20 @@ public class Vehicle extends CollisionGrid {
 
     private Inventory inv;
 
+    /**
+     * Creates a new Vehicle with its centre at (x, y) for use in the supplied World.
+     * The given ID must be unique among all Vehicles in a given World.
+     * @param world the World in which this Vehicle exists
+     * @param id the ID this vehicle will use
+     * @param x the global x coordinate of the Vehicle
+     * @param y the global y coordinate of the Vehicle
+     * @throws SlickException
+     */
     public Vehicle(World world, int id, int x, int y) throws SlickException {
         super(world, id, x, y, true, "vehicle");
         inv = world.view().inventory();
 
-        tiles = new Block[WIDTH()][HEIGHT()];
+        tiles = new Tile[WIDTH()][HEIGHT()];
 
         leftX  = WIDTH()/2;
         rightX = leftX;
@@ -53,7 +62,12 @@ public class Vehicle extends CollisionGrid {
         botY   = topY;
     }
 
-    public final void addTile(Block tile) {
+    /**
+     * Adds a given Block to the Vehicle, adding its mass to the total and checking whether
+     * the Vehicle has grown bigger in any direction.
+     * @param tile the Block
+     */
+    public final void addTile(Tile tile) {
         c("mass", mass + tile.mass());
         tile(tile.x(), tile.y(), tile);
         setCollidesAt(tile.x(), tile.y(), tile.collide());
@@ -69,7 +83,7 @@ public class Vehicle extends CollisionGrid {
             botY = tile.y();
     }
 
-    public final void remTile(Block tile) {
+    public final void remTile(Tile tile) {
         c("mass", mass - tile.mass());
         tile(tile.x(), tile.y(), null);
         setCollidesAt(tile.x(), tile.y(), false);
@@ -207,10 +221,10 @@ public class Vehicle extends CollisionGrid {
         pushY((float) (-ySpeed * world.airResist() * Math.pow(rightX - leftX, 0.5)));
     }
 
-    public Block tile(int x, int y) {
+    public Tile tile(int x, int y) {
         return tiles[x][y];
     }
-    private void tile(int x, int y, Block val) {
+    private void tile(int x, int y, Tile val) {
         tiles[x][y] = val;
     }
 
@@ -221,7 +235,7 @@ public class Vehicle extends CollisionGrid {
         if (id.startsWith("tile.")) {
             Scanner s = new Scanner(id.substring(5));
             s.useDelimiter("\\.");
-            Block tile = tile(s.nextInt(), s.nextInt());
+            Tile tile = tile(s.nextInt(), s.nextInt());
             if (tile != null)
                 tile.updateData(s.nextLine().substring(1), data);
         }
@@ -231,13 +245,13 @@ public class Vehicle extends CollisionGrid {
             Scanner s = new Scanner(id.substring(5));
             s.useDelimiter("\\.");
             if (id.startsWith("tile.")) {
-                Block tile = tile(s.nextInt(), s.nextInt());
+                Tile tile = tile(s.nextInt(), s.nextInt());
                 if (tile != null)
                     tile.updateBoolean(s.nextLine().substring(1), data);
             } else if (id.startsWith("make.")){
                 this.addTile(inv.getBlockAt(s.nextInt()).create(s.nextInt(), s.nextInt(), s.nextInt()));
             } else {
-                Block tile = tile(s.nextInt(), s.nextInt());
+                Tile tile = tile(s.nextInt(), s.nextInt());
                 if (tile != null)
                     this.remTile(tile);
             }
@@ -247,7 +261,7 @@ public class Vehicle extends CollisionGrid {
         if (id.startsWith("tile.")) {
             Scanner s = new Scanner(id.substring(5));
             s.useDelimiter("\\.");
-            Block tile = tile(s.nextInt(), s.nextInt());
+            Tile tile = tile(s.nextInt(), s.nextInt());
             if (tile != null)
                 tile.updateInt(s.nextLine().substring(1), data);
         }
@@ -277,7 +291,7 @@ public class Vehicle extends CollisionGrid {
                 if (id.startsWith("tile.")) {
                     Scanner s = new Scanner(id.substring(5));
                     s.useDelimiter("\\.");
-                    Block tile = tile(s.nextInt(), s.nextInt());
+                    Tile tile = tile(s.nextInt(), s.nextInt());
                     if (tile != null)
                         tile.updateFloat(s.nextLine().substring(1), data);
                 } else
@@ -289,51 +303,51 @@ public class Vehicle extends CollisionGrid {
         int mx = WIDTH ()/2;
         int my = HEIGHT()/2;
 
-        addTile(new PowerSwitch(mx - 1, my, Block.RIGHT));
+        addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
 
-        addTile(new AirFuelTransport(mx - 2, my - 1, false, Block.LEFT));
+        addTile(new AirFuelTransport(mx - 2, my - 1, false, Tile.LEFT));
         addTile(new FuelTank(mx - 2, my));
         tile(mx - 2, my).c("content", FuelTank.MAX_CONTENT);
-        addTile(new FuelTransport(mx - 2, my + 1, false, Block.UP));
+        addTile(new FuelTransport(mx - 2, my + 1, false, Tile.UP));
 
-        addTile(new AirFuelTransport(mx - 3, my - 1, false, Block.DOWN));
-        addTile(new Thruster(mx - 3, my, Block.RIGHT));
-        addTile(new FuelTransport(mx - 3, my + 1, false, Block.RIGHT));
+        addTile(new AirFuelTransport(mx - 3, my - 1, false, Tile.DOWN));
+        addTile(new Thruster(mx - 3, my, Tile.RIGHT));
+        addTile(new FuelTransport(mx - 3, my + 1, false, Tile.RIGHT));
 
 
-        addTile(new PowerSwitch(mx, my, Block.UP));
+        addTile(new PowerSwitch(mx, my, Tile.UP));
 
-        addTile(new FuelTransport(mx - 1, my + 1, false, Block.DOWN));
+        addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
         addTile(new FuelTank(mx, my + 1));
         tile(mx, my + 1).c("content", FuelTank.MAX_CONTENT);
-        addTile(new FuelTransport(mx + 1, my + 1, false, Block.LEFT));
+        addTile(new FuelTransport(mx + 1, my + 1, false, Tile.LEFT));
 
-        addTile(new AirFuelTransport(mx - 1, my + 2, false, Block.RIGHT));
-        addTile(new Thruster(mx, my + 2, Block.UP));
-        addTile(new AirFuelTransport(mx + 1, my + 2, false, Block.UP));
+        addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
+        addTile(new Thruster(mx, my + 2, Tile.UP));
+        addTile(new AirFuelTransport(mx + 1, my + 2, false, Tile.UP));
 
 
-        addTile(new PowerSwitch(mx + 1, my, Block.LEFT));
+        addTile(new PowerSwitch(mx + 1, my, Tile.LEFT));
 
-        addTile(new AirFuelTransport(mx + 2, my - 1, false, Block.DOWN));
+        addTile(new AirFuelTransport(mx + 2, my - 1, false, Tile.DOWN));
         addTile(new FuelTank(mx + 2, my));
         tile(mx + 2, my).c("content", FuelTank.MAX_CONTENT);
-        addTile(new FuelTransport(mx + 2, my + 1, false, Block.RIGHT));
+        addTile(new FuelTransport(mx + 2, my + 1, false, Tile.RIGHT));
 
-        addTile(new AirFuelTransport(mx + 3, my - 1, false, Block.LEFT));
-        addTile(new Thruster(mx + 3, my, Block.LEFT));
-        addTile(new FuelTransport(mx + 3, my + 1, false, Block.UP));
+        addTile(new AirFuelTransport(mx + 3, my - 1, false, Tile.LEFT));
+        addTile(new Thruster(mx + 3, my, Tile.LEFT));
+        addTile(new FuelTransport(mx + 3, my + 1, false, Tile.UP));
 
 
-        addTile(new Block(mx - 4, my + 1, 1, 5, true, true));
-        addTile(new Block(mx - 5, my + 2, 1, 5, true, true));
+        addTile(new Tile(mx - 4, my + 1, 1, 5, true, true));
+        addTile(new Tile(mx - 5, my + 2, 1, 5, true, true));
 
-        addTile(new Block(mx + 4, my + 1, 1, 5, true, true));
-        addTile(new Block(mx + 5, my + 2, 1, 5, true, true));
+        addTile(new Tile(mx + 4, my + 1, 1, 5, true, true));
+        addTile(new Tile(mx + 5, my + 2, 1, 5, true, true));
 
-        addTile(new Block(mx - 1, my - 2, 1, 5, true, true));
-        addTile(new Block(mx    , my - 2, 1, 5, true, true));
-        addTile(new Block(mx + 1, my - 2, 1, 5, true, true));
+        addTile(new Tile(mx - 1, my - 2, 1, 5, true, true));
+        addTile(new Tile(mx    , my - 2, 1, 5, true, true));
+        addTile(new Tile(mx + 1, my - 2, 1, 5, true, true));
     }
 
 }

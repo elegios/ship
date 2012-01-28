@@ -54,6 +54,13 @@ public class Tags extends Box implements KeyReceiver, Focusable {
 
     private ManagedSpriteSheet highlight;
 
+    /**
+     * Creates a Tags list for use in <code>parent</code>.
+     * @param parent the inventory that will use this Tags list
+     * @param x the x coordinate of the new object, relative to <code>parent</code>
+     * @param y the y coordinate of the new object, relative to <code>parent</code>
+     * @throws SlickException
+     */
     public Tags(Inventory parent, int x, int y) throws SlickException {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;

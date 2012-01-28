@@ -1,11 +1,11 @@
-package ship.ui.inventory.blockcreator;
+package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.Block;
-import ship.world.collisiongrid.vehicle.block.ToggleBlock;
+import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.collisiongrid.vehicle.tile.ToggleBlock;
 
-public class ToggleBlockCreator extends BlockCreator {
+public class ToggleBlockCreator extends TileCreator {
     public static final String NAME     = "Door";
     public static final int    BASETILE = ToggleBlock.BASETILE;
     public static final Tag[]  TAGS     = {Tags.COLLIDING, Tags.POWERDRIVEN, Tags.POWERRELATED, Tags.NONCOLLIDING};
@@ -15,7 +15,7 @@ public class ToggleBlockCreator extends BlockCreator {
     }
 
     @Override
-    public Block create(int sub, int x, int y) {
+    public Tile create(int sub, int x, int y) {
         return new ToggleBlock(x, y);
     }
 

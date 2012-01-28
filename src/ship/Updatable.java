@@ -12,6 +12,11 @@ import org.newdawn.slick.GameContainer;
  */
 public interface Updatable {
 
+    /**
+     * Update the Updatable. Expected to be run once per frame
+     * @param gc the GameContainer in which the current game exists
+     * @param diff the number of milliseconds since the last frame
+     */
     void update(GameContainer gc, int diff);
 
 }

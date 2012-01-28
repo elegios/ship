@@ -1,10 +1,10 @@
-package ship.ui.inventory.blockcreator;
+package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.block.Thruster;
+import ship.world.collisiongrid.vehicle.tile.Thruster;
 
-public class ThrusterCreator extends BlockCreator {
+public class ThrusterCreator extends TileCreator {
     public static final String NAME     = "Thruster";
     public static final int    BASETILE = Thruster.BASETILE;
     public static final Tag[]  TAGS     = {Tags.COLLIDING, Tags.FUELDRIVEN, Tags.FUELRELATED};

@@ -90,15 +90,67 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         c("mass", 0.0f);
     }
 
+    /**
+     * For collision detection, return the tile at (x, y), as a Rectangle
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @return the tile as a Rectangle
+     */
     protected abstract Rectangle getRectAt    (int x, int y);
+    /**
+     * Check whether the tile at (x, y) wants to be rendered
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @return true if the tile should be rendered.
+     */
     protected abstract boolean   renderAt     (int x, int y);
+    /**
+     * Checks if the tile at (x, y) exists
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @return true if the tile exists
+     */
     public    abstract boolean   existsAt     (int x, int y);
+    /**
+     * Get a number representing a tile from the CollisionGrid SpriteSheet, that will be used
+     * to render the tile at (x, y)
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @return an int representing a sprite from the CollisionGrid SpriteSheet
+     */
     protected abstract int       tileAt       (int x, int y);
+    /**
+     * Call the update method of the tile at (x, y)
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @param gc the GameContainer in which the current game exists
+     * @param diff the number of milliseconds since the last frame
+     */
     protected abstract void      updateAt     (int x, int y, GameContainer gc, int diff);
 
+    /**
+     * Returns the internal x coordinate of the left-most tile in the current
+     * CollisionGrid.
+     * @return left-most internal coordinate in use
+     */
     protected abstract int leftX();
+    /**
+     * Returns the internal x coordinate of the right-most tile in the current
+     * CollisionGrid.
+     * @return right-most internal coordinate in use
+     */
     protected abstract int rightX();
+    /**
+     * Returns the internal y coordinate of the top-most tile in the current
+     * CollisionGrid.
+     * @return top-most internal coordinate in use
+     */
     protected abstract int topY();
+    /**
+     * Returns the internal y coordinate of the bottom-most tile in the current
+     * CollisionGrid.
+     * @return bottom-most internal coordinate in use
+     */
     protected abstract int botY();
 
     protected abstract void updateData   (String id, String  data);
@@ -106,20 +158,74 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     protected abstract void updateBoolean(String id, boolean data);
     protected abstract void updateFloat  (String id, float   data);
 
+    /**
+     * Returns the maximum number of tiles the current CollisionGrid can
+     * handle, horizontally.
+     * @return width in tiles
+     */
     public abstract int WIDTH();
+    /**
+     * Returns the maximum number of tiles the current CollisionGrid can
+     * handle, vertically.
+     * @return height in tiles
+     */
     public abstract int HEIGHT();
 
     public abstract void pushX(float momentum);
     public abstract void pushY(float momentum);
 
+    /**
+     * Method that is called at least once during every actual collision with another
+     * Rectangle. The method receives various data, acts on it, and then returns a new
+     * fixMove value, should the old one need to be changed. This is to enable the current
+     * CollisionGrid to move even if it is the other one that normally should move, to
+     * fix edge cases.
+     * @param rect the Rectangle with which there has been a collision
+     * @param xSpeed the relative speed at which the Rectangle travels
+     * @param fixMove the previous fixMove value
+     * @param first true if this is the first call to this method for the current collision
+     * @return a new fixMove value, or the old one if it does not need to change
+     */
     protected abstract float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first);
+    /**
+     * Method that is called at least once during every actual collision with another
+     * Rectangle. The method receives various data, acts on it, and then returns a new
+     * fixMove value, should the old one need to be changed. This is to enable the current
+     * CollisionGrid to move even if it is the other one that normally should move, to
+     * fix edge cases.
+     * @param rect the Rectangle with which there has been a collision
+     * @param ySpeed the relative speed at which the Rectangle travels
+     * @param fixMove the previous fixMove value
+     * @param first true if this is the first call to this method for the current collision
+     * @return a new fixMove value, or the old one if it does not need to change
+     */
     protected abstract float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first);
 
+    /**
+     * Check if the tile at (x, y) collides. Will throw an exception if (x, y) is
+     * outside the CollisionGrid.
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @return true if the tile collides, false otherwise
+     */
     public boolean collidesAt(int x, int y)            { return collidesAt[x][y]; }
+    /**
+     * Sets whether the tile at (x, y) collides or not. Will throw an exception if (x, y)
+     * is outside the CollisionGrid
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @param collides whether the tile should collide or not
+     */
     public void setCollidesAt(int x, int y, boolean collides) { collidesAt[x][y] = collides; }
 
     public World world() { return world; }
 
+    /**
+     * Checks for collision with <code>other</code>. If true, it
+     * will primarily be this CollisionGrid that moves, with a few exceptions.
+     * @param other the CollisionGrid to be checked for collision
+     * @return true if collision has been detected, false otherwise
+     */
     public boolean collideWithCollisionGridX(CollisionGrid other) {
         boolean hasCollidedWithImmobile = false;
         boolean hasCollided = false;
@@ -150,6 +256,12 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         return hasCollided;
     }
 
+    /**
+     * Checks for collision with <code>other</code>. If true, it
+     * will primarily be this CollisionGrid that moves, with a few exceptions.
+     * @param other the CollisionGrid to be checked for collision
+     * @return true if collision has been detected, false otherwise
+     */
     public boolean collideWithCollisionGridY(CollisionGrid other) {
         boolean hasCollidedWithImmobile = false;
         boolean hasCollided = false;
@@ -180,8 +292,21 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         return hasCollided;
     }
 
-    public float collideRectangleX(Rectangle rect, float xSpeed) { return collideRectangleX(rect, xSpeed, 0); }
-    public float collideRectangleX(Rectangle rect, float xSpeed, float xMod) {
+    /**
+     * Checks for collision between this CollisionGrid and <code>rect</code>.
+     * Returns the amount of pixels that <code>rect</code> needs to move to
+     * be outside the CollisionGrid.
+     *
+     * This method will call pushBackAndFixMoveX at least once for every collision.
+     * This is to fix edge-cases, when <code>rect</code> cannot be moved for one
+     * reason or another. If that is the case, pushBackAndFixMoveX will probably move
+     * the CollisionGrid.
+     * @param rect the rectangle to be checked for collision
+     * @param ySpeed the speed of <code>rect</code> relative to the CollisionGrid
+     * @return the number of pixels <code>rect</code> needs to be moved.
+     */
+    public  float collideRectangleX(Rectangle rect, float xSpeed) { return collideRectangleX(rect, xSpeed, 0, true); }
+    private float collideRectangleX(Rectangle rect, float xSpeed, float xMod, boolean first) {
         int i2 = (int) Math.ceil(rect.getX2() + xMod - getX())/TW;
         int j1 = (int)          (rect.getY()         - getY())/TH;
         int j2 = (int) Math.ceil(rect.getY2()        - getY())/TH;
@@ -189,23 +314,36 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             float fixMove = getX() - rect.getX() - xMod - rect.getWidth() + i2*TW - 0.002f;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
             if (fixMove > 0.002f)
                 return fixMove;
-            fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, xMod == 0);
-            return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod);
+            fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, first);
+            return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod, false);
         }
         int i1  = (int) (rect.getX() + xMod - getX())/TW;
         if (collides(i1, j1) || collides(i1, j2)) {
             float fixMove = getX() - rect.getX() - xMod + i1*TW + TW + 0.002f;
             if (fixMove < 0.002f)
                 return fixMove;
-            fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, xMod == 0);
-            return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod);
+            fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, first);
+            return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod, false);
         }
 
         return 0;
     }
 
-    public float collideRectangleY(Rectangle rect, float ySpeed) { return collideRectangleY(rect, ySpeed, 0); }
-    public float collideRectangleY(Rectangle rect, float ySpeed, float yMod) {
+    /**
+     * Checks for collision between this CollisionGrid and <code>rect</code>.
+     * Returns the amount of pixels that <code>rect</code> needs to move to
+     * be outside the CollisionGrid.
+     *
+     * This method will call pushBackAndFixMoveY at least once for every collision.
+     * This is to fix edge-cases, when <code>rect</code> cannot be moved for one
+     * reason or another. If that is the case, pushBackAndFixMoveY will probably move
+     * the CollisionGrid.
+     * @param rect the rectangle to be checked for collision
+     * @param ySpeed the speed of <code>rect</code> relative to the CollisionGrid
+     * @return the number of pixels <code>rect</code> needs to be moved.
+     */
+    public  float collideRectangleY(Rectangle rect, float ySpeed) { return collideRectangleY(rect, ySpeed, 0, true); }
+    private float collideRectangleY(Rectangle rect, float ySpeed, float yMod, boolean first) {
         int i1 = (int)          (rect.getX()         - getX())/TW;
         int i2 = (int) Math.ceil(rect.getX2()        - getX())/TW;
         int j2 = (int) Math.ceil(rect.getY2() + yMod - getY())/TH;
@@ -213,21 +351,30 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             float fixMove = getY() - rect.getY() - yMod - rect.getHeight() + j2*TH - 0.002f;
             if (fixMove > 0.002f)
                 return fixMove;
-            fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, yMod == 0);
-            return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod);
+            fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, first);
+            return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod, false);
         }
         int j1 = (int) (rect.getY() + yMod - getY())/TH;
         if (collides(i1, j1) || collides(i2, j1)) {
             float fixMove = getY() - rect.getY() - yMod + j1*TH + TH + 0.002f;
             if (fixMove < 0.002f)
                 return fixMove;
-            fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, yMod == 0);
-            return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod);
+            fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, first);
+            return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod, false);
         }
 
         return 0;
     }
 
+    /**
+     * Checks if the tile at (x, y) collides. This is merely a wrapper of
+     * collidesAt(x, y), with the exception that this method will return
+     * false if (x, y) is outside the CollisionGrid, instead of throwing an
+     * exception
+     * @param x the x coordinate of the tile to be checked
+     * @param y the y coordinate of the tile to be checked
+     * @return true if (x, y) is within the CollisionGrid and collides, false otherwise
+     */
     private boolean collides(int x, int y) {
         if (0 <= x && x < WIDTH() &&
             0 <= y && y < HEIGHT())
@@ -256,6 +403,14 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     }
 
+    /**
+     * Checks if <code>rect</code> overlaps the current CollisionGrid.
+     * This only checks if any of the four corners of <code>rect</code>
+     * is within the CollisionGrid, so if the CollisionGrid is entirely
+     * within <code>rect</code> false is returned.
+     * @param rect the Rectangle to be checked for overlap
+     * @return true if any corner of <code>rect</code> overlaps
+     */
     public boolean overlaps(Rectangle rect) {
         if (((rect.getX()  >= getX() && rect.getX()  <= getX2()) ||
              (rect.getX2() >= getX() && rect.getX2() <= getX2()))
@@ -307,7 +462,21 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     public void collisionLockX       (float   val) { collisionLockX        = val; }
     public void collisionLockY       (float   val) { collisionLockY        = val; }
 
+    /**
+     * Gets the internal x coordinate of the tile that would be underneath the
+     * given global x coordinate. Will return an answer even if the tile would
+     * be outside the CollisionGrid, so be careful with the values returned from here
+     * @param x a global x-coordinate
+     * @return the internal x-coordinate of the tile
+     */
     public int getTileXUnderPos(float x) { return (int) (x - getX())/TW; }
+    /**
+     * Gets the internal y coordinate of the tile that would be underneath the
+     * given global y coordinate. Will return an answer even if the tile would
+     * be outside the CollisionGrid, so be careful with the values returned from here
+     * @param y a global y-coordinate
+     * @return the internal y-coordinate of the tile
+     */
     public int getTileYUnderPos(float y) { return (int) (y - getY())/TH; }
 
     @Override

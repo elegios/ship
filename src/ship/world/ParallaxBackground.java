@@ -22,6 +22,13 @@ public class ParallaxBackground implements Renderable {
 
     private ManagedImage sprite;
 
+    /**
+     * Creates a new ParallaxBackground for use in the supplied <code>world</code>.
+     * The particles will scroll relative to the return of world.ix() and world.iy()
+     * methods, at different rate depending on the layer.
+     * @param world
+     * @throws SlickException
+     */
     public ParallaxBackground(World world) throws SlickException {
         this.world = world;
 

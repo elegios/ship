@@ -10,7 +10,7 @@ import ship.View;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
 import ship.ui.Box;
-import ship.ui.inventory.blockcreator.BlockCreator;
+import ship.ui.inventory.tilecreator.TileCreator;
 import ship.world.collisiongrid.CollisionGrid;
 import dataverse.datanode.easy.EasyNode;
 
@@ -34,7 +34,7 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
 
     private int selected;
 
-    private BlockCreator block;
+    private TileCreator block;
 
     public SubItems(Inventory parent, int x, int y) throws SlickException {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
@@ -47,7 +47,7 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
         highlight = parent.view().loader().loadManagedSpriteSheet("sub_item_highlight", HIGHLIGHT_W, ITEM_HEIGHT);
     }
 
-    public void updateSubs(BlockCreator block) {
+    public void updateSubs(TileCreator block) {
         this.block = block;
 
         updateSubs();

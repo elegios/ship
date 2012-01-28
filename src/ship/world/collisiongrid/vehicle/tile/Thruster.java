@@ -1,8 +1,8 @@
-package ship.world.collisiongrid.vehicle.block;
+package ship.world.collisiongrid.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
-public class Thruster extends Block {
+public class Thruster extends Tile {
     public static final int BASETILE = 192;
     public static final int NEXTTILE = BASETILE + 20;
 

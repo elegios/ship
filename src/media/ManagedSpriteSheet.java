@@ -38,6 +38,10 @@ public class ManagedSpriteSheet {
         th = spriteSheet.getHeight() / spriteSheet.getVerticalCount  ();
     }
 
+    /**
+     * Increases the number of users of this sprite sheet.
+     * @return this, for chaining method calls
+     */
     public ManagedSpriteSheet use() {
         useCount++;
 
@@ -46,6 +50,12 @@ public class ManagedSpriteSheet {
         return this;
     }
 
+    /**
+     * Decreases the number of users of this sprite sheet. If no
+     * users remain, the SpriteSheet is destroyed and released from
+     * the parent MediaLoader
+     * @throws SlickException
+     */
     public void release() throws SlickException {
         useCount--;
 
@@ -57,13 +67,25 @@ public class ManagedSpriteSheet {
         }
     }
 
+    /**
+     * Change the SpriteSheet this ManagedSpriteSheet represents
+     * @param spriteSheet the new SpriteSheet
+     */
     public void setSpriteSheet(SpriteSheet spriteSheet) {
         this.spriteSheet = spriteSheet;
     }
     public SpriteSheet getSpriteSheet() { return spriteSheet; }
     public String      identifier()     { return identifier; }
 
+    /**
+     * Get the width of one tile in this SpriteSheet
+     * @return width of a tile
+     */
     public int tw() { return tw; }
+    /**
+     * Get the height of one tile in this SpriteSheet
+     * @return height of a tile
+     */
     public int th() { return th; }
 
 }

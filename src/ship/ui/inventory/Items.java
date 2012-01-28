@@ -14,7 +14,7 @@ import ship.View;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
 import ship.ui.Box;
-import ship.ui.inventory.blockcreator.BlockCreator;
+import ship.ui.inventory.tilecreator.TileCreator;
 import ship.world.collisiongrid.CollisionGrid;
 import dataverse.datanode.easy.EasyNode;
 
@@ -39,12 +39,12 @@ public class Items extends Box implements KeyReceiver, Focusable {
     private ManagedSpriteSheet tiles;
     private ManagedSpriteSheet highlight;
 
-    private List<BlockCreator> items;
+    private List<TileCreator> items;
     private int selected;
 
     private boolean focus;
 
-    public Items(Inventory parent, int x, int y, List<BlockCreator> items) throws SlickException {
+    public Items(Inventory parent, int x, int y, List<TileCreator> items) throws SlickException {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;
 
@@ -55,7 +55,7 @@ public class Items extends Box implements KeyReceiver, Focusable {
         tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles", CollisionGrid.TW, CollisionGrid.TH);
         highlight = parent.view().loader().loadManagedSpriteSheet("item_highlight",      HIGHLIGHT_W,      ITEM_HEIGHT);
 
-        this.items = new ArrayList<BlockCreator>(items);
+        this.items = new ArrayList<TileCreator>(items);
     }
 
     public void setFocus(boolean val) { focus = val; }
@@ -78,9 +78,9 @@ public class Items extends Box implements KeyReceiver, Focusable {
         return false;
     }
 
-    public void rebuildItemList(List<BlockCreator> itemList, Tag tag) {
+    public void rebuildItemList(List<TileCreator> itemList, Tag tag) {
         items.clear();
-        for (BlockCreator tile : itemList)
+        for (TileCreator tile : itemList)
             if (tile.matches(tag))
                 items.add(tile);
 
@@ -96,7 +96,7 @@ public class Items extends Box implements KeyReceiver, Focusable {
 
     }
 
-    public BlockCreator getSelected() {
+    public TileCreator getSelected() {
         if (items.size() > selected)
             return items.get(selected);
         return null;

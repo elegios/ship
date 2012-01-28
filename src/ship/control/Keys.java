@@ -44,6 +44,9 @@ public class Keys implements KeyReceiver {
         setDvorak(); //temporary
     }
 
+    /**
+     * Sets the keyboard layout to the default Dvorak configuration
+     */
     public void setDvorak() {
         up    = Input.KEY_COMMA;
         right = Input.KEY_E;
@@ -64,6 +67,9 @@ public class Keys implements KeyReceiver {
         buildLeft  = Input.KEY_H;
     }
 
+    /**
+     * Sets the keyboard layout to the default Qwerty configuration
+     */
     public void setQwerty() {
         up    = Input.KEY_W;
         right = Input.KEY_D;
@@ -84,6 +90,13 @@ public class Keys implements KeyReceiver {
         buildLeft  = Input.KEY_J;
     }
 
+    /**
+     * Sets the keyboard layout to one of the Swedish Qwerty configurations.
+     * Identical to the Qwerty layout except for buildCancel. For some reason
+     * different computer configurations will report different key numbers for the
+     * same key (ö), so there are two variants of SweQwerty. If this one doesn't
+     * work, try setSweQwerty2()
+     */
     public void setSweQwerty() {
         setQwerty();
 
@@ -91,6 +104,13 @@ public class Keys implements KeyReceiver {
                                         //(Å and Ä are also reported as 13, so here's a potential oddity)
     }
 
+    /**
+     * Sets the keyboard layout to one of the Swedish Qwerty configurations.
+     * Identical to the Qwerty layout except for buildCancel. For some reason
+     * different computer configurations will report different key numbers for the
+     * same key (ö), so there are two variants of SweQwerty. If this one doesn't
+     * work, try setSweQwerty()
+     */
     public void setSweQwerty2() {
         setQwerty();
 

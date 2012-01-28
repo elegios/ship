@@ -1,10 +1,10 @@
-package ship.world.collisiongrid.vehicle.block.fuel;
+package ship.world.collisiongrid.vehicle.tile.fuel;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.tile.Tile;
 
-public class FuelTank extends Block {
+public class FuelTank extends Tile {
     public static final int BASETILE = FuelTap.NEXTTILE;
     public static final int NEXTTILE = BASETILE + 10;
 
@@ -30,7 +30,7 @@ public class FuelTank extends Block {
 
             float amount = Math.min(parent.world().fuelRate() * parent.world().view().diff(), content);
             for (int i = 0; i < 4 && amount > 0; i++) {
-                Block out = getFrom(i);
+                Tile out = getFrom(i);
                 if (out != null && out.fuelFrom((i + 2) % 4, amount)) {
                     content -= amount;
                     amount = Math.min(amount, content);

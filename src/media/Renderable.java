@@ -13,6 +13,11 @@ import org.newdawn.slick.Graphics;
  */
 public interface Renderable {
 
+    /**
+     * Renders the Renderable.
+     * @param gc the GameContainer in which the current game exists
+     * @param g the Graphics object the handles drawing of the game
+     */
     void render(GameContainer gc, Graphics g);
 
 }

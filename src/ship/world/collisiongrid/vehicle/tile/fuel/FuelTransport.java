@@ -1,8 +1,8 @@
-package ship.world.collisiongrid.vehicle.block.fuel;
+package ship.world.collisiongrid.vehicle.tile.fuel;
 
-import ship.world.collisiongrid.vehicle.block.Block;
+import ship.world.collisiongrid.vehicle.tile.Tile;
 
-public class FuelTransport extends Block {
+public class FuelTransport extends Tile {
     public static final int BASETILE = FuelSwitch.NEXTTILE;
     public static final int NEXTTILE = BASETILE + 12;
 
@@ -42,7 +42,7 @@ public class FuelTransport extends Block {
         }
 
         if (fueled()) {
-            Block out = getFrom(outDir);
+            Tile out = getFrom(outDir);
 
             if (out != null)
                 out.fuelFrom((outDir + 2)%4, amount);
