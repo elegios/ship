@@ -91,6 +91,12 @@ public class Keys implements KeyReceiver {
                                         //(Å and Ä are also reported as 13, so here's a potential oddity)
     }
 
+    public void setSweQwerty2() {
+        setQwerty();
+
+        buildCancel = Input.KEY_GRAVE; //Same as above, only some computers/layouts report the value of grave
+    }
+
     public int up   () { return up; }
     public int right() { return right; }
     public int down () { return down; }
@@ -140,6 +146,10 @@ public class Keys implements KeyReceiver {
                 return true;
 
             case Input.KEY_F3:
+                setSweQwerty2();
+                return true;
+
+            case Input.KEY_F4:
                 setDvorak();
                 return true;
         }
