@@ -17,6 +17,7 @@ import ship.control.KeyReceiver;
 import ship.control.Keys;
 import ship.ui.inventory.blockcreator.AirFuelTransportCreator;
 import ship.ui.inventory.blockcreator.AirPowerTransportCreator;
+import ship.ui.inventory.blockcreator.BalloonCreator;
 import ship.ui.inventory.blockcreator.BlockCreator;
 import ship.ui.inventory.blockcreator.FuelTankCreator;
 import ship.ui.inventory.blockcreator.FuelTapCreator;
@@ -87,6 +88,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         blockCreators.add(new           FuelTapCreator());
         blockCreators.add(new          FuelTankCreator());
         blockCreators.add(new       ToggleBlockCreator());
+        blockCreators.add(new           BalloonCreator());
     }
 
     public BlockCreator getBlockAt(int index) { return blockCreators.get(index); }

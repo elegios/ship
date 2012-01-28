@@ -4,6 +4,7 @@ import org.newdawn.slick.GameContainer;
 
 public class ToggleBlock extends Block {
     public static final int BASETILE = Thruster.NEXTTILE;
+    public static final int NEXTTILE = BASETILE + 2;
 
     private boolean renderPowered;
 
