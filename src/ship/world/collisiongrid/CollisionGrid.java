@@ -26,6 +26,8 @@ import dataverse.datanode.easy.EasyNode;
  * @author elegios
  */
 public abstract class CollisionGrid implements Position, Renderable, Updatable, RelativeMovable, Rectangle, ChangeListener {
+    public static final float EXTRA_MOVE = 0.002f;
+
     private int id;
 
     private String name;
@@ -311,16 +313,16 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         int j1 = (int)          (rect.getY()         - getY())/TH;
         int j2 = (int) Math.ceil(rect.getY2()        - getY())/TH;
         if (collides(i2, j1) || collides(i2, j2)) {
-            float fixMove = getX() - rect.getX() - xMod - rect.getWidth() + i2*TW - 0.002f;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
-            if (fixMove > 0.002f)
+            float fixMove = getX() - rect.getX() - xMod - rect.getWidth() + i2*TW - EXTRA_MOVE;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
+            if (fixMove > -EXTRA_MOVE)
                 return fixMove;
             fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, first);
             return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod, false);
         }
         int i1  = (int) (rect.getX() + xMod - getX())/TW;
         if (collides(i1, j1) || collides(i1, j2)) {
-            float fixMove = getX() - rect.getX() - xMod + i1*TW + TW + 0.002f;
-            if (fixMove < 0.002f)
+            float fixMove = getX() - rect.getX() - xMod + i1*TW + TW + EXTRA_MOVE;
+            if (fixMove < EXTRA_MOVE)
                 return fixMove;
             fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, first);
             return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod, false);
@@ -348,16 +350,16 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         int i2 = (int) Math.ceil(rect.getX2()        - getX())/TW;
         int j2 = (int) Math.ceil(rect.getY2() + yMod - getY())/TH;
         if (collides(i1, j2) || collides(i2, j2)) {
-            float fixMove = getY() - rect.getY() - yMod - rect.getHeight() + j2*TH - 0.002f;
-            if (fixMove > 0.002f)
+            float fixMove = getY() - rect.getY() - yMod - rect.getHeight() + j2*TH - EXTRA_MOVE;
+            if (fixMove > -EXTRA_MOVE)
                 return fixMove;
             fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, first);
             return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod, false);
         }
         int j1 = (int) (rect.getY() + yMod - getY())/TH;
         if (collides(i1, j1) || collides(i2, j1)) {
-            float fixMove = getY() - rect.getY() - yMod + j1*TH + TH + 0.002f;
-            if (fixMove < 0.002f)
+            float fixMove = getY() - rect.getY() - yMod + j1*TH + TH + EXTRA_MOVE;
+            if (fixMove < EXTRA_MOVE)
                 return fixMove;
             fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, first);
             return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod, false);

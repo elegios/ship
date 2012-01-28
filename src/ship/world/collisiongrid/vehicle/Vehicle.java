@@ -151,9 +151,9 @@ public class Vehicle extends CollisionGrid {
                 float frictionMomentum = rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff();
                 rel.pushY(-frictionMomentum);
                 pushY(frictionMomentum);
-                float momentum = rel.getMass() * xSpeed;
-                pushX(momentum);
-                rel.pushX(-momentum);
+                float minMomentum = Math.min(rel.getMass(), getMass()) * xSpeed;
+                pushX(minMomentum);
+                rel.pushX(-minMomentum);
             }
             if (rel.collidedWithImmobileX()) {
                 collidedWithImmobileX(true);
@@ -180,9 +180,9 @@ public class Vehicle extends CollisionGrid {
                 rel.pushX(-frictionMomentum);
                 if (!(rect instanceof Player) || !collidedWithImmobileY())
                     pushX(frictionMomentum);
-                float momentum = rel.getMass() * ySpeed;
-                pushY(momentum);
-                rel.pushY(-momentum);
+                float minMomentum = Math.min(rel.getMass(), getMass()) * ySpeed;
+                pushY(minMomentum);
+                rel.pushY(-minMomentum);
             }
             if (rel.collidedWithImmobileY()) {
                 collidedWithImmobileY(true);
