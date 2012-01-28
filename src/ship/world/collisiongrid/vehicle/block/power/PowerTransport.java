@@ -1,5 +1,7 @@
 package ship.world.collisiongrid.vehicle.block.power;
 
+import org.newdawn.slick.GameContainer;
+
 import ship.world.collisiongrid.vehicle.block.Block;
 
 public class PowerTransport extends Block {
@@ -8,10 +10,14 @@ public class PowerTransport extends Block {
 
     private boolean[] directions;
 
+    private boolean renderPowered;
+
     public PowerTransport(int x, int y, int type) {
         super(x, y, BASETILE + type, Block.STDMASS, true, true);
 
         setDirections(type);
+
+        renderPowered = false;
     }
     protected PowerTransport(int x, int y, int tile, float mass, boolean collide, boolean render) {
         super(x, y, tile, mass, collide, render);
@@ -56,6 +62,7 @@ public class PowerTransport extends Block {
     public boolean powerFrom(int direction) {
         if (directions[direction] && !powered()) {
             power(true);
+            renderPowered = true;
 
             Block block;
             if (direction != Block.UP && directions[Block.UP] && (block = getFrom(UP)) != null)
@@ -76,9 +83,14 @@ public class PowerTransport extends Block {
         return false;
     }
 
-    public int tile() {
-        if (powered()) {
+    public void updateEarly(GameContainer gc, int diff) {
+        if (powered())
             power(false);
+    }
+
+    public int tile() {
+        if (renderPowered) {
+            renderPowered = false;
             return super.tile() + 11;
         }
 

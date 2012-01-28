@@ -130,7 +130,6 @@ public class Vehicle extends CollisionGrid {
                 for (int j = topY; j <= botY; j++)
                     if (existsAt(i, j)) {
                         leftX = i;
-                        System.out.println("leftX: " +leftX);
                         i = rightX + 1; //To make the outer loop break;
                         break;
                     }
@@ -139,7 +138,6 @@ public class Vehicle extends CollisionGrid {
                 for (int j = topY; j <= botY; j++)
                     if (existsAt(i, j)) {
                         rightX = i;
-                        System.out.println("rightX: " +rightX);
                         i = leftX - 1; //To make the outer loop break;
                         break;
                     }
@@ -150,7 +148,6 @@ public class Vehicle extends CollisionGrid {
                 for (int i = leftX; i <= rightX; i++)
                     if (existsAt(i, j)) {
                         topY = j;
-                        System.out.println("topY: " +topY);
                         j = botY + 1; //To make the outer loop break;
                         break;
                     }
@@ -159,7 +156,6 @@ public class Vehicle extends CollisionGrid {
                 for (int i = leftX; i <= rightX; i++)
                     if (existsAt(i, j)) {
                         botY = j;
-                        System.out.println("botY: " +botY);
                         j = topY - 1; //To make the outer loop break;
                         break;
                     }
@@ -251,6 +247,11 @@ public class Vehicle extends CollisionGrid {
     }
 
     public void update(GameContainer gc, int diff) {
+        for (int i = leftX; i <= rightX; i++)
+            for (int j = topY; j <= botY; j++)
+                if (tile(i, j) != null)
+                    tile(i,j).updateEarly(gc, diff);
+
         super.update(gc, diff);
 
         pushX((float) (-xSpeed * world.airResist() * Math.pow(botY   - topY,  0.5)));

@@ -101,7 +101,8 @@ public class Block implements Updatable, Rectangle, RelativeMovable {
     public final float getX2() { return getX() +  getWidth() - 1; }
     public final float getY2() { return getY() + getHeight() - 1; }
 
-    public void update(GameContainer gc, int diff) {}
+    public void update     (GameContainer gc, int diff) {}
+    public void updateEarly(GameContainer gc, int diff) {}
 
     public void moveX(int diff) {}
     public void moveY(int diff) {}

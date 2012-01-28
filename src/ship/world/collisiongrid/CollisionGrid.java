@@ -90,11 +90,11 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         c("mass", 0.0f);
     }
 
-    protected abstract Rectangle getRectAt (int x, int y);
-    protected abstract boolean   renderAt  (int x, int y);
-    public    abstract boolean   existsAt  (int x, int y);
-    protected abstract int       tileAt    (int x, int y);
-    protected abstract void      updateAt  (int x, int y, GameContainer gc, int diff);
+    protected abstract Rectangle getRectAt    (int x, int y);
+    protected abstract boolean   renderAt     (int x, int y);
+    public    abstract boolean   existsAt     (int x, int y);
+    protected abstract int       tileAt       (int x, int y);
+    protected abstract void      updateAt     (int x, int y, GameContainer gc, int diff);
 
     protected abstract int leftX();
     protected abstract int rightX();
@@ -115,8 +115,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     protected abstract float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first);
     protected abstract float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first);
 
-    public    boolean collidesAt(int x, int y)            { return collidesAt[x][y]; }
-    protected void setCollidesAt(int x, int y, boolean collides) { collidesAt[x][y] = collides; }
+    public boolean collidesAt(int x, int y)            { return collidesAt[x][y]; }
+    public void setCollidesAt(int x, int y, boolean collides) { collidesAt[x][y] = collides; }
 
     public World world() { return world; }
 

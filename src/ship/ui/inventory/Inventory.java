@@ -24,6 +24,7 @@ import ship.ui.inventory.blockcreator.FuelTransportCreator;
 import ship.ui.inventory.blockcreator.PowerSwitchCreator;
 import ship.ui.inventory.blockcreator.PowerTransportCreator;
 import ship.ui.inventory.blockcreator.ThrusterCreator;
+import ship.ui.inventory.blockcreator.ToggleBlockCreator;
 import ship.world.Position;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
@@ -85,6 +86,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         blockCreators.add(new AirPowerTransportCreator());
         blockCreators.add(new           FuelTapCreator());
         blockCreators.add(new          FuelTankCreator());
+        blockCreators.add(new       ToggleBlockCreator());
     }
 
     public BlockCreator getBlockAt(int index) { return blockCreators.get(index); }

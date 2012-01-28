@@ -4,6 +4,8 @@ import org.newdawn.slick.GameContainer;
 
 public class Thruster extends Block {
     public static final int BASETILE = 192;
+    public static final int NEXTTILE = BASETILE + 20;
+
     public static final float STR1 = 20;
     public static final float STR2 = 60;
     public static final float STR3 = 180;
