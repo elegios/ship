@@ -172,8 +172,28 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             else
                 lastVehicle = null;
 
-        doAirResistX();
-        doAirResistY();
+        if (lastVehicle == null || !doAirResistX(lastVehicle)) {
+            boolean airResisted = false;
+            for (Vehicle vehicle : world.vehicles())
+                if (doAirResistX(vehicle)) {
+                    lastVehicle = vehicle;
+                    airResisted = true;
+                    break;
+                }
+            if (!airResisted)
+                doAirResistX();
+        }
+        if (lastVehicle == null || !doAirResistY(lastVehicle)) {
+            boolean airResisted = false;
+            for (Vehicle vehicle : world.vehicles())
+                if (doAirResistY(vehicle)) {
+                    airResisted = true;
+                    System.out.println("resisted y from vehicle " +vehicle.getID());
+                    break;
+                }
+            if (!airResisted)
+                doAirResistY();
+        }
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
@@ -186,79 +206,69 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     }
 
-    private void doAirResistX() {
-        int playX = 0;
-        int playY = 0;
-        if (lastVehicle != null) {
-            playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
-            playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
-        }
+    private boolean doAirResistX(Vehicle vehicle) {
+        int playX = vehicle.getTileXUnderPos(getX() + getWidth ()/2);
+        int playY = vehicle.getTileYUnderPos(getY() + getHeight()/2);
 
-        if (lastVehicle != null &&
-            playX >= 0 && playX < lastVehicle.WIDTH() &&
-            playY >= 0 && playY < lastVehicle.HEIGHT()) {
+        if (playX >= 0               && playX <  vehicle.WIDTH() &&
+            playY >= vehicle.topY () && playY <= vehicle.botY ()) {
             if (xSpeed > 0) {
-                for (int i = playX; i < lastVehicle.WIDTH(); i++) {
-                    if (lastVehicle.existsAt(i, playY)) {
-                        pushX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
+                for (int i = playX; i <= vehicle.rightX(); i++) {
+                    if (vehicle.existsAt(i, playY)) {
+                        pushX(-(xSpeed - vehicle.getAbsXSpeed()) * world.airResist());
                         airResistX = true;
-                        return;
+                        return true;
                     }
                 }
 
-                airResistX = false;
-                pushX(-xSpeed * world.airResist());
             } else if (xSpeed < 0) {
-                for (int i = playX; i > 0; i--) {
-                    if (lastVehicle.existsAt(i, playY)) {
-                        pushX(-(xSpeed - lastVehicle.getAbsXSpeed()) * world.airResist());
+                for (int i = playX; i >= vehicle.leftX(); i--) {
+                    if (vehicle.existsAt(i, playY)) {
+                        pushX(-(xSpeed - vehicle.getAbsXSpeed()) * world.airResist());
                         airResistX = true;
-                        return;
+                        return true;
                     }
                 }
 
-                airResistX = false;
-                pushX(-xSpeed * world.airResist());
             }
-        } else {
-            airResistX = false;
-            pushX(-xSpeed * world.airResist());
         }
+
+        return false;
+    }
+    private void doAirResistX() {
+        pushX(-xSpeed * world.airResist());
+        airResistX = false;
     }
 
-    private void doAirResistY() {
-        int playX = 0;
-        int playY = 0;
-        if (lastVehicle != null) {
-            playX = lastVehicle.getTileXUnderPos(getX() + getWidth ()/2);
-            playY = lastVehicle.getTileYUnderPos(getY() + getHeight()/2);
-        }
+    private boolean doAirResistY(Vehicle vehicle) {
+        int playX = vehicle.getTileXUnderPos(getX() + getWidth ()/2);
+        int playY = vehicle.getTileYUnderPos(getY() + getHeight()/2);
 
-        if (lastVehicle != null &&
-            playX >= 0 && playX < lastVehicle.WIDTH() &&
-            playY >= 0 && playY < lastVehicle.HEIGHT()) {
+        if (playX >= vehicle.leftX() && playX <= vehicle.rightX() &&
+            playY >= 0               && playY <  vehicle.HEIGHT()) {
             if (ySpeed > 0) {
-                for (int j = playY; j < lastVehicle.WIDTH(); j++) {
-                    if (lastVehicle.existsAt(playX, j)) {
-                        pushY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
-                        return;
+                for (int j = playY; j <= vehicle.botY(); j++) {
+                    if (vehicle.existsAt(playX, j)) {
+                        pushY(-(ySpeed - vehicle.getAbsYSpeed()) * world.airResist());
+                        return true;
                     }
                 }
 
-                pushY(-ySpeed * world.airResist());
             } else if (ySpeed < 0) {
-                for (int j = playY; j > 0; j--) {
-                    if (lastVehicle.existsAt(playX, j)) {
-                        pushY(-(ySpeed - lastVehicle.getAbsYSpeed()) * world.airResist());
-                        return;
+                for (int j = playY; j >= vehicle.topY(); j--) {
+                    if (vehicle.existsAt(playX, j)) {
+                        pushY(-(ySpeed - vehicle.getAbsYSpeed()) * world.airResist());
+                        return true;
                     }
                 }
 
-                pushY(-ySpeed * world.airResist());
             }
-        } else {
-            pushY(-ySpeed * world.airResist());
         }
+
+        return false;
+    }
+    private void doAirResistY() {
+        pushY(-ySpeed * world.airResist());
     }
 
     public void collisionFixPosX(float xMove, RelativeMovable collisionOrigin) {

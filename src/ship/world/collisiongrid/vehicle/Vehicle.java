@@ -176,10 +176,10 @@ public class Vehicle extends CollisionGrid {
             tile(x, y).update(gc, diff);
     }
 
-    protected int leftX () { return leftX;  }
-    protected int rightX() { return rightX; }
-    protected int topY  () { return topY;   }
-    protected int botY  () { return botY;   }
+    public int leftX () { return leftX;  }
+    public int rightX() { return rightX; }
+    public int topY  () { return topY;   }
+    public int botY  () { return botY;   }
 
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first) {
         if (rect instanceof RelativeMovable) {

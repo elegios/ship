@@ -342,6 +342,8 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     public Player currPlayer()       { return currPlayer; }
     public float  fuelRate()         { return fuelRate; }
 
+    public List<Vehicle> vehicles() { return vehicles; }
+
     public float getX() { return -x; }
     public float getY() { return -y; }
 
