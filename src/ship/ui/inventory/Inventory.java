@@ -18,13 +18,14 @@ import ship.control.Keys;
 import ship.ui.inventory.tilecreator.AirFuelTransportCreator;
 import ship.ui.inventory.tilecreator.AirPowerTransportCreator;
 import ship.ui.inventory.tilecreator.BalloonCreator;
-import ship.ui.inventory.tilecreator.TileCreator;
 import ship.ui.inventory.tilecreator.FuelTankCreator;
 import ship.ui.inventory.tilecreator.FuelTapCreator;
 import ship.ui.inventory.tilecreator.FuelTransportCreator;
+import ship.ui.inventory.tilecreator.MomentumAbsorberCreator;
 import ship.ui.inventory.tilecreator.PowerSwitchCreator;
 import ship.ui.inventory.tilecreator.PowerTransportCreator;
 import ship.ui.inventory.tilecreator.ThrusterCreator;
+import ship.ui.inventory.tilecreator.TileCreator;
 import ship.ui.inventory.tilecreator.ToggleBlockCreator;
 import ship.world.Position;
 import dataverse.datanode.ChangeListener;
@@ -89,6 +90,7 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
         blockCreators.add(new          FuelTankCreator());
         blockCreators.add(new       ToggleBlockCreator());
         blockCreators.add(new           BalloonCreator());
+        blockCreators.add(new  MomentumAbsorberCreator());
     }
 
     /**

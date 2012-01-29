@@ -397,11 +397,13 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
         for (int i = xMin; i <= xMax; i++)
             for (int j = yMin; j <= yMax; j++)
-                if (renderAt(i, j))
+                if (renderAt(i, j)) {
+                    int tile = tileAt(i, j);
                     tileset.getSpriteSheet().renderInUse(ix() + i*TW,
                                                          iy() + j*TH,
-                                                         tileAt(i, j)%tileset.getSpriteSheet().getHorizontalCount(),
-                                                         tileAt(i, j)/tileset.getSpriteSheet().getHorizontalCount());
+                                                         tile%tileset.getSpriteSheet().getHorizontalCount(),
+                                                         tile/tileset.getSpriteSheet().getHorizontalCount());
+                }
 
     }
 
@@ -483,11 +485,11 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     @Override
     public void update(GameContainer gc, int diff) {
+        ySpeed += world.actionsPerTick() * diff * world.gravity();
+
         for (int i = leftX(); i <= rightX(); i++)
             for (int j = topY(); j <= botY(); j++)
                 updateAt(i, j, gc, diff);
-
-        ySpeed += world.actionsPerTick() * diff * world.gravity();
 
         if (world.updatePos() && world.view().playerId() == 0) {
             c("x", x);
