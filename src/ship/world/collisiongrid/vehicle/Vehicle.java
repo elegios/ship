@@ -38,6 +38,9 @@ public class Vehicle extends CollisionGrid {
     private int topY;
     private int botY;
 
+    private Scanner makeScanner;
+    private Scanner deleScanner;
+
     private Inventory inv;
 
     /**
@@ -156,10 +159,13 @@ public class Vehicle extends CollisionGrid {
                 rel.pushX(-minMomentum);
             }
             if (rel.collidedWithImmobileX()) {
-                collidedWithImmobileX(true);
-                collisionLockX(-fixMove);
-                x -= fixMove;
-                return 0;
+                if ((rel.collisionLockX() < 0 && fixMove > 0) ||
+                    (rel.collisionLockX() > 0 && fixMove < 0)) {
+                    collidedWithImmobileX(true);
+                    collisionLockX(-fixMove);
+                    x -= fixMove;
+                    return 0;
+                }
             }
             if ((rel.collisionLockX() < 0 && fixMove > 0) ||
                 (rel.collisionLockX() > 0 && fixMove < 0)) {
@@ -185,13 +191,17 @@ public class Vehicle extends CollisionGrid {
                 rel.pushY(-minMomentum);
             }
             if (rel.collidedWithImmobileY()) {
-                collidedWithImmobileY(true);
-                collisionLockY(-fixMove);
-                y -= fixMove;
-                return 0;
+                if ((rel.collisionLockY() < 0 && fixMove > 0) ||
+                    (rel.collisionLockY() > 0 && fixMove < 0)) {
+                    collidedWithImmobileY(true);
+                    collisionLockY(-fixMove);
+                    y -= fixMove;
+                    return 0;
+                }
             }
-            if ((rel.collisionLockY() < 0 && fixMove > 0) ||
-                (rel.collisionLockY() > 0 && fixMove < 0)) {
+            if (!collidedWithImmobileY() &&
+                ((rel.collisionLockY() < 0 && fixMove > 0) ||
+                 (rel.collisionLockY() > 0 && fixMove < 0))) {
                     collisionLockY(-fixMove);
                     y -= fixMove;
                     return 0;
@@ -214,6 +224,18 @@ public class Vehicle extends CollisionGrid {
             for (int j = topY; j <= botY; j++)
                 if (tile(i, j) != null)
                     tile(i,j).updateEarly(gc, diff);
+
+        if (makeScanner != null) {
+            this.addTile(inv.getBlockAt(makeScanner.nextInt()).create(makeScanner.nextInt(), makeScanner.nextInt(), makeScanner.nextInt()));
+            makeScanner = null;
+        }
+        if (deleScanner != null) {
+            Tile tile = tile(deleScanner.nextInt(), deleScanner.nextInt());
+            if (tile != null)
+                this.remTile(tile);
+
+            deleScanner = null;
+        }
 
         super.update(gc, diff);
 
@@ -249,11 +271,9 @@ public class Vehicle extends CollisionGrid {
                 if (tile != null)
                     tile.updateBoolean(s.nextLine().substring(1), data);
             } else if (id.startsWith("make.")){
-                this.addTile(inv.getBlockAt(s.nextInt()).create(s.nextInt(), s.nextInt(), s.nextInt()));
+                makeScanner = s;
             } else {
-                Tile tile = tile(s.nextInt(), s.nextInt());
-                if (tile != null)
-                    this.remTile(tile);
+                deleScanner = s;
             }
         }
     }
@@ -271,22 +291,23 @@ public class Vehicle extends CollisionGrid {
             case "mass":
                 mass = data;
                 break;
+
             case "x":
                 toSetX = data;
-                toSetXb = true;
                 break;
+
             case "y":
                 toSetY = data;
-                toSetYb = true;
                 break;
+
             case "xSpeed":
                 toSetXSpeed = data;
-                toSetXSpe = true;
                 break;
+
             case "ySpeed":
                 toSetYSpeed = data;
-                toSetYSpe = true;
                 break;
+
             default:
                 if (id.startsWith("tile.")) {
                     Scanner s = new Scanner(id.substring(5));

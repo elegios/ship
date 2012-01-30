@@ -112,7 +112,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     @Override
     public void update(GameContainer gc, int diff) {
         for (Player player : players)
-            player.controlUpdate(gc, diff);
+            player.updateEarly(gc, diff);
 
         moveX(diff);
         collideX();
@@ -148,6 +148,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         for (Player player : players)
             player.moveX(diff);
     }
+    public void relMoveX(Vehicle vehicle, float move) {
+        for (Player player : players)
+            player.relMoveX(vehicle, move);
+    }
     /**
      * Checks for horizontal collision between all objects, moving them
      * should a collision be detected.
@@ -173,6 +177,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             vehicle.moveY(diff);
         for (Player player : players)
             player.moveY(diff);
+    }
+    public void relMoveY(Vehicle vehicle, float move) {
+        for (Player player : players)
+            player.relMoveY(vehicle, move);
     }
     /**
      * Checks for vertical collision between all objects, moving them
@@ -224,15 +232,17 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
      * @param vehicle the Vehicle which should be tested
      */
     public void collideVehicleY(Vehicle vehicle) {
-        for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
+        for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++) {
             if (vehicles.get(i).getID() != vehicle.getID()) {
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleY(vehicles.get(i));
-                else if (vehicle.collideWithCollisionGridY(vehicles.get(i)))
+                else if (vehicle.collideWithCollisionGridY(vehicles.get(i))) {
                     i = -1;
-                if (i == vehicles.size() - 1 && vehicle.collideWithCollisionGridY(island))
+                } if (i == vehicles.size() - 1 && vehicle.collideWithCollisionGridY(island)) {
                     i = -1;
+                }
             }
+        }
     }
 
     /**
@@ -294,21 +304,18 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             }
 
     }
+
     /**
-     * Called as a result of player.ID.activate changing. Will call activate
-     * on the tile at (x, y) (internal coordinates) in the Vehicle with the
-     * given ID.
-     * @param player the Player that is activating the tile
-     * @param vehicleID the Vehicle the tile is located in
-     * @param x the internal x coordinate
-     * @param y the internal y coordinate
+     * Find and return the Vehicle with the given ID, or null if none can be found.
+     * @param vehicleID the ID of the Vehicle to be returned
+     * @return the Vehicle with the ID <code>vehicleID</code>
      */
-    public void activateOnVehicle(Player player, int vehicleID, int x, int y) {
+    public Vehicle findVehicle(int vehicleID) {
         for (Vehicle vehicle : vehicles)
-            if (vehicle.getID() == vehicleID) {
-                vehicle.tile(x, y).activate(player);
-                return;
-            }
+            if (vehicle.getID() == vehicleID)
+                return vehicle;
+
+        return null;
     }
 
     /**
@@ -384,7 +391,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         if (currPlayer.builder().buildMode())
             renderBuilder(currPlayer.builder(), gc, g);
         g.drawString("xSpeed: " +Math.round(currPlayer.getAbsXSpeed()/32)+ " squ/igs\n" +
-        		     "ySpeed: " +Math.round(currPlayer.getAbsYSpeed()/32)+ " squ/igs", 10, 100);
+        		     "ySpeed: " +Math.round(currPlayer.getAbsYSpeed()/32)+ " squ/igs\n\nPlayer " +view.playerId(), 10, 100);
     }
     /**
      * Renders the highlight of the player builder, if in overlaps a position

@@ -17,7 +17,6 @@ import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
-import ship.world.collisiongrid.island.Island;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -26,7 +25,7 @@ import dataverse.datanode.easy.EasyNode;
  * @author elegios
  */
 public abstract class CollisionGrid implements Position, Renderable, Updatable, RelativeMovable, Rectangle, ChangeListener {
-    public static final float EXTRA_MOVE = 0.002f;
+    public static final float EXTRA_MOVE = 0.0025f;
 
     private int id;
 
@@ -40,16 +39,12 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     protected float x;
     protected float y;
     protected float toSetX;
-    protected boolean toSetXb;
     protected float toSetY;
-    protected boolean toSetYb;
 
     protected float xSpeed;
     protected float ySpeed;
     protected float toSetXSpeed;
-    protected boolean toSetXSpe;
     protected float toSetYSpeed;
-    protected boolean toSetYSpe;
 
     private boolean collidedWithImmobileX;
     private boolean collidedWithImmobileY;
@@ -90,6 +85,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         c("xSpeed", 0.0f);
         c("ySpeed", 0.0f);
         c("mass", 0.0f);
+
+        toSetX = Float.NaN;
+        toSetY = Float.NaN;
     }
 
     /**
@@ -238,15 +236,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                     if (collidesAt[i][j]) {
                         float fixMove = other.collideRectangleX(getRectAt(i, j), getAbsXSpeed() - other.getAbsXSpeed());
                         if (fixMove != 0) {
-                            if ((!collidedWithImmobileX &&
-                                 ((fixMove < 0 && collisionLockX < 0) ||
-                                  (fixMove > 0 && collisionLockX > 0) ||
-                                  collisionLockX == 0)) ||
-                                  other instanceof Island) {
-                                x += fixMove;
-                                collisionLockX = fixMove;
-                                hasCollided = true;
-                            }
+                            x += fixMove;
+                            collisionLockX = fixMove;
+                            hasCollided = true;
                             if (other.collidedWithImmobileX())
                                 hasCollidedWithImmobile = true;
                         }
@@ -273,16 +265,10 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
                 for (int j = topY(); j <= botY(); j++)
                     if (collidesAt[i][j]) {
                         float fixMove = other.collideRectangleY(getRectAt(i, j), getAbsYSpeed() - other.getAbsYSpeed());
-                        if (fixMove != 0) {
-                            if ((!collidedWithImmobileY &&
-                                 ((fixMove < 0 && collisionLockY < 0) ||
-                                  (fixMove > 0 && collisionLockY > 0) ||
-                                  collisionLockY == 0)) ||
-                                  other instanceof Island) {
-                                y += fixMove;
-                                collisionLockY = fixMove;
-                                hasCollided = true;
-                            }
+                        if (Math.abs(fixMove) >= EXTRA_MOVE) {
+                            y += fixMove;
+                            collisionLockY = fixMove;
+                            hasCollided = true;
                             if (other.collidedWithImmobileY())
                                 hasCollidedWithImmobile = true;
                         }
@@ -344,7 +330,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
      * @param ySpeed the speed of <code>rect</code> relative to the CollisionGrid
      * @return the number of pixels <code>rect</code> needs to be moved.
      */
-    public  float collideRectangleY(Rectangle rect, float ySpeed) { return collideRectangleY(rect, ySpeed, 0, true); }
+    public  float collideRectangleY(Rectangle rect, float ySpeed) { return collideRectangleY(rect, ySpeed, 0, true); } //TODO: refactor as loop with max number of loops
     private float collideRectangleY(Rectangle rect, float ySpeed, float yMod, boolean first) {
         int i1 = (int)          (rect.getX()         - getX())/TW;
         int i2 = (int) Math.ceil(rect.getX2()        - getX())/TW;
@@ -429,13 +415,13 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         collidedWithImmobileX = false;
         collisionLockX = 0;
 
-        if (toSetXb) {
+        if (!Float.isNaN(toSetX)) {
             x = toSetX;
-            toSetXb = false;
+            toSetX = Float.NaN;
         }
-        if (toSetXSpe) {
+        if (!Float.isNaN(toSetXSpeed)) {
             xSpeed = toSetXSpeed;
-            toSetXSpe = false;
+            toSetXSpeed = Float.NaN;
         }
 
         x += getAbsXMove(diff);
@@ -444,13 +430,13 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         collidedWithImmobileY = false;
         collisionLockY = 0;
 
-        if (toSetYb) {
+        if (!Float.isNaN(toSetY)) {
             y = toSetY;
-            toSetYb = false;
+            toSetY = Float.NaN;
         }
-        if (toSetYSpe) {
+        if (!Float.isNaN(toSetYSpeed)) {
             ySpeed = toSetYSpeed;
-            toSetYSpe = false;
+            toSetYSpeed = Float.NaN;
         }
 
         y += getAbsYMove(diff);

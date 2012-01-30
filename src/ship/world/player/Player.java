@@ -46,16 +46,14 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private float x;
     private float y;
     private float toSetX;
-    private boolean toSetXb;
+    private float toSetXRel;
     private float toSetY;
-    private boolean toSetYb;
+    private float toSetYRel;
 
     private float xSpeed;
     private float ySpeed;
     private float toSetXSpeed;
-    private boolean toSetXSpe;
     private float toSetYSpeed;
-    private boolean toSetYSpe;
 
     private boolean moveRight;
     private boolean moveLeft;
@@ -64,6 +62,7 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private boolean downMotion;
     private RelativeMovable collidedY;
     private Vehicle lastVehicle;
+    private int     toSetLastVehicle;
     private boolean airResistX;
 
     private Builder builder;
@@ -89,43 +88,72 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         width  = player.getImage().getWidth();
         height = player.getImage().getHeight();
 
+        builder = new Builder(world.view().inventory(), this);
+
         node.addChangeListener(this);
 
         c("mass",  BASE_MASS);
-        c("x", (float) x);
-        c("y", (float) y);
+        this.x = x;
+        this.y = y;
+        c("x", x);
+        c("y", y);
         c("xSpeed", 0.0f);
         c("ySpeed", 0.0f);
 
-        builder = new Builder(world.view().inventory(), this);
+        toSetXRel = Float.NaN;
+        toSetYRel = Float.NaN;
+        toSetLastVehicle = -1;
     }
 
     public void moveX(int diff) {
-        if (toSetXb) {
-            x = toSetX;
-            toSetXb = false;
-        }
-        if (toSetXSpe) {
-            xSpeed = toSetXSpeed;
-            toSetXSpe = false;
+        if (world.currPlayer() != this) {
+            if (!Float.isNaN(toSetX)) {
+                x = toSetX;
+                toSetX = Float.NaN;
+
+            } else if (!Float.isNaN(toSetXRel) && lastVehicle != null) {
+                x = lastVehicle.getX() + toSetXRel;
+                toSetXRel = Float.NaN;
+            }
+
+            if (!Float.isNaN(toSetXSpeed)) {
+                xSpeed = toSetXSpeed;
+                toSetXSpeed = Float.NaN;
+            }
         }
 
         x += getAbsXMove(diff);
     }
     public void moveY(int diff) {
-        if (toSetYb) {
-            y = toSetY;
-            toSetYb = false;
-        }
-        if (toSetYSpe) {
-            ySpeed = toSetYSpeed;
-            toSetYSpe = false;
+        if (world.currPlayer() != this) {
+            if (!Float.isNaN(toSetY)) {
+                y = toSetY;
+                toSetY = Float.NaN;
+
+            } else if (!Float.isNaN(toSetYRel) && lastVehicle != null) {
+                y = lastVehicle.getY() + toSetYRel;
+                toSetYRel = Float.NaN;
+            }
+
+            if (!Float.isNaN(toSetYSpeed)) {
+                ySpeed = toSetYSpeed;
+                toSetYSpeed = Float.NaN;
+            }
         }
 
         y += getAbsYMove(diff);
     }
 
-    public void controlUpdate(GameContainer gc, int diff) {
+    public void relMoveX(Vehicle vehicle, float move) {
+        if (vehicle == lastVehicle)
+            x = move + getX();
+    }
+    public void relMoveY(Vehicle vehicle, float move) {
+        if (vehicle == lastVehicle)
+            y = move + getY();
+    }
+
+    public void updateEarly(GameContainer gc, int diff) {
         //move left
         if (moveLeft && !moveRight)
             if (airResistX) {
@@ -163,6 +191,11 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         collidedY = null;
         collidedWithImobileX = false;
         collidedWithImobileY = false;
+
+        if (toSetLastVehicle >= 0) {
+            lastVehicle = world.findVehicle(toSetLastVehicle);
+            toSetLastVehicle = -1;
+        }
     }
 
     public void update(GameContainer gc, int diff) {
@@ -197,8 +230,14 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
         if (world.updatePos() && world.currPlayer() == this) {
-            c("x", x);
-            c("y", y);
+            if (lastVehicle != null) {
+                c("lastVehicle", lastVehicle.getID());
+                c("xRel", x - lastVehicle.getX());
+                c("yRel", y - lastVehicle.getY());
+            } else {
+                c("x", x);
+                c("y", y);
+            }
             c("xSpeed", xSpeed);
             c("ySpeed", ySpeed);
         }
@@ -335,7 +374,9 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         if (id.equals("player." +this.id+ ".activate")) {
             Scanner s = new Scanner(data);
             s.useDelimiter("\\.");
-            world.activateOnVehicle(this, s.nextInt(), s.nextInt(), s.nextInt());
+            Vehicle vehicle = world.findVehicle(s.nextInt());
+            if (vehicle != null)
+                vehicle.tile(s.nextInt(), s.nextInt()).activate(this);
 
         } else if (id.equals("player." +this.id+ ".makeTile")) //TODO: make this action only enter DataVerse once, the player message that triggered this will end up in every client
             node.c(data, true);
@@ -343,8 +384,13 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
             node.c(data, true);
     }
     public void intChanged(String id, int data) {
-        if (id.startsWith("player." +this.id+ "."))
-            builder.updateInt(id.substring(("player." +this.id+ ".").length()), data);
+        if (id.startsWith("player." +this.id+ ".")) {
+            String var = id.substring(("player." +this.id+ ".").length());
+            if (var.startsWith("lastVehicle"))
+                toSetLastVehicle = data;
+            else
+                builder.updateInt(var, data);
+        }
     }
     public void booleanChanged(String id, boolean data) {
         if (id.startsWith("player." +this.id+ ".")) {
@@ -371,24 +417,28 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         if (id.startsWith("player." +this.id+ ".")) {
             String var = id.substring(("player." +this.id+ ".").length());
             switch (var) {
+                case "xRel":
+                    toSetXRel = data;
+                    break;
+
+                case "yRel":
+                    toSetYRel = data;
+                    break;
+
                 case "x":
                     toSetX = data;
-                    toSetXb = true;
                     break;
 
                 case "y":
                     toSetY = data;
-                    toSetYb = true;
                     break;
 
                 case "xSpeed":
                     toSetXSpeed = data;
-                    toSetXSpe = true;
                     break;
 
                 case "ySpeed":
                     toSetYSpeed = data;
-                    toSetYSpe = true;
                     break;
 
                 case "mass":
