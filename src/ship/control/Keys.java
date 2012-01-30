@@ -24,23 +24,6 @@ public class Keys implements KeyReceiver {
     private int buildLeft;
 
     public Keys() { //default is a somewhat neutral control scheme, except it requires numpad
-        up    = Input.KEY_UP;
-        right = Input.KEY_RIGHT;
-        down  = Input.KEY_DOWN;
-        left  = Input.KEY_LEFT;
-
-        activateDevice = Input.KEY_SPACE;
-
-        inventory = Input.KEY_NUMPAD0;
-
-        build       = Input.KEY_NUMPAD4;
-        buildCancel = Input.KEY_NUMPAD6;
-
-        buildUp    = Input.KEY_NUMPAD5;
-        buildRight = Input.KEY_NUMPAD3;
-        buildDown  = Input.KEY_NUMPAD2;
-        buildLeft  = Input.KEY_NUMPAD1;
-
         setDvorak(); //temporary
     }
 
@@ -117,6 +100,27 @@ public class Keys implements KeyReceiver {
         buildCancel = Input.KEY_GRAVE; //Same as above, only some computers/layouts report the value of grave
     }
 
+    public void setAltQwerty() {
+        up    = Input.KEY_UP;
+        right = Input.KEY_RIGHT;
+        down  = Input.KEY_DOWN;
+        left  = Input.KEY_LEFT;
+
+        activateDevice = Input.KEY_SPACE;
+
+        inventory = Input.KEY_TAB;
+
+        build       = Input.KEY_E;
+        destroy     = Input.KEY_R;
+        buildCancel = Input.KEY_Q;
+
+        buildUp    = Input.KEY_W;
+        buildRight = Input.KEY_D;
+        buildDown  = Input.KEY_S;
+        buildLeft  = Input.KEY_A;
+
+    }
+
     public int up   () { return up; }
     public int right() { return right; }
     public int down () { return down; }
@@ -171,6 +175,10 @@ public class Keys implements KeyReceiver {
 
             case Input.KEY_F4:
                 setDvorak();
+                return true;
+
+            case Input.KEY_F5:
+                setAltQwerty();
                 return true;
         }
 

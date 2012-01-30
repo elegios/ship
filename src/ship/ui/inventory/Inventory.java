@@ -186,18 +186,19 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
             if (((KeyReceiver) currentFocus).keyPressed(keys, key, c))
                 return true;
 
-            if (key == keys.left() || key == keys.buildLeft())
+            if (key == keys.buildLeft()) {
                 moveLeft();
+                return true;
 
-            else if (key == keys.right() || key == keys.buildRight())
+            } else if (key == keys.buildRight()) {
                 moveRight();
+                return true;
 
-            else if (key == keys.build() || key == keys.buildCancel()) {
+            } else if (key == keys.build() || key == keys.buildCancel()) {
                 visible = false;
                 setXPos();
+                return true;
             }
-
-            return true;
         }
 
         return false;

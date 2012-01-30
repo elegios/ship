@@ -90,12 +90,12 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
     @Override
     public boolean keyPressed(Keys keys, int key, char c) {
         if (focus) {
-            if (key == keys.up() || key == keys.buildUp()) {
+            if (key == keys.buildUp()) {
                 selected--;
                 updateSubs();
                 return true;
 
-            } else if (key == keys.down() || key == keys.buildDown()) {
+            } else if (key == keys.buildDown()) {
                 selected++;
                 updateSubs();
                 return true;
