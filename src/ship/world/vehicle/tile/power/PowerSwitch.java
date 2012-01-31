@@ -1,9 +1,9 @@
-package ship.world.collisiongrid.vehicle.tile.power;
+package ship.world.vehicle.tile.power;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.tile.Tile;
 import ship.world.player.Player;
+import ship.world.vehicle.tile.Tile;
 
 public class PowerSwitch extends Tile {
     public static final int BASETILE = 288;
@@ -14,7 +14,7 @@ public class PowerSwitch extends Tile {
     private int direction;
 
     public PowerSwitch(int x, int y, int direction) {
-        super(x, y, BASETILE + direction*2, 0, false, true);
+        super(x, y, BASETILE + direction*2, 0, false);
 
         this.direction = direction;
 

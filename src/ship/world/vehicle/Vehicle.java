@@ -1,8 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package ship.world.collisiongrid;
+package ship.world.vehicle;
+
+import java.util.Scanner;
 
 import media.ManagedSpriteSheet;
 import media.Renderable;
@@ -13,10 +11,18 @@ import org.newdawn.slick.SlickException;
 
 import ship.Updatable;
 import ship.View;
+import ship.ui.inventory.Inventory;
 import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
+import ship.world.player.Player;
+import ship.world.vehicle.tile.Thruster;
+import ship.world.vehicle.tile.Tile;
+import ship.world.vehicle.tile.fuel.AirFuelTransport;
+import ship.world.vehicle.tile.fuel.FuelTank;
+import ship.world.vehicle.tile.fuel.FuelTransport;
+import ship.world.vehicle.tile.power.PowerSwitch;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -24,8 +30,11 @@ import dataverse.datanode.easy.EasyNode;
  *
  * @author elegios
  */
-public abstract class CollisionGrid implements Position, Renderable, Updatable, RelativeMovable, Rectangle, ChangeListener {
+public class Vehicle implements Position, Renderable, Updatable, RelativeMovable, Rectangle, ChangeListener {
     public static final float EXTRA_MOVE = 0.0025f;
+
+    public static final int VEH_WIDTH  = 65;
+    public static final int VEH_HEIGHT = 65;
 
     private int id;
 
@@ -55,11 +64,25 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     protected World world;
 
-    protected EasyNode    node;
+    protected EasyNode node;
 
     protected ManagedSpriteSheet tileset;
 
-    public CollisionGrid(World world, int id, int x, int y, boolean centerInit, String name) throws SlickException {
+    private Inventory inv;
+    private Tile[][] tiles;
+
+    private Scanner makeScanner;
+    private Scanner deleScanner;
+
+    private int leftX;
+    private int rightX;
+    private int topY;
+    private int botY;
+
+    public Vehicle(World world, int id, int x, int y) throws SlickException {
+        this(world, id, x, y, true, "vehicle");
+    }
+    public Vehicle(World world, int id, int x, int y, boolean centerInit, String name) throws SlickException {
         this.world = world;
         this.id    = id;
         this.name  = name;
@@ -67,6 +90,15 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         node = world.view().node();
 
         tileset = world.view().loader().loadManagedSpriteSheet("tiles", TW, TH);
+
+        tiles = new Tile[WIDTH()][HEIGHT()];
+        inv = world.view().inventory();
+
+        leftX  = WIDTH()/2;
+        rightX = leftX;
+
+        topY   = HEIGHT()/2;
+        botY   = topY;
 
         node.addChangeListener(this);
 
@@ -90,89 +122,136 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         toSetY = Float.NaN;
     }
 
+    protected boolean updateMass() { return true; }
+
     /**
-     * For collision detection, return the tile at (x, y), as a Rectangle
-     * @param x the internal x coordinate of the tile
-     * @param y the internal y coordinate of the tile
-     * @return the tile as a Rectangle
+     * Adds a given Block to the Vehicle, adding its mass to the total and checking whether
+     * the Vehicle has grown bigger in any direction.
+     * @param tile the Block
      */
-    protected abstract Rectangle getRectAt    (int x, int y);
-    /**
-     * Check whether the tile at (x, y) wants to be rendered
-     * @param x the internal x coordinate of the tile
-     * @param y the internal y coordinate of the tile
-     * @return true if the tile should be rendered.
-     */
-    protected abstract boolean   renderAt     (int x, int y);
-    /**
-     * Checks if the tile at (x, y) exists
-     * @param x the internal x coordinate of the tile
-     * @param y the internal y coordinate of the tile
-     * @return true if the tile exists
-     */
-    public    abstract boolean   existsAt     (int x, int y);
-    /**
-     * Get a number representing a tile from the CollisionGrid SpriteSheet, that will be used
-     * to render the tile at (x, y)
-     * @param x the internal x coordinate of the tile
-     * @param y the internal y coordinate of the tile
-     * @return an int representing a sprite from the CollisionGrid SpriteSheet
-     */
-    protected abstract int       tileAt       (int x, int y);
-    /**
-     * Call the update method of the tile at (x, y)
-     * @param x the internal x coordinate of the tile
-     * @param y the internal y coordinate of the tile
-     * @param gc the GameContainer in which the current game exists
-     * @param diff the number of milliseconds since the last frame
-     */
-    protected abstract void      updateAt     (int x, int y, GameContainer gc, int diff);
+    public final void addTile(Tile tile) {
+        if (updateMass())
+            c("mass", mass + tile.mass());
+        tiles[tile.x()][tile.y()] = tile;
+        setCollidesAt(tile.x(), tile.y(), tile.collide());
+        tile.setParent(this);
+
+        if (tile.x() < leftX)
+            leftX = tile.x();
+        else if (tile.x() > rightX)
+            rightX = tile.x();
+        if (tile.y() < topY)
+            topY = tile.y();
+        else if (tile.y() > botY)
+            botY = tile.y();
+    }
+
+    public final void remTile(Tile tile) {
+        if (updateMass())
+            c("mass", mass - tile.mass());
+        tiles[tile.x()][tile.y()] = null;
+        setCollidesAt(tile.x(), tile.y(), false);
+
+        if (tile.x() == leftX) {
+            for (int i = leftX; i <= rightX; i++)
+                for (int j = topY; j <= botY; j++)
+                    if (tiles[i][j] != null) {
+                        leftX = i;
+                        i = rightX + 1; //To make the outer loop break;
+                        break;
+                    }
+        } else if (tile.x() == rightX) {
+            for (int i = rightX; i >= leftX; i--)
+                for (int j = topY; j <= botY; j++)
+                    if (tiles[i][j] != null) {
+                        rightX = i;
+                        i = leftX - 1; //To make the outer loop break;
+                        break;
+                    }
+        }
+
+        if (tile.y() == topY) {
+            for (int j = topY; j <= botY; j++)
+                for (int i = leftX; i <= rightX; i++)
+                    if (tiles[i][j] != null) {
+                        topY = j;
+                        j = botY + 1; //To make the outer loop break;
+                        break;
+                    }
+        } else if (tile.y() == botY) {
+            for (int j = botY; j >= topY; j--)
+                for (int i = leftX; i <= rightX; i++)
+                    if (tiles[i][j] != null) {
+                        botY = j;
+                        j = topY - 1; //To make the outer loop break;
+                        break;
+                    }
+        }
+
+        if (leftX == rightX && topY == botY && tiles[leftX][topY] == null)
+            world.removeVehicleFromList(this);
+    }
 
     /**
      * Returns the internal x coordinate of the left-most tile in the current
      * CollisionGrid.
      * @return left-most internal coordinate in use
      */
-    protected abstract int leftX();
+    public int leftX() { return leftX; }
     /**
      * Returns the internal x coordinate of the right-most tile in the current
      * CollisionGrid.
      * @return right-most internal coordinate in use
      */
-    protected abstract int rightX();
+    public int rightX() { return rightX; }
     /**
      * Returns the internal y coordinate of the top-most tile in the current
      * CollisionGrid.
      * @return top-most internal coordinate in use
      */
-    protected abstract int topY();
+    public int topY() { return topY; }
     /**
      * Returns the internal y coordinate of the bottom-most tile in the current
      * CollisionGrid.
      * @return bottom-most internal coordinate in use
      */
-    protected abstract int botY();
-
-    protected abstract void updateData   (String id, String  data);
-    protected abstract void updateInt    (String id, int     data);
-    protected abstract void updateBoolean(String id, boolean data);
-    protected abstract void updateFloat  (String id, float   data);
+    public int botY() { return botY; }
 
     /**
      * Returns the maximum number of tiles the current CollisionGrid can
      * handle, horizontally.
      * @return width in tiles
      */
-    public abstract int WIDTH();
+    public int WIDTH() { return VEH_WIDTH; }
     /**
      * Returns the maximum number of tiles the current CollisionGrid can
      * handle, vertically.
      * @return height in tiles
      */
-    public abstract int HEIGHT();
+    public int HEIGHT() { return VEH_HEIGHT; }
 
-    public abstract void pushX(float momentum);
-    public abstract void pushY(float momentum);
+    /**
+     * Checks whether there is a tile at (x, y)
+     * @param x the internal x coordinate to be checked
+     * @param y the internal y coordinate to be checked
+     * @return true if (x, y) contains a tile
+     */
+    public boolean existsAt(int x, int y) { return tiles[x][y] != null; }
+
+    /**
+     * Returns the tile at (x, y), or null if none exists
+     * @param x the internal x coordinate of the tile
+     * @param y the internal y coordinate of the tile
+     * @return the tile at (x, y), or null
+     */
+    public Tile tile(int x, int y) { return tiles[x][y]; }
+
+    public void pushX(float momentum) {
+        xSpeed += momentum / mass;
+    }
+    public void pushY(float momentum) {
+        ySpeed += momentum / mass;
+    }
 
     /**
      * Method that is called at least once during every actual collision with another
@@ -186,7 +265,36 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
      * @param first true if this is the first call to this method for the current collision
      * @return a new fixMove value, or the old one if it does not need to change
      */
-    protected abstract float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first);
+    protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first) {
+        if (rect instanceof RelativeMovable) {
+            RelativeMovable rel = (RelativeMovable) rect;
+            if (first) {
+                float frictionMomentum = rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff();
+                rel.pushY(-frictionMomentum);
+                pushY(frictionMomentum);
+                float minMomentum = Math.min(rel.getMass(), getMass()) * xSpeed;
+                pushX(minMomentum);
+                rel.pushX(-minMomentum);
+            }
+            if (rel.collidedWithImmobileX()) {
+                if ((rel.collisionLockX() < 0 && fixMove > 0) ||
+                    (rel.collisionLockX() > 0 && fixMove < 0)) {
+                    collidedWithImmobileX(true);
+                    collisionLockX(-fixMove);
+                    x -= fixMove;
+                    return 0;
+                }
+            }
+            if ((rel.collisionLockX() < 0 && fixMove > 0) ||
+                (rel.collisionLockX() > 0 && fixMove < 0)) {
+                collisionLockX(-fixMove);
+                x -= fixMove;
+                return 0;
+            }
+        }
+
+        return fixMove;
+    }
     /**
      * Method that is called at least once during every actual collision with another
      * Rectangle. The method receives various data, acts on it, and then returns a new
@@ -199,7 +307,38 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
      * @param first true if this is the first call to this method for the current collision
      * @return a new fixMove value, or the old one if it does not need to change
      */
-    protected abstract float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first);
+    protected float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first) {
+        if (rect instanceof RelativeMovable) {
+            RelativeMovable rel = (RelativeMovable) rect;
+            if (first) {
+                float frictionMomentum = rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff();
+                rel.pushX(-frictionMomentum);
+                if (!(rect instanceof Player) || !collidedWithImmobileY())
+                    pushX(frictionMomentum);
+                float minMomentum = Math.min(rel.getMass(), getMass()) * ySpeed;
+                pushY(minMomentum);
+                rel.pushY(-minMomentum);
+            }
+            if (rel.collidedWithImmobileY()) {
+                if ((rel.collisionLockY() < 0 && fixMove > 0) ||
+                    (rel.collisionLockY() > 0 && fixMove < 0)) {
+                    collidedWithImmobileY(true);
+                    collisionLockY(-fixMove);
+                    y -= fixMove;
+                    return 0;
+                }
+            }
+            if (!collidedWithImmobileY() &&
+                ((rel.collisionLockY() < 0 && fixMove > 0) ||
+                 (rel.collisionLockY() > 0 && fixMove < 0))) {
+                collisionLockY(-fixMove);
+                y -= fixMove;
+                return 0;
+            }
+        }
+
+        return fixMove;
+    }
 
     /**
      * Check if the tile at (x, y) collides. Will throw an exception if (x, y) is
@@ -226,7 +365,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
      * @param other the CollisionGrid to be checked for collision
      * @return true if collision has been detected, false otherwise
      */
-    public boolean collideWithCollisionGridX(CollisionGrid other) {
+    public boolean collideWithVehicleX(Vehicle other) {
         boolean hasCollidedWithImmobile = false;
         boolean hasCollided = false;
 
@@ -234,7 +373,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             for (int i = leftX(); i <= rightX(); i++)
                 for (int j = topY(); j <= botY(); j++)
                     if (collidesAt[i][j]) {
-                        float fixMove = other.collideRectangleX(getRectAt(i, j), getAbsXSpeed() - other.getAbsXSpeed());
+                        float fixMove = other.collideRectangleX(tiles[i][j], getAbsXSpeed() - other.getAbsXSpeed());
                         if (fixMove != 0) {
                             x += fixMove;
                             collisionLockX = fixMove;
@@ -256,7 +395,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
      * @param other the CollisionGrid to be checked for collision
      * @return true if collision has been detected, false otherwise
      */
-    public boolean collideWithCollisionGridY(CollisionGrid other) {
+    public boolean collideWithVehicleY(Vehicle other) {
         boolean hasCollidedWithImmobile = false;
         boolean hasCollided = false;
 
@@ -264,7 +403,7 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             for (int i = leftX(); i <= rightX(); i++)
                 for (int j = topY(); j <= botY(); j++)
                     if (collidesAt[i][j]) {
-                        float fixMove = other.collideRectangleY(getRectAt(i, j), getAbsYSpeed() - other.getAbsYSpeed());
+                        float fixMove = other.collideRectangleY(tiles[i][j], getAbsYSpeed() - other.getAbsYSpeed());
                         if (Math.abs(fixMove) >= EXTRA_MOVE) {
                             y += fixMove;
                             collisionLockY = fixMove;
@@ -383,8 +522,8 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
         for (int i = xMin; i <= xMax; i++)
             for (int j = yMin; j <= yMax; j++)
-                if (renderAt(i, j)) {
-                    int tile = tileAt(i, j);
+                if (tiles[i][j] != null) {
+                    int tile = tiles[i][j].tile();
                     tileset.getSpriteSheet().renderInUse(ix() + i*TW,
                                                          iy() + j*TH,
                                                          tile%tileset.getSpriteSheet().getHorizontalCount(),
@@ -415,13 +554,17 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         collidedWithImmobileX = false;
         collisionLockX = 0;
 
-        if (!Float.isNaN(toSetX)) {
-            x = toSetX;
-            toSetX = Float.NaN;
-        }
-        if (!Float.isNaN(toSetXSpeed)) {
-            xSpeed = toSetXSpeed;
-            toSetXSpeed = Float.NaN;
+        if (world.view().playerId() != 0) {
+            if (!Float.isNaN(toSetX)) {
+                float move = toSetX - x;
+                x = toSetX;
+                toSetX = Float.NaN;
+                world.relMoveX(this, move);
+            }
+            if (!Float.isNaN(toSetXSpeed)) {
+                xSpeed = toSetXSpeed;
+                toSetXSpeed = Float.NaN;
+            }
         }
 
         x += getAbsXMove(diff);
@@ -430,13 +573,17 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
         collidedWithImmobileY = false;
         collisionLockY = 0;
 
-        if (!Float.isNaN(toSetY)) {
-            y = toSetY;
-            toSetY = Float.NaN;
-        }
-        if (!Float.isNaN(toSetYSpeed)) {
-            ySpeed = toSetYSpeed;
-            toSetYSpeed = Float.NaN;
+        if (world.view().playerId() != 0) {
+            if (!Float.isNaN(toSetY)) {
+                float move = toSetY - y;
+                y = toSetY;
+                toSetY = Float.NaN;
+                world.relMoveY(this, move);
+            }
+            if (!Float.isNaN(toSetYSpeed)) {
+                ySpeed = toSetYSpeed;
+                toSetYSpeed = Float.NaN;
+            }
         }
 
         y += getAbsYMove(diff);
@@ -471,11 +618,29 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
 
     @Override
     public void update(GameContainer gc, int diff) {
+        for (int i = leftX; i <= rightX; i++)
+            for (int j = topY; j <= botY; j++)
+                if (tiles[i][j] != null)
+                    tiles[i][j].updateEarly(gc, diff);
+
+        if (makeScanner != null) {
+            this.addTile(inv.getBlockAt(makeScanner.nextInt()).create(makeScanner.nextInt(), makeScanner.nextInt(), makeScanner.nextInt()));
+            makeScanner = null;
+        }
+        if (deleScanner != null) {
+            Tile tile = tiles[deleScanner.nextInt()][deleScanner.nextInt()];
+            if (tile != null)
+                this.remTile(tile);
+
+            deleScanner = null;
+        }
+
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
         for (int i = leftX(); i <= rightX(); i++)
             for (int j = topY(); j <= botY(); j++)
-                updateAt(i, j, gc, diff);
+                if (tiles[i][j] != null)
+                    tiles[i][j].update(gc, diff);
 
         if (world.updatePos() && world.view().playerId() == 0) {
             c("x", x);
@@ -483,6 +648,9 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
             c("xSpeed", xSpeed);
             c("ySpeed", ySpeed);
         }
+
+        pushX((float) (-xSpeed * world.airResist() * Math.pow(botY   - topY,  0.5))); //TODO: airresist from other vehicles
+        pushY((float) (-ySpeed * world.airResist() * Math.pow(rightX - leftX, 0.5)));
     }
 
     public int getID() { return id; }
@@ -510,20 +678,133 @@ public abstract class CollisionGrid implements Position, Renderable, Updatable, 
     public int iy() { return Math.round(world.getY() + getY()); }
 
     public void dataChanged(String id, String data) {
-        if (id.startsWith(name+ "." +this.id+ "."))
-            updateData(id.substring((name+ "." +this.id+ ".").length()), data);
+        if (id.startsWith(name+ "." +this.id+ ".")) {
+            String var = id.substring((name+ "." +this.id+ ".").length());
+            if (var.startsWith("tile.")) {
+                Scanner s = new Scanner(var.substring(5));
+                s.useDelimiter("\\.");
+                Tile tile = tiles[s.nextInt()][s.nextInt()];
+                if (tile != null)
+                    tile.updateData(s.nextLine().substring(1), data);
+            }
         }
+    }
     public void intChanged(String id, int data) {
-        if (id.startsWith(name+ "." +this.id+ "."))
-            updateInt(id.substring((name+ "." +this.id+ ".").length()), data);
+        if (id.startsWith(name+ "." +this.id+ ".")) {
+            String var = id.substring((name+ "." +this.id+ ".").length());
+            if (var.startsWith("tile.")) {
+                Scanner s = new Scanner(var.substring(5));
+                s.useDelimiter("\\.");
+                Tile tile = tiles[s.nextInt()][s.nextInt()];
+                if (tile != null)
+                    tile.updateInt(s.nextLine().substring(1), data);
+            }
         }
+    }
     public void booleanChanged(String id, boolean data) {
-        if (id.startsWith(name+ "." +this.id+ "."))
-            updateBoolean(id.substring((name+ "." +this.id+ ".").length()), data);
+        if (id.startsWith(name+ "." +this.id+ ".")) {
+            String var = id.substring((name+ "." +this.id+ ".").length());
+            if (var.startsWith("tile.") || var.startsWith("make.") || var.startsWith("dele.")) {
+                Scanner s = new Scanner(var.substring(5));
+                s.useDelimiter("\\.");
+                if (var.startsWith("tile.")) {
+                    Tile tile = tiles[s.nextInt()][s.nextInt()];
+                    if (tile != null)
+                        tile.updateBoolean(s.nextLine().substring(1), data);
+                } else if (var.startsWith("make.")){
+                    makeScanner = s;
+                } else {
+                    deleScanner = s;
+                }
+            }
+        }
     }
     public void floatChanged(String id, float data) {
-        if (id.startsWith(name+ "." +this.id+ "."))
-            updateFloat(id.substring((name+ "." +this.id+ ".").length()), data);
+        if (id.startsWith(name+ "." +this.id+ ".")) {
+            String var = id.substring((name+ "." +this.id+ ".").length());
+            switch (var) {
+                case "mass":
+                    mass = data;
+                    break;
+
+                case "x":
+                    toSetX = data;
+                    break;
+
+                case "y":
+                    toSetY = data;
+                    break;
+
+                case "xSpeed":
+                    toSetXSpeed = data;
+                    break;
+
+                case "ySpeed":
+                    toSetYSpeed = data;
+                    break;
+
+                default:
+                    if (var.startsWith("tile.")) {
+                        Scanner s = new Scanner(var.substring(5));
+                        s.useDelimiter("\\.");
+                        Tile tile = tiles[s.nextInt()][s.nextInt()];
+                        if (tile != null)
+                            tile.updateFloat(s.nextLine().substring(1), data);
+                    } else
+                        System.out.println("Unsupported variable in Vehicle: " +id);
+            }
+        }
+    }
+
+    public void generateStandardVehicle() {
+        int mx = WIDTH ()/2;
+        int my = HEIGHT()/2;
+
+        addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
+
+        addTile(new AirFuelTransport(mx - 2, my - 1, false, Tile.LEFT));
+        addTile(new FuelTank(mx - 2, my));
+        tiles[mx - 2][my].c("content", FuelTank.MAX_CONTENT);
+        addTile(new FuelTransport(mx - 2, my + 1, false, Tile.UP));
+
+        addTile(new AirFuelTransport(mx - 3, my - 1, false, Tile.DOWN));
+        addTile(new Thruster(mx - 3, my, Tile.RIGHT));
+        addTile(new FuelTransport(mx - 3, my + 1, false, Tile.RIGHT));
+
+
+        addTile(new PowerSwitch(mx, my, Tile.UP));
+
+        addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
+        addTile(new FuelTank(mx, my + 1));
+        tiles[mx][my + 1].c("content", FuelTank.MAX_CONTENT);
+        addTile(new FuelTransport(mx + 1, my + 1, false, Tile.LEFT));
+
+        addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
+        addTile(new Thruster(mx, my + 2, Tile.UP));
+        addTile(new AirFuelTransport(mx + 1, my + 2, false, Tile.UP));
+
+
+        addTile(new PowerSwitch(mx + 1, my, Tile.LEFT));
+
+        addTile(new AirFuelTransport(mx + 2, my - 1, false, Tile.DOWN));
+        addTile(new FuelTank(mx + 2, my));
+        tiles[mx + 2][my].c("content", FuelTank.MAX_CONTENT);
+        addTile(new FuelTransport(mx + 2, my + 1, false, Tile.RIGHT));
+
+        addTile(new AirFuelTransport(mx + 3, my - 1, false, Tile.LEFT));
+        addTile(new Thruster(mx + 3, my, Tile.LEFT));
+        addTile(new FuelTransport(mx + 3, my + 1, false, Tile.UP));
+
+
+        addTile(new Tile(mx - 4, my + 1, 1, 5, true));
+        addTile(new Tile(mx - 5, my + 2, 1, 5, true));
+
+        addTile(new Tile(mx + 4, my + 1, 1, 5, true));
+        addTile(new Tile(mx + 5, my + 2, 1, 5, true));
+
+        addTile(new Tile(mx - 1, my - 2, 1, 5, true));
+        addTile(new Tile(mx    , my - 2, 1, 5, true));
+        addTile(new Tile(mx + 1, my - 2, 1, 5, true));
     }
 
 }

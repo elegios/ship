@@ -1,8 +1,8 @@
-package ship.world.collisiongrid.vehicle.tile.power;
+package ship.world.vehicle.tile.power;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.tile.Tile;
 
 public class MomentumAbsorber extends Tile {
     public static final int BASETILE = AirPowerTransport.NEXTTILE;
@@ -28,7 +28,7 @@ public class MomentumAbsorber extends Tile {
      * @param direction
      */
     public MomentumAbsorber(int x, int y, int direction) {
-        super(x, y, BASETILE + direction, STDMASS, true, true);
+        super(x, y, BASETILE + direction, STDMASS, true);
 
         this.direction = direction;
 

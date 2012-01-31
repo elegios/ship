@@ -1,6 +1,6 @@
-package ship.world.collisiongrid.vehicle.tile.fuel;
+package ship.world.vehicle.tile.fuel;
 
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.tile.Tile;
 
 public class FuelTransport extends Tile {
     public static final int BASETILE = FuelSwitch.NEXTTILE;
@@ -10,13 +10,13 @@ public class FuelTransport extends Tile {
     protected int     direction;
 
     public FuelTransport(int x, int y, boolean straight, int direction) {
-        super(x, y, BASETILE + direction + 2, STDMASS, true, true);
+        super(x, y, BASETILE + direction + 2, STDMASS, true);
 
         this.straight  = straight;
         this.direction = direction;
     }
     protected FuelTransport(int x, int y, int tile, float mass, boolean collide, boolean render) {
-        super(x, y, tile, mass, collide, render);
+        super(x, y, tile, mass, collide);
     }
 
     public boolean fuelFrom(int direction, float amount) {

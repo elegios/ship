@@ -1,4 +1,4 @@
-package ship.world.collisiongrid.vehicle.tile;
+package ship.world.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
@@ -9,7 +9,7 @@ public class Balloon extends Tile { //TODO: make these blow up when destroyed (b
     public static final float LIFT_STR = STDMASS + 20;
 
     public Balloon(int x, int y) {
-        super(x, y, BASETILE, STDMASS, true, true);
+        super(x, y, BASETILE, STDMASS, true);
     }
 
     public void update(GameContainer gc, int diff) {

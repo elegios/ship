@@ -2,8 +2,8 @@ package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.tile.Balloon;
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.tile.Balloon;
+import ship.world.vehicle.tile.Tile;
 
 public class BalloonCreator extends TileCreator {
     public static final String NAME     = "Balloon";

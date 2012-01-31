@@ -21,7 +21,7 @@ import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
-import ship.world.collisiongrid.vehicle.Vehicle;
+import ship.world.vehicle.Vehicle;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -248,8 +248,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         int playX = vehicle.getTileXUnderPos(getX() + getWidth ()/2);
         int playY = vehicle.getTileYUnderPos(getY() + getHeight()/2);
 
-        if (playX >= 0               && playX <  vehicle.WIDTH() &&
-            playY >= vehicle.topY () && playY <= vehicle.botY ()) {
+        if (playX >= 0              && playX <  vehicle.WIDTH() &&
+            playY >= vehicle.topY() && playY <= vehicle.botY ()) {
             if (xSpeed > 0) {
                 for (int i = playX; i <= vehicle.rightX(); i++) {
                     if (vehicle.existsAt(i, playY)) {

@@ -2,16 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ship.world.collisiongrid.vehicle.tile;
+package ship.world.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
 import ship.Updatable;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
-import ship.world.collisiongrid.CollisionGrid;
-import ship.world.collisiongrid.vehicle.Vehicle;
 import ship.world.player.Player;
+import ship.world.vehicle.Vehicle;
 
 /**
  *
@@ -33,14 +32,13 @@ public class Tile implements Updatable, Rectangle, RelativeMovable {
     private int tile;
 
     private boolean collide;
-    private boolean render;
 
     private float mass;
 
     private boolean powered;
     private boolean fueled;
 
-    public Tile(int x, int y, int tile, float mass, boolean collide, boolean render) {
+    public Tile(int x, int y, int tile, float mass, boolean collide) {
         this.x = x;
         this.y = y;
 
@@ -49,7 +47,6 @@ public class Tile implements Updatable, Rectangle, RelativeMovable {
         this.mass = mass;
 
         this.collide = collide;
-        this.render  = render;
     }
 
     public Tile setParent(Vehicle parent) { this.parent = parent; return this; }
@@ -81,7 +78,6 @@ public class Tile implements Updatable, Rectangle, RelativeMovable {
     public int     y()       { return y; }
     public int     tile()    { return tile; }
     public boolean collide() { return collide; }
-    public boolean render()  { return render; }
     public float   mass()    { return mass; }
     public boolean powered() { return powered; }
     public boolean fueled()  { return fueled; }
@@ -97,11 +93,11 @@ public class Tile implements Updatable, Rectangle, RelativeMovable {
     public final int ix() { return Math.round(getX()); }
     public final int iy() { return Math.round(getY()); }
 
-    public final float getX() { return parent.getX() + x*CollisionGrid.TW; }
-    public final float getY() { return parent.getY() + y*CollisionGrid.TH; }
+    public final float getX() { return parent.getX() + x*Vehicle.TW; }
+    public final float getY() { return parent.getY() + y*Vehicle.TH; }
 
-    public final int getWidth () { return CollisionGrid.TW; }
-    public final int getHeight() { return CollisionGrid.TH; }
+    public final int getWidth () { return Vehicle.TW; }
+    public final int getHeight() { return Vehicle.TH; }
 
     public final float getX2() { return getX() +  getWidth() - 1; }
     public final float getY2() { return getY() + getHeight() - 1; }

@@ -2,8 +2,8 @@ package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.tile.Tile;
-import ship.world.collisiongrid.vehicle.tile.power.PowerTransport;
+import ship.world.vehicle.tile.Tile;
+import ship.world.vehicle.tile.power.PowerTransport;
 
 public class PowerTransportCreator extends TileCreator {
     public static final String NAME     = "Power Pipe (block)";

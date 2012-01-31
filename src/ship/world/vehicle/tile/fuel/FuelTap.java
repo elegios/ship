@@ -1,9 +1,9 @@
-package ship.world.collisiongrid.vehicle.tile.fuel;
+package ship.world.vehicle.tile.fuel;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.tile.Tile;
 import ship.world.player.Player;
+import ship.world.vehicle.tile.Tile;
 
 public class FuelTap extends Tile {
     public static final int BASETILE = AirFuelTransport.NEXTTILE;
@@ -24,7 +24,7 @@ public class FuelTap extends Tile {
     private int renderLevel;
 
     public FuelTap(int x, int y, int direction) {
-        super(x, y, BASETILE + direction*4, 0, false, true);
+        super(x, y, BASETILE + direction*4, 0, false);
         this.direction = direction;
 
         content = 0;

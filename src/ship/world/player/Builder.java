@@ -11,8 +11,8 @@ import ship.control.KeyReceiver;
 import ship.control.Keys;
 import ship.ui.inventory.Inventory;
 import ship.world.Position;
-import ship.world.collisiongrid.CollisionGrid;
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.Vehicle;
+import ship.world.vehicle.tile.Tile;
 
 public class Builder implements Renderable, KeyReceiver, Position {
 
@@ -33,8 +33,8 @@ public class Builder implements Renderable, KeyReceiver, Position {
 
         this.player = player;
 
-        tiles     = player.world().view().loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
-        highlight = player.world().view().loader().loadManagedSpriteSheet("builder_highlight", CollisionGrid.TW, CollisionGrid.TH);
+        tiles     = player.world().view().loader().loadManagedSpriteSheet("tiles", Vehicle.TW, Vehicle.TH);
+        highlight = player.world().view().loader().loadManagedSpriteSheet("builder_highlight", Vehicle.TW, Vehicle.TH);
     }
 
     public String getMakeString() { return item +"."+ subItem; }
@@ -65,10 +65,10 @@ public class Builder implements Renderable, KeyReceiver, Position {
                 return player.getX() - 1;
 
             case Tile.RIGHT:
-                return player.getX2() + 1 + CollisionGrid.TW/2;
+                return player.getX2() + 1 + Vehicle.TW/2;
 
             case Tile.LEFT:
-                return player.getX() - CollisionGrid.TW - CollisionGrid.TW/2;
+                return player.getX() - Vehicle.TW - Vehicle.TW/2;
 
             default:
                 return Float.NaN;
@@ -77,14 +77,14 @@ public class Builder implements Renderable, KeyReceiver, Position {
     public float getY() {
         switch (direction) {
             case Tile.UP:
-                return player.getY() - CollisionGrid.TH - CollisionGrid.TH/2;
+                return player.getY() - Vehicle.TH - Vehicle.TH/2;
 
             case Tile.RIGHT:
             case Tile.LEFT:
                 return player.getY() - 1;
 
             case Tile.DOWN:
-                return player.getY2() + 1 + CollisionGrid.TH/2;
+                return player.getY2() + 1 + Vehicle.TH/2;
 
             default:
                 return Float.NaN;
@@ -94,8 +94,8 @@ public class Builder implements Renderable, KeyReceiver, Position {
     public int ix() { return Math.round(player.world().getX() + getX()); }
     public int iy() { return Math.round(player.world().getY() + getY()); }
 
-    public int getWidth()  { return CollisionGrid.TW; }
-    public int getHeight() { return CollisionGrid.TH; }
+    public int getWidth()  { return Vehicle.TW; }
+    public int getHeight() { return Vehicle.TH; }
 
     @Override
     public boolean keyPressed(Keys keys, int key, char c) {

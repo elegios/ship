@@ -15,7 +15,7 @@ import ship.control.KeyReceiver;
 import ship.control.Keys;
 import ship.ui.Box;
 import ship.ui.inventory.tilecreator.TileCreator;
-import ship.world.collisiongrid.CollisionGrid;
+import ship.world.vehicle.Vehicle;
 import dataverse.datanode.easy.EasyNode;
 
 public class Items extends Box implements KeyReceiver, Focusable {
@@ -52,7 +52,7 @@ public class Items extends Box implements KeyReceiver, Focusable {
         playerID = parent.view().playerId();
 
         fonts     = parent.view().fonts();
-        tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles", CollisionGrid.TW, CollisionGrid.TH);
+        tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles", Vehicle.TW, Vehicle.TH);
         highlight = parent.view().loader().loadManagedSpriteSheet("item_highlight",      HIGHLIGHT_W,      ITEM_HEIGHT);
 
         this.items = new ArrayList<TileCreator>(items);

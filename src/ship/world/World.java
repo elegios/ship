@@ -19,11 +19,10 @@ import ship.Updatable;
 import ship.View;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
-import ship.world.collisiongrid.CollisionGrid;
-import ship.world.collisiongrid.island.Island;
-import ship.world.collisiongrid.vehicle.Vehicle;
 import ship.world.player.Builder;
 import ship.world.player.Player;
+import ship.world.vehicle.ImmobileVehicle;
+import ship.world.vehicle.Vehicle;
 import dataverse.datanode.ChangeListener;
 import dataverse.datanode.easy.EasyNode;
 
@@ -32,7 +31,7 @@ import dataverse.datanode.easy.EasyNode;
  * @author elegios
  */
 public class World implements Position, Renderable, Updatable, ChangeListener, KeyReceiver {
-    public static final int SKY_GRADIENT_MINIMUM = 220 * CollisionGrid.TW;
+    public static final int SKY_GRADIENT_MINIMUM = 220 * Vehicle.TW;
     public static final int SKY_GRADIENT_LENGTH  = 10;
     public static final int SKY_MAX_R = 62;
     public static final int SKY_MAX_G = 209;
@@ -50,7 +49,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     private ParallaxBackground paraBack;
 
-    private Island island;
+    private ImmobileVehicle island;
     private Player[] players;
     private Player currPlayer;
     private List<Vehicle> vehicles;
@@ -90,9 +89,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         c("airResist",         0.2f);
         c("fuelRate",          1.0f/1000);
 
-        tileset = view.loader().loadManagedSpriteSheet("tiles", CollisionGrid.TW, CollisionGrid.TH);
+        tileset = view.loader().loadManagedSpriteSheet("tiles", Vehicle.TW, Vehicle.TH);
 
-        island  = new Island(this, 0,  0, 0);
+        island  = new ImmobileVehicle(this, 0,  0, 0);
         vehicles = new ArrayList<>();
         for (int i = 0; i < 10; i++)
             vehicles.add(new Vehicle(this, i, island.getWidth()/2 + 128 +i*400, -32));
@@ -158,7 +157,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
      */
     private void collideX() {
         for (Vehicle vehicle : vehicles)
-            vehicle.collideWithCollisionGridX(island);
+            vehicle.collideWithVehicleX(island);
         for (Vehicle vehicle : vehicles)
             collideVehicleX(vehicle);
 
@@ -188,7 +187,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
      */
     private void collideY() {
         for (Vehicle vehicle : vehicles)
-            vehicle.collideWithCollisionGridY(island);
+            vehicle.collideWithVehicleY(island);
         for (Vehicle vehicle : vehicles)
             collideVehicleY(vehicle);
 
@@ -201,7 +200,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
      * redoing collision with all vehicles, including those of lower ID, should
      * a collision be detected. Those of lower ID will result in a call to
      * collideVehicleX(other), while those with a higher ID will give a
-     * vehicle.collideWithCollisionGridX(other). This makes collisions a little
+     * vehicle.collideWithVehicleX(other). This makes collisions a little
      * bit more deterministic, since lower IDs will move out of the way of
      * higher IDs if that is possible.
      * @param vehicle the Vehicle which should be tested
@@ -211,9 +210,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             if (vehicles.get(i).getID() != vehicle.getID()) {
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleX(vehicles.get(i));
-                else if (vehicle.collideWithCollisionGridX(vehicles.get(i)))
+                else if (vehicle.collideWithVehicleX(vehicles.get(i)))
                     i = -1;
-                if (i == vehicles.size() - 1 && vehicle.collideWithCollisionGridX(island))
+                if (i == vehicles.size() - 1 && vehicle.collideWithVehicleX(island))
                     i = -1;
             }
     }
@@ -223,7 +222,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
      * redoing collision with all vehicles, including those of lower ID, should
      * a collision be detected. Those of lower ID will result in a call to
      * collideVehicleY(other), while those with a higher ID will give a
-     * vehicle.collideWithCollisionGridY(other). This makes collisions a little
+     * vehicle.collideWithVehicleY(other). This makes collisions a little
      * bit more deterministic, since lower IDs will move out of the way of
      * higher IDs if that is possible.
      *
@@ -236,9 +235,9 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             if (vehicles.get(i).getID() != vehicle.getID()) {
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleY(vehicles.get(i));
-                else if (vehicle.collideWithCollisionGridY(vehicles.get(i))) {
+                else if (vehicle.collideWithVehicleY(vehicles.get(i))) {
                     i = -1;
-                } if (i == vehicles.size() - 1 && vehicle.collideWithCollisionGridY(island)) {
+                } if (i == vehicles.size() - 1 && vehicle.collideWithVehicleY(island)) {
                     i = -1;
                 }
             }
@@ -411,10 +410,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                          vehicle.existsAt(tx + 1, ty    ) ||
                          vehicle.existsAt(tx    , ty + 1) ||
                          vehicle.existsAt(tx - 1, ty    ))) {
-                    builder.renderHighlight(gc, g, vehicle.ix() + tx*CollisionGrid.TW, vehicle.iy() + ty*CollisionGrid.TH, true);
+                    builder.renderHighlight(gc, g, vehicle.ix() + tx*Vehicle.TW, vehicle.iy() + ty*Vehicle.TH, true);
                     break;
                 } else if (vehicle.existsAt(tx, ty)) {
-                    builder.renderHighlight(gc, g, vehicle.ix() + tx*CollisionGrid.TW, vehicle.iy() + ty*CollisionGrid.TH, false);
+                    builder.renderHighlight(gc, g, vehicle.ix() + tx*Vehicle.TW, vehicle.iy() + ty*Vehicle.TH, false);
                     break;
                 }
         }

@@ -1,6 +1,6 @@
-package ship.world.collisiongrid.vehicle.tile.power;
+package ship.world.vehicle.tile.power;
 
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.tile.Tile;
 
 public class AirPowerTransport extends PowerTransport {
     public static final int BASETILE = PowerTransport.NEXTTILE;

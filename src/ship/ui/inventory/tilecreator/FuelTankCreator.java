@@ -2,8 +2,8 @@ package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.tile.Tile;
-import ship.world.collisiongrid.vehicle.tile.fuel.FuelTank;
+import ship.world.vehicle.tile.Tile;
+import ship.world.vehicle.tile.fuel.FuelTank;
 
 public class FuelTankCreator extends TileCreator {
     public static final String NAME     = "Fuel Tank";

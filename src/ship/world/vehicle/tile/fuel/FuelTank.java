@@ -1,8 +1,8 @@
-package ship.world.collisiongrid.vehicle.tile.fuel;
+package ship.world.vehicle.tile.fuel;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.tile.Tile;
 
 public class FuelTank extends Tile {
     public static final int BASETILE = FuelTap.NEXTTILE;
@@ -16,7 +16,7 @@ public class FuelTank extends Tile {
     private float content;
 
     public FuelTank(int x, int y) {
-        super(x, y, BASETILE, STDMASS, true, true);
+        super(x, y, BASETILE, STDMASS, true);
 
         content = 0;
 

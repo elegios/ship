@@ -2,7 +2,7 @@ package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.tile.fuel.FuelTransport;
+import ship.world.vehicle.tile.fuel.FuelTransport;
 
 public class FuelTransportCreator extends TileCreator {
     public static final String NAME     = "Fuel Pipe (block)";

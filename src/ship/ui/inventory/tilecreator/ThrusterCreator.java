@@ -2,7 +2,7 @@ package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.tile.Thruster;
+import ship.world.vehicle.tile.Thruster;
 
 public class ThrusterCreator extends TileCreator {
     public static final String NAME     = "Thruster";

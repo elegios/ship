@@ -2,8 +2,8 @@ package ship.ui.inventory.tilecreator;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.tile.Tile;
-import ship.world.collisiongrid.vehicle.tile.power.MomentumAbsorber;
+import ship.world.vehicle.tile.Tile;
+import ship.world.vehicle.tile.power.MomentumAbsorber;
 
 public class MomentumAbsorberCreator extends TileCreator {
     public static final String NAME     = "Momentum Absorber";

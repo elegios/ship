@@ -6,7 +6,7 @@ import java.util.Set;
 
 import ship.ui.inventory.Tag;
 import ship.ui.inventory.Tags;
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.tile.Tile;
 
 public abstract class TileCreator implements Comparable<TileCreator> {
 

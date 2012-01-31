@@ -1,8 +1,8 @@
-package ship.world.collisiongrid.vehicle.tile.power;
+package ship.world.vehicle.tile.power;
 
 import org.newdawn.slick.GameContainer;
 
-import ship.world.collisiongrid.vehicle.tile.Tile;
+import ship.world.vehicle.tile.Tile;
 
 public class PowerTransport extends Tile {
     public static final int BASETILE = PowerSwitch.NEXTTILE;
@@ -13,14 +13,14 @@ public class PowerTransport extends Tile {
     private boolean renderPowered;
 
     public PowerTransport(int x, int y, int type) {
-        super(x, y, BASETILE + type, Tile.STDMASS, true, true);
+        super(x, y, BASETILE + type, Tile.STDMASS, true);
 
         setDirections(type);
 
         renderPowered = false;
     }
     protected PowerTransport(int x, int y, int tile, float mass, boolean collide, boolean render) {
-        super(x, y, tile, mass, collide, render);
+        super(x, y, tile, mass, collide);
     }
 
     protected final void setDirections(int type) {

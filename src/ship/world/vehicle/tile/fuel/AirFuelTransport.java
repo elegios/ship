@@ -1,4 +1,4 @@
-package ship.world.collisiongrid.vehicle.tile.fuel;
+package ship.world.vehicle.tile.fuel;
 
 public class AirFuelTransport extends FuelTransport {
     public static final int BASETILE = FuelTransport.NEXTTILE;

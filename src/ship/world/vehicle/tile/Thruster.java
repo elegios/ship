@@ -1,4 +1,4 @@
-package ship.world.collisiongrid.vehicle.tile;
+package ship.world.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
@@ -18,7 +18,7 @@ public class Thruster extends Tile {
     private int renderLevel;
 
     public Thruster(int x, int y, int direction) {
-        super(x, y, BASETILE + direction, STDMASS, true, true);
+        super(x, y, BASETILE + direction, STDMASS, true);
 
         this.direction = direction;
     }

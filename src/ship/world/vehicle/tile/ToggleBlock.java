@@ -1,4 +1,4 @@
-package ship.world.collisiongrid.vehicle.tile;
+package ship.world.vehicle.tile;
 
 import org.newdawn.slick.GameContainer;
 
@@ -9,7 +9,7 @@ public class ToggleBlock extends Tile {
     private boolean renderPowered;
 
     public ToggleBlock(int x, int y) {
-        super(x, y, BASETILE, STDMASS, true, true);
+        super(x, y, BASETILE, STDMASS, true);
 
         renderPowered = false;
     }
