@@ -100,7 +100,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
         players = new Player[view.numPlayers()];
         for (int i = 0; i < view.numPlayers(); i++)
-            players[i] = new Player(this, i, island.getWidth()/2 + 32, -100);
+            players[i] = new Player(this, i, island.getWidth()/2 + 32, -100 - i*10);
         currPlayer = players[view.playerId()];
 
         updatePos = false;
@@ -148,8 +148,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             player.moveX(diff);
     }
     public void relMoveX(Vehicle vehicle, float move) {
-        for (Player player : players)
-            player.relMoveX(vehicle, move);
+        currPlayer.relMoveX(vehicle, move);
     }
     /**
      * Checks for horizontal collision between all objects, moving them
@@ -178,8 +177,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             player.moveY(diff);
     }
     public void relMoveY(Vehicle vehicle, float move) {
-        for (Player player : players)
-            player.relMoveY(vehicle, move);
+        currPlayer.relMoveY(vehicle, move);
     }
     /**
      * Checks for vertical collision between all objects, moving them

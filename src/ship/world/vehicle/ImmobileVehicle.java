@@ -15,7 +15,7 @@ public class ImmobileVehicle extends Vehicle {
     public ImmobileVehicle(World world, int id, int x, int y) throws SlickException {
         super(world, id, x, y, false, "island");
 
-        for (int i = 0; i < WIDTH(); i++)
+        for (int i = 1; i < WIDTH(); i++)
             for (int j = 0; j < 5; j++)
                 addTile(new Tile(i, 20 + j, 0, Tile.STDMASS, true));
     }

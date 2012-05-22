@@ -62,8 +62,11 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private boolean downMotion;
     private RelativeMovable collidedY;
     private Vehicle lastVehicle;
-    private int     toSetLastVehicle;
     private boolean airResistX;
+
+    private Vehicle relVehicle;
+    private int toSetRelVehicleX;
+    private int toSetRelVehicleY;
 
     private Builder builder;
 
@@ -102,18 +105,22 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
         toSetXRel = Float.NaN;
         toSetYRel = Float.NaN;
-        toSetLastVehicle = -1;
+        toSetRelVehicleX = -1;
+        toSetRelVehicleY = -1;
     }
 
     public void moveX(int diff) {
+        x += getAbsXMove(diff);
+
         if (world.currPlayer() != this) {
             if (!Float.isNaN(toSetX)) {
                 x = toSetX;
                 toSetX = Float.NaN;
 
-            } else if (!Float.isNaN(toSetXRel) && lastVehicle != null) {
-                x = lastVehicle.getX() + toSetXRel;
+            } else if (!Float.isNaN(toSetXRel) && toSetRelVehicleX >= 0) {
+                x = world.findVehicle(toSetRelVehicleX).getX() + toSetXRel;
                 toSetXRel = Float.NaN;
+                toSetRelVehicleX = -1;
             }
 
             if (!Float.isNaN(toSetXSpeed)) {
@@ -121,18 +128,19 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
                 toSetXSpeed = Float.NaN;
             }
         }
-
-        x += getAbsXMove(diff);
     }
     public void moveY(int diff) {
+        y += getAbsYMove(diff);
+
         if (world.currPlayer() != this) {
             if (!Float.isNaN(toSetY)) {
                 y = toSetY;
                 toSetY = Float.NaN;
 
-            } else if (!Float.isNaN(toSetYRel) && lastVehicle != null) {
-                y = lastVehicle.getY() + toSetYRel;
+            } else if (!Float.isNaN(toSetYRel) && toSetRelVehicleY >= 0) {
+                y = world.findVehicle(toSetRelVehicleY).getY() + toSetYRel;
                 toSetYRel = Float.NaN;
+                toSetRelVehicleY = -1;
             }
 
             if (!Float.isNaN(toSetYSpeed)) {
@@ -140,17 +148,15 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
                 toSetYSpeed = Float.NaN;
             }
         }
-
-        y += getAbsYMove(diff);
     }
 
     public void relMoveX(Vehicle vehicle, float move) {
-        if (vehicle == lastVehicle)
-            x = move + getX();
+        if (vehicle == relVehicle)
+            x += move;
     }
     public void relMoveY(Vehicle vehicle, float move) {
-        if (vehicle == lastVehicle)
-            y = move + getY();
+        if (vehicle == relVehicle)
+            y += move;
     }
 
     public void updateEarly(GameContainer gc, int diff) {
@@ -191,19 +197,18 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         collidedY = null;
         collidedWithImobileX = false;
         collidedWithImobileY = false;
-
-        if (toSetLastVehicle >= 0) {
-            lastVehicle = world.findVehicle(toSetLastVehicle);
-            toSetLastVehicle = -1;
-        }
     }
 
-    public void update(GameContainer gc, int diff) {
+    public void update(GameContainer gc, int diff) { //TODO: find out why position flickers for clients only
         if (collidedY != null)
-            if (collidedY instanceof Vehicle)
+            if (collidedY instanceof Vehicle) {
                 lastVehicle = (Vehicle) collidedY;
-            else
+                relVehicle  = (Vehicle) collidedY;
+            } else
                 lastVehicle = null;
+
+        if (relVehicle != null && !relVehicle.overlaps(this))
+            relVehicle = null;
 
         if (lastVehicle == null || !doAirResistX(lastVehicle)) {
             boolean airResisted = false;
@@ -230,14 +235,14 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
         if (world.updatePos() && world.currPlayer() == this) {
-            if (lastVehicle != null) {
-                c("lastVehicle", lastVehicle.getID());
-                c("xRel", x - lastVehicle.getX());
-                c("yRel", y - lastVehicle.getY());
-            } else {
+            /*if (relVehicle != null) { // This kind of update seems to create some very odd stuttering
+                c("relVehicle", relVehicle.getID());
+                c("xRel",   x - relVehicle.getX());
+                c("yRel",   y - relVehicle.getY());
+            } else {*/
                 c("x", x);
                 c("y", y);
-            }
+            //}
             c("xSpeed", xSpeed);
             c("ySpeed", ySpeed);
         }
@@ -386,9 +391,10 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     public void intChanged(String id, int data) {
         if (id.startsWith("player." +this.id+ ".")) {
             String var = id.substring(("player." +this.id+ ".").length());
-            if (var.startsWith("lastVehicle"))
-                toSetLastVehicle = data;
-            else
+            if (var.startsWith("relVehicle")) {
+                toSetRelVehicleX = data;
+                toSetRelVehicleY = data;
+            } else
                 builder.updateInt(var, data);
         }
     }
