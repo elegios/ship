@@ -1,6 +1,7 @@
 package ship.netcode.tile;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification
@@ -36,6 +37,8 @@ public class ContentPackage extends BasicPackage {
     }
 
     public ContentPackage() { super(); }
+
+    public Package receivePackage(String message) { return new ContentPackage(message); }
 
     public int   getVehicleId() { return vehicleId; }
     public int   getVehX     () { return      vehX; }

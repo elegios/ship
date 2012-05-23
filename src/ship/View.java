@@ -47,6 +47,7 @@ public class View extends BasicGame {
         super("Game");
 
         this.net = net;
+        net.setView(this);
 
         this.playerId   = playerId;
         this.numPlayers = numPlayers;

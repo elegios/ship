@@ -1,6 +1,7 @@
 package ship.netcode.inventory;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 public class BuildModePackage extends BasicPackage {
 
@@ -19,6 +20,8 @@ public class BuildModePackage extends BasicPackage {
     }
 
     public BuildModePackage() { super(); }
+
+    public Package receivePackage(String message) { return new BuildModePackage(message); }
 
     public int getPlayerId() { return playerId; }
     public boolean getMode() { return     mode; }

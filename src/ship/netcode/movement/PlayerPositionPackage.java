@@ -1,6 +1,7 @@
 package ship.netcode.movement;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification:
@@ -50,6 +51,8 @@ public class PlayerPositionPackage extends BasicPackage {
     }
 
     public PlayerPositionPackage() { super(); }
+
+    public Package receivePackage(String message) { return new PlayerPositionPackage(message); }
 
     public int   getId() { return id; }
     public float getX()  { return  x; }

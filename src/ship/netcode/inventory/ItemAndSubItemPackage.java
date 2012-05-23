@@ -1,6 +1,7 @@
 package ship.netcode.inventory;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification:
@@ -26,6 +27,8 @@ public class ItemAndSubItemPackage extends BasicPackage {
     }
 
     public ItemAndSubItemPackage() { super(); }
+
+    public Package receivePackage(String message) { return new ItemAndSubItemPackage(message); }
 
     public int getPlayerId() { return playerId; }
     public int getItem    () { return     item; }

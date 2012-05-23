@@ -1,6 +1,7 @@
 package ship.netcode.inventory;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification:
@@ -24,6 +25,8 @@ public class BuildDirectionPackage extends BasicPackage {
     }
 
     public BuildDirectionPackage() { super(); }
+
+    public Package receivePackage(String message) { return new BuildDirectionPackage(message); }
 
     public int getPlayerId () { return playerId; }
     public int getDirection() { return direction; }

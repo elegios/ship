@@ -321,6 +321,27 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
      * - builder data
      */
 
+    public void receivePlayerPositionPackage(PlayerPositionPackage pack) {
+        if (toUpdatePos == null || !toUpdatePos.xChecked())
+            toUpdatePos = pack;
+    }
+
+    public void receivePlayerMovementPackage(PlayerMovementPackage pack) {
+        switch (pack.getType()) {
+            case PlayerMovementPackage.MOVE_LEFT:
+                moveLeft = pack.getValue();
+                break;
+
+            case PlayerMovementPackage.MOVE_RIGHT:
+                moveRight = pack.getValue();
+                break;
+
+            case PlayerMovementPackage.JUMP:
+                jump = pack.getValue();
+                break;
+        }
+    }
+
     public boolean keyPressed(Keys keys, int key, char c) {
         if (key == keys.right()) {
             moveRight = true;

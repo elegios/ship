@@ -287,9 +287,9 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
                 if (vehX >= 0 && vehX < vehicle.WIDTH() &&
                     vehY >= 0 && vehY < vehicle.HEIGHT() &&
                     vehicle.tile(vehX, vehY) != null) {
-                    if (view.net().isClient())
+                    if (view.net().isOnline())
                         view.net().send(ShipProtocol.ACTIVATE, new ActivatePackage(player.getID(), vehicle.getID(), vehX, vehY));
-                    else
+                    if (view.net().isServer())
                         vehicle.tile(vehX, vehY).activate(player);
                 }
             }
@@ -305,6 +305,14 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
         for (Vehicle vehicle : vehicles)
             if (vehicle.getID() == vehicleID)
                 return vehicle;
+
+        return null;
+    }
+
+    public Player findPlayer(int playerID) {
+        for (Player player : players)
+            if (player.getID() == playerID)
+                return player;
 
         return null;
     }

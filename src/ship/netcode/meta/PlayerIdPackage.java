@@ -1,6 +1,7 @@
 package ship.netcode.meta;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification:
@@ -22,6 +23,8 @@ public class PlayerIdPackage extends BasicPackage {
     }
 
     public PlayerIdPackage() { super(); }
+
+    public Package receivePackage(String message) { return new PlayerIdPackage(message); }
 
     public int getPlayerId  () { return playerId; }
 

@@ -12,6 +12,8 @@ import org.newdawn.slick.SlickException;
 import ship.Updatable;
 import ship.View;
 import ship.netcode.ShipProtocol;
+import ship.netcode.interaction.CreateTilePackage;
+import ship.netcode.interaction.DeleteTilePackage;
 import ship.netcode.movement.VehiclePositionPackage;
 import ship.ui.inventory.Inventory;
 import ship.world.Position;
@@ -652,10 +654,22 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
      * TODO: add receiving mechanisms for the following data:
      * - tile creation and deletion
      * - tile activation
-     * - mass changes
      * - x, y, xSpeed, ySpeed (set toUpdatePos after checking !toUpdatePos.xChecked())
      * - tile data (it might be best to have this in the tiles themselves, we'll see)
      */
+
+    public void receiveVehiclePositionPackage(VehiclePositionPackage pack) {
+        if (toUpdatePos == null || !toUpdatePos.xChecked())
+            toUpdatePos = pack;
+    }
+
+    public void receiveCreateTilePackage(CreateTilePackage pack) {
+        addTile(world.view().inventory().getBlockAt(pack.getItem()).create(pack.getSubItem(), pack.getVehX(), pack.getVehY()));
+    }
+
+    public void receiveDeleteTilePackage(DeleteTilePackage pack) {
+        remTile(tiles[pack.getVehX()][pack.getVehY()]);
+    }
 
     public void generateStandardVehicle() {
         int mx = WIDTH ()/2;

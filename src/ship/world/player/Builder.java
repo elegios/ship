@@ -12,6 +12,7 @@ import ship.control.Keys;
 import ship.netcode.ShipProtocol;
 import ship.netcode.inventory.BuildDirectionPackage;
 import ship.netcode.inventory.BuildModePackage;
+import ship.netcode.inventory.ItemAndSubItemPackage;
 import ship.ui.inventory.Inventory;
 import ship.world.Position;
 import ship.world.vehicle.Vehicle;
@@ -184,14 +185,17 @@ public class Builder implements Renderable, KeyReceiver, Position {
     @Override
     public boolean keyReleased(Keys keys, int key, char c) { return false; }
 
-    /*
-     * TODO: create a receiving mechanism for the following:
-     * - selectedItem
-     * - selectedSubItem
-     * - buildDirection
-     * - buildMode
-     *
-     * TODO: make sure a Builder belonging to a non-local player doesn't share the same shown item
-     */
+    public void receiveBuildDirectionPackage(BuildDirectionPackage pack) {
+        direction = pack.getDirection();
+    }
+
+    public void receiveBuildModePackage(BuildModePackage pack) {
+        buildMode = pack.getMode();
+    }
+
+    public void receiveItemAndSubItemPackage(ItemAndSubItemPackage pack) {
+        item    = pack.getItem();
+        subItem = pack.getSubItem();
+    }
 
 }

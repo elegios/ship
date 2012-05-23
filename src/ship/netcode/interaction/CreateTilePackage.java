@@ -1,6 +1,7 @@
 package ship.netcode.interaction;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification:
@@ -35,10 +36,17 @@ public class CreateTilePackage extends BasicPackage {
     public CreateTilePackage(String message) {
         super(message);
 
-
+        playerId  = getNextInt();
+        vehicleId = getNextInt();
+        vehX      = getNextInt();
+        vehY      = getNextInt();
+        item      = getNextInt();
+        subItem   = getNextInt();
     }
 
     public CreateTilePackage() { super(); }
+
+    public Package receivePackage(String message) { return new CreateTilePackage(message); }
 
     public int getPlayerId () { return  playerId; }
     public int getVehicleId() { return vehicleId; }

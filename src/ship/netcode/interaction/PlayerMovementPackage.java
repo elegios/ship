@@ -1,6 +1,7 @@
 package ship.netcode.interaction;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification
@@ -30,6 +31,8 @@ public class PlayerMovementPackage extends BasicPackage {
     }
 
     public PlayerMovementPackage() { super(); }
+
+    public Package receivePackage(String message) { return new PlayerMovementPackage(message); }
 
     public int     getId   () { return id;    }
     public int     getType () { return type;  }

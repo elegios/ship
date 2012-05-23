@@ -2,6 +2,7 @@ package ship.world.vehicle.tile.fuel;
 
 import org.newdawn.slick.GameContainer;
 
+import ship.netcode.tile.ContentPackage;
 import ship.world.vehicle.tile.Tile;
 
 public class FuelTank extends Tile {
@@ -80,6 +81,8 @@ public class FuelTank extends Tile {
             return super.tile() + Math.round(content/STAGE_SIZE);
     }
 
-    //TODO: create a mechanism to receive ContentPackage
+    public void receiveContentPackage(ContentPackage pack) {
+        content = pack.getContent();
+    }
 
 }

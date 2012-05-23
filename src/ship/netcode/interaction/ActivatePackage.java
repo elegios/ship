@@ -1,6 +1,7 @@
 package ship.netcode.interaction;
 
 import elegios.netcode.BasicPackage;
+import elegios.netcode.Package;
 
 /*
  * Specification:
@@ -28,6 +29,8 @@ public class ActivatePackage extends BasicPackage {
     }
 
     public ActivatePackage() { super(); }
+
+    public Package receivePackage(String message) { return new ActivatePackage(message); }
 
     public int getPlayerId () { return  playerId; }
     public int getVehicleId() { return vehicleId; }

@@ -2,6 +2,7 @@ package ship.world.vehicle.tile.fuel;
 
 import org.newdawn.slick.GameContainer;
 
+import ship.netcode.tile.ContentPackage;
 import ship.world.player.Player;
 import ship.world.vehicle.tile.Tile;
 
@@ -73,6 +74,8 @@ public class FuelTap extends Tile {
             content += FILL_AMOUNT;
     }
 
-    //TODO: add mechanism to receive ContentPackage
+    public void receiveContentPackage(ContentPackage pack) {
+        content = pack.getContent();
+    }
 
 }

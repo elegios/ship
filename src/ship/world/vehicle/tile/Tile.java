@@ -136,4 +136,6 @@ public class Tile implements Updatable, Rectangle, RelativeMovable {
             parent.world().view().net().send(ShipProtocol.CONTENT, new ContentPackage(parent.getID(), x, y, content));
     }
 
+    public void receiveContentPackage(ContentPackage pack) {}
+
 }
