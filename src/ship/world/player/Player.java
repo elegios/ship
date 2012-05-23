@@ -4,8 +4,6 @@
  */
 package ship.world.player;
 
-import java.util.Scanner;
-
 import media.ManagedImage;
 import media.MediaLoader;
 import media.Renderable;
@@ -17,19 +15,20 @@ import org.newdawn.slick.SlickException;
 import ship.Updatable;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
+import ship.netcode.ShipProtocol;
+import ship.netcode.interaction.PlayerMovementPackage;
+import ship.netcode.movement.PlayerPositionPackage;
 import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
 import ship.world.vehicle.Vehicle;
-import dataverse.datanode.ChangeListener;
-import dataverse.datanode.easy.EasyNode;
 
 /**
  *
  * @author elegios
  */
-public class Player implements Position, Renderable, Updatable, ChangeListener, RelativeMovable, Rectangle, KeyReceiver {
+public class Player implements Position, Renderable, Updatable, RelativeMovable, Rectangle, KeyReceiver {
     static final float JUMP_SPEED = -320;
     static final float MOVE_SPEED =  160; // 5 squ/igs
     static final float BASE_MASS  =  20;
@@ -45,15 +44,11 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     private float x;
     private float y;
-    private float toSetX;
-    private float toSetXRel;
-    private float toSetY;
-    private float toSetYRel;
 
     private float xSpeed;
     private float ySpeed;
-    private float toSetXSpeed;
-    private float toSetYSpeed;
+
+    private PlayerPositionPackage toUpdatePos;
 
     private boolean moveRight;
     private boolean moveLeft;
@@ -64,10 +59,6 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private Vehicle lastVehicle;
     private boolean airResistX;
 
-    private Vehicle relVehicle;
-    private int toSetRelVehicleX;
-    private int toSetRelVehicleY;
-
     private Builder builder;
 
     private int width;
@@ -76,7 +67,6 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
     private World world;
 
     private MediaLoader loader;
-    private EasyNode    node;
 
     private ManagedImage player;
 
@@ -85,7 +75,6 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         this.id         = id;
 
         loader = world.view().loader();
-        node   = world.view().node();
 
         player = loader.loadManagedImage("player");
         width  = player.getImage().getWidth();
@@ -93,70 +82,32 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
         builder = new Builder(world.view().inventory(), this);
 
-        node.addChangeListener(this);
-
-        c("mass",  BASE_MASS);
+        mass = BASE_MASS;
         this.x = x;
         this.y = y;
-        c("x", x);
-        c("y", y);
-        c("xSpeed", 0.0f);
-        c("ySpeed", 0.0f);
-
-        toSetXRel = Float.NaN;
-        toSetYRel = Float.NaN;
-        toSetRelVehicleX = -1;
-        toSetRelVehicleY = -1;
+        xSpeed = 0.0f;
+        ySpeed = 0.0f;
     }
 
     public void moveX(int diff) {
         x += getAbsXMove(diff);
 
-        if (world.currPlayer() != this) {
-            if (!Float.isNaN(toSetX)) {
-                x = toSetX;
-                toSetX = Float.NaN;
+        if (toUpdatePos != null) {
+            toUpdatePos.xChecked(true);
 
-            } else if (!Float.isNaN(toSetXRel) && toSetRelVehicleX >= 0) {
-                x = world.findVehicle(toSetRelVehicleX).getX() + toSetXRel;
-                toSetXRel = Float.NaN;
-                toSetRelVehicleX = -1;
-            }
-
-            if (!Float.isNaN(toSetXSpeed)) {
-                xSpeed = toSetXSpeed;
-                toSetXSpeed = Float.NaN;
-            }
+            x      = toUpdatePos.getX();
+            xSpeed = toUpdatePos.getXSpeed();
         }
     }
     public void moveY(int diff) {
         y += getAbsYMove(diff);
 
-        if (world.currPlayer() != this) {
-            if (!Float.isNaN(toSetY)) {
-                y = toSetY;
-                toSetY = Float.NaN;
+        if (toUpdatePos != null && toUpdatePos.xChecked()) {
+            y      = toUpdatePos.getY();
+            ySpeed = toUpdatePos.getYSpeed();
 
-            } else if (!Float.isNaN(toSetYRel) && toSetRelVehicleY >= 0) {
-                y = world.findVehicle(toSetRelVehicleY).getY() + toSetYRel;
-                toSetYRel = Float.NaN;
-                toSetRelVehicleY = -1;
-            }
-
-            if (!Float.isNaN(toSetYSpeed)) {
-                ySpeed = toSetYSpeed;
-                toSetYSpeed = Float.NaN;
-            }
+            toUpdatePos = null;
         }
-    }
-
-    public void relMoveX(Vehicle vehicle, float move) {
-        if (vehicle == relVehicle)
-            x += move;
-    }
-    public void relMoveY(Vehicle vehicle, float move) {
-        if (vehicle == relVehicle)
-            y += move;
     }
 
     public void updateEarly(GameContainer gc, int diff) {
@@ -203,12 +154,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
         if (collidedY != null)
             if (collidedY instanceof Vehicle) {
                 lastVehicle = (Vehicle) collidedY;
-                relVehicle  = (Vehicle) collidedY;
             } else
                 lastVehicle = null;
-
-        if (relVehicle != null && !relVehicle.overlaps(this))
-            relVehicle = null;
 
         if (lastVehicle == null || !doAirResistX(lastVehicle)) {
             boolean airResisted = false;
@@ -234,17 +181,8 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
-        if (world.updatePos() && world.currPlayer() == this) {
-            /*if (relVehicle != null) { // This kind of update seems to create some very odd stuttering
-                c("relVehicle", relVehicle.getID());
-                c("xRel",   x - relVehicle.getX());
-                c("yRel",   y - relVehicle.getY());
-            } else {*/
-                c("x", x);
-                c("y", y);
-            //}
-            c("xSpeed", xSpeed);
-            c("ySpeed", ySpeed);
+        if (world.updatePos() && world.currPlayer() == this && world.view().net().isOnline()) {
+            world.view().net().send(ShipProtocol.PLAYER_POS, new PlayerPositionPackage(id, x, y, xSpeed, ySpeed));
         }
 
     }
@@ -373,101 +311,33 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     public World world() { return world; }
 
-    public final void c(String id, Object data) { node.c("player." +this.id+ "." +id, data); }
-
-    public void dataChanged(String id, String data) {
-        if (id.equals("player." +this.id+ ".activate")) {
-            Scanner s = new Scanner(data);
-            s.useDelimiter("\\.");
-            Vehicle vehicle = world.findVehicle(s.nextInt());
-            if (vehicle != null)
-                vehicle.tile(s.nextInt(), s.nextInt()).activate(this);
-
-        } else if (id.equals("player." +this.id+ ".makeTile")) //TODO: make this action only enter DataVerse once, the player message that triggered this will end up in every client
-            node.c(data, true);
-        else if (id.equals("player." +this.id+ ".deleTile"))
-            node.c(data, true);
-    }
-    public void intChanged(String id, int data) {
-        if (id.startsWith("player." +this.id+ ".")) {
-            String var = id.substring(("player." +this.id+ ".").length());
-            if (var.startsWith("relVehicle")) {
-                toSetRelVehicleX = data;
-                toSetRelVehicleY = data;
-            } else
-                builder.updateInt(var, data);
-        }
-    }
-    public void booleanChanged(String id, boolean data) {
-        if (id.startsWith("player." +this.id+ ".")) {
-            String var = id.substring(("player." +this.id+ ".").length());
-            switch (var) {
-                case "moveRight":
-                    moveRight = data;
-                    break;
-
-                case "moveLeft":
-                    moveLeft = data;
-                    break;
-
-                case "jump":
-                    jump = data;
-                    break;
-
-                default:
-                    builder.updateBoolean(var, data);
-            }
-        }
-    }
-    public void floatChanged(String id, float data) {
-        if (id.startsWith("player." +this.id+ ".")) {
-            String var = id.substring(("player." +this.id+ ".").length());
-            switch (var) {
-                case "xRel":
-                    toSetXRel = data;
-                    break;
-
-                case "yRel":
-                    toSetYRel = data;
-                    break;
-
-                case "x":
-                    toSetX = data;
-                    break;
-
-                case "y":
-                    toSetY = data;
-                    break;
-
-                case "xSpeed":
-                    toSetXSpeed = data;
-                    break;
-
-                case "ySpeed":
-                    toSetYSpeed = data;
-                    break;
-
-                case "mass":
-                    mass = data;
-                    break;
-
-                default:
-                    System.out.println("Unsupported variable in Player: " +id);
-            }
-        }
-    }
+    /*
+     * TODO: create receiving mechanisms for the following:
+     * - x, y, xSpeed, ySpeed
+     * - mass
+     * - moveLeft
+     * - moveRight
+     * - jump
+     * - builder data
+     */
 
     public boolean keyPressed(Keys keys, int key, char c) {
         if (key == keys.right()) {
-            c("moveRight", true);
+            moveRight = true;
+            if (world.view().net().isOnline())
+                world.view().net().send(ShipProtocol.PLAYER_MOVE, new PlayerMovementPackage(id, PlayerMovementPackage.MOVE_RIGHT, true));
             return true;
 
         } if (key == keys.left()) {
-            c("moveLeft", true);
+            moveLeft = true;
+            if (world.view().net().isOnline())
+                world.view().net().send(ShipProtocol.PLAYER_MOVE, new PlayerMovementPackage(id, PlayerMovementPackage.MOVE_LEFT, true));
             return true;
 
         } if (key == keys.up()) {
-            c("jump", true);
+            jump = true;
+            if (world.view().net().isOnline())
+                world.view().net().send(ShipProtocol.PLAYER_MOVE, new PlayerMovementPackage(id, PlayerMovementPackage.JUMP, true));
             return true;
 
         } if (key == keys.activateDevice()) {
@@ -480,19 +350,29 @@ public class Player implements Position, Renderable, Updatable, ChangeListener, 
 
     public boolean keyReleased(Keys keys, int key, char c) {
         if (key == keys.right()) {
-            c("moveRight", false);
+            moveRight = false;
+            if (world.view().net().isOnline())
+                world.view().net().send(ShipProtocol.PLAYER_MOVE, new PlayerMovementPackage(id, PlayerMovementPackage.MOVE_RIGHT, false));
             return true;
 
         } else if (key == keys.left()) {
-            c("moveLeft", false);
+            moveLeft = false;
+            if (world.view().net().isOnline())
+                world.view().net().send(ShipProtocol.PLAYER_MOVE, new PlayerMovementPackage(id, PlayerMovementPackage.MOVE_LEFT, false));
             return true;
 
         } else if (key == keys.up()) {
-            c("jump", false);
+            jump = false;
+            if (world.view().net().isOnline())
+                world.view().net().send(ShipProtocol.PLAYER_MOVE, new PlayerMovementPackage(id, PlayerMovementPackage.JUMP, false));
             return true;
         }
 
         return builder.keyReleased(keys, key, c);
+    }
+
+    public int getID() {
+        return id;
     }
 
 }

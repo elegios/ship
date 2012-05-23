@@ -15,6 +15,8 @@ import ship.Updatable;
 import ship.View;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
+import ship.netcode.ShipProtocol;
+import ship.netcode.inventory.ItemAndSubItemPackage;
 import ship.ui.inventory.tilecreator.AirFuelTransportCreator;
 import ship.ui.inventory.tilecreator.AirPowerTransportCreator;
 import ship.ui.inventory.tilecreator.BalloonCreator;
@@ -28,15 +30,12 @@ import ship.ui.inventory.tilecreator.ThrusterCreator;
 import ship.ui.inventory.tilecreator.TileCreator;
 import ship.ui.inventory.tilecreator.ToggleBlockCreator;
 import ship.world.Position;
-import dataverse.datanode.ChangeListener;
-import dataverse.datanode.easy.EasyNode;
 
-public class Inventory implements Renderable, Updatable, ChangeListener, Position, KeyReceiver {
+public class Inventory implements Renderable, Updatable, Position, KeyReceiver {
     public static final int X_ORIGIN = 20;
     public static final int Y_ORIGIN = 20;
 
     private View     view;
-    private EasyNode node;
 
     private AnimateFloat x;
     private AnimateFloat y;
@@ -48,16 +47,10 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
     private Items    items;
     private SubItems subItems;
 
-    private int playerID;
-
     private List<TileCreator> blockCreators;
 
     public Inventory(View view) throws SlickException {
         this.view = view;
-
-        playerID = view.playerId();
-        node     = view.node();
-        node.addChangeListener(this);
 
         x = new AnimateFloat();
         y = new AnimateFloat();
@@ -161,6 +154,33 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
             x.set(-subItems.getX2() - 1);
     }
 
+    public void sendSelectedItemAndSubTile() {
+        if (view.net().isOnline())
+            view.net().send(ShipProtocol.ITEM_AND_SUB, new ItemAndSubItemPackage(view.playerId(),
+                                                                                 getSelectedItem(),
+                                                                                 getSelectedSubItem()));
+    }
+
+    /**
+     * Returns the index of the currently selected subItem
+     * @return
+     */
+    public int getSelectedSubItem() {
+        return subItems.getSelectedSubItem();
+    }
+
+    public int getSelectedSubTile() {
+        return getSelectedTile().subTile(getSelectedSubItem());
+    }
+
+    public int getSelectedItem() {
+        return getIndexOf(getSelectedTile());
+    }
+
+    public TileCreator getSelectedTile() {
+        return items.getSelected();
+    }
+
     @Override
     public void update(GameContainer gc, int diff) {
         x.update(diff);
@@ -214,13 +234,6 @@ public class Inventory implements Renderable, Updatable, ChangeListener, Positio
 
     public int ix() { return Math.round(getX()); }
     public int iy() { return Math.round(getY()); }
-
-    public void c(String id, Object data) { node.c("player." +playerID+ ".inventory." +id, data); }
-
-    public void dataChanged   (String id, String  data) {}
-    public void intChanged    (String id, int     data) {}
-    public void booleanChanged(String id, boolean data) {}
-    public void floatChanged  (String id, float   data) {}
 
     public int getIndexOf(TileCreator selected) { return blockCreators.indexOf(selected); }
 

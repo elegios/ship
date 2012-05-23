@@ -12,7 +12,6 @@ import ship.control.Keys;
 import ship.ui.Box;
 import ship.ui.inventory.tilecreator.TileCreator;
 import ship.world.vehicle.Vehicle;
-import dataverse.datanode.easy.EasyNode;
 
 public class SubItems extends Box implements KeyReceiver, Focusable {
     public static final int WIDTH = 2;
@@ -23,9 +22,6 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
     public static final int HIGHLIGHT_W = 60;
 
     private Inventory parent;
-
-    private EasyNode node;
-    private int playerID;
 
     private ManagedSpriteSheet tiles;
     private ManagedSpriteSheet highlight;
@@ -39,9 +35,6 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
     public SubItems(Inventory parent, int x, int y) throws SlickException {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;
-
-        node     = parent.view().node();
-        playerID = parent.view().playerId();
 
         tiles = parent.view().loader().loadManagedSpriteSheet("tiles", Vehicle.TW, Vehicle.TH);
         highlight = parent.view().loader().loadManagedSpriteSheet("sub_item_highlight", HIGHLIGHT_W, ITEM_HEIGHT);
@@ -59,7 +52,7 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
                 selected = block.numSubs() - 1;
         }
 
-        node.c("player." +playerID+ ".selectedSubItem", selected);
+        parent.sendSelectedItemAndSubTile();
     }
 
     public void render(GameContainer gc, Graphics g) {
@@ -79,6 +72,10 @@ public class SubItems extends Box implements KeyReceiver, Focusable {
                   .draw(ix() + X_OFF, iy() + i*ITEM_HEIGHT + Y_OFF);
             }
         }
+    }
+
+    public int getSelectedSubItem() {
+        return selected;
     }
 
     public void setFocus(boolean val) {

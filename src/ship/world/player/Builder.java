@@ -9,6 +9,9 @@ import org.newdawn.slick.SlickException;
 
 import ship.control.KeyReceiver;
 import ship.control.Keys;
+import ship.netcode.ShipProtocol;
+import ship.netcode.inventory.BuildDirectionPackage;
+import ship.netcode.inventory.BuildModePackage;
 import ship.ui.inventory.Inventory;
 import ship.world.Position;
 import ship.world.vehicle.Vehicle;
@@ -37,15 +40,22 @@ public class Builder implements Renderable, KeyReceiver, Position {
         highlight = player.world().view().loader().loadManagedSpriteSheet("builder_highlight", Vehicle.TW, Vehicle.TH);
     }
 
-    public String getMakeString() { return item +"."+ subItem; }
-
     @Override
     public void render(GameContainer gc, Graphics g) {
-        if (buildMode && item != -1) {
-            int tileX = inv.getBlockAt(item).subTile(subItem)%tiles.getSpriteSheet().getHorizontalCount();
-            int tileY = inv.getBlockAt(item).subTile(subItem)/tiles.getSpriteSheet().getHorizontalCount();
+        if (player.world().currPlayer() == player) {
+            if (buildMode && inv.getSelectedTile() != null) {
+                int tileX = inv.getSelectedSubTile()%tiles.getSpriteSheet().getHorizontalCount();
+                int tileY = inv.getSelectedSubTile()/tiles.getSpriteSheet().getHorizontalCount();
 
-            tiles.getSpriteSheet().getSprite(tileX, tileY).draw(ix(), iy());
+                tiles.getSpriteSheet().getSprite(tileX, tileY).draw(ix(), iy());
+            }
+        } else {
+            if (buildMode && item != -1) {
+                int tileX = inv.getBlockAt(item).subTile(subItem)%tiles.getSpriteSheet().getHorizontalCount();
+                int tileY = inv.getBlockAt(item).subTile(subItem)/tiles.getSpriteSheet().getHorizontalCount();
+
+                tiles.getSpriteSheet().getSprite(tileX, tileY).draw(ix(), iy());
+            }
         }
     }
 
@@ -100,79 +110,88 @@ public class Builder implements Renderable, KeyReceiver, Position {
     @Override
     public boolean keyPressed(Keys keys, int key, char c) {
         if (key == keys.buildUp()) {
-            if (!buildMode)
-                player.c("buildMode", true);
-            player.c("buildDirection", Tile.UP);
+            ensureBuildMode();
+            direction = Tile.UP;
+
+            sendDirection();
+
             return true;
 
         } if (key == keys.buildRight()) {
-            if (!buildMode)
-                player.c("buildMode", true);
-            player.c("buildDirection", Tile.RIGHT);
+            ensureBuildMode();
+            direction = Tile.RIGHT;
+
+            sendDirection();
+
             return true;
 
         } if (key == keys.buildDown()) {
-            if (!buildMode)
-                player.c("buildMode", true);
-            player.c("buildDirection", Tile.DOWN);
+            ensureBuildMode();
+            direction = Tile.DOWN;
+
+            sendDirection();
+
             return true;
 
         } if (key == keys.buildLeft()) {
-            if (!buildMode)
-                player.c("buildMode", true);
-            player.c("buildDirection", Tile.LEFT);
+            ensureBuildMode();
+            direction = Tile.LEFT;
+
+            sendDirection();
+
             return true;
 
         } if (key == keys.build()) {
-            if (!buildMode)
-                player.c("buildMode", true);
-            else
+            if (ensureBuildMode())
                 player.world().buildUnderPlayerBuilder(player);
             return true;
 
         } if (key == keys.destroy()) {
-            if (!buildMode)
-                player.c("buildMode", true);
-            else
+            if (ensureBuildMode())
                 player.world().destroyUnderPlayerBuilder(player);
             return true;
 
         } if (key == keys.buildCancel()) {
             if (buildMode)
-                player.c("buildMode", false);
+                setBuildMode(false);
             return true;
         }
 
         return false;
     }
 
+    private void sendDirection() {
+        if (player.world().view().net().isOnline())
+            player.world().view().net().send(ShipProtocol.BUILD_DIR, new BuildDirectionPackage(player.getID(), direction));
+    }
+
+    public boolean ensureBuildMode() {
+        if (!buildMode) {
+            setBuildMode(true);
+            return false;
+        }
+
+        return true;
+    }
+
+    public void setBuildMode(boolean mode) {
+        buildMode = mode;
+
+        if (player.world().view().net().isOnline())
+            player.world().view().net().send(ShipProtocol.BUILD_MODE, new BuildModePackage(player.getID(), buildMode));
+    }
+
     @Override
     public boolean keyReleased(Keys keys, int key, char c) { return false; }
 
-    public void updateInt(String id, int data) {
-        switch (id) {
-            case "selectedItem":
-                buildMode = true;
-                item = data;
-                break;
-
-            case "selectedSubItem":
-                buildMode = true;
-                subItem = data;
-                break;
-
-            case "buildDirection":
-                direction = data;
-                break;
-        }
-    }
-
-    public void updateBoolean(String id, boolean data) {
-        switch (id) {
-            case "buildMode":
-                buildMode = data;
-                break;
-        }
-    }
+    /*
+     * TODO: create a receiving mechanism for the following:
+     * - selectedItem
+     * - selectedSubItem
+     * - buildDirection
+     * - buildMode
+     *
+     * TODO: make sure a Builder belonging to a non-local player doesn't share the same shown item
+     */
 
 }

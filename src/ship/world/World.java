@@ -19,18 +19,20 @@ import ship.Updatable;
 import ship.View;
 import ship.control.KeyReceiver;
 import ship.control.Keys;
+import ship.netcode.ShipProtocol;
+import ship.netcode.interaction.ActivatePackage;
+import ship.netcode.interaction.CreateTilePackage;
+import ship.netcode.interaction.DeleteTilePackage;
 import ship.world.player.Builder;
 import ship.world.player.Player;
 import ship.world.vehicle.ImmobileVehicle;
 import ship.world.vehicle.Vehicle;
-import dataverse.datanode.ChangeListener;
-import dataverse.datanode.easy.EasyNode;
 
 /**
  *
  * @author elegios
  */
-public class World implements Position, Renderable, Updatable, ChangeListener, KeyReceiver {
+public class World implements Position, Renderable, Updatable, KeyReceiver {
     public static final int SKY_GRADIENT_MINIMUM = 220 * Vehicle.TW;
     public static final int SKY_GRADIENT_LENGTH  = 10;
     public static final int SKY_MAX_R = 62;
@@ -38,8 +40,6 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
     public static final int SKY_MAX_B = 255;
 
     private View view;
-
-    private EasyNode    node;
 
     private int x;
     private int y;
@@ -76,18 +76,14 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
         paraBack = new ParallaxBackground(this);
 
-        node = view.node();
-
-        node.addChangeListener(this);
-
         x = 0;
         y = 0;
 
-        c("actionsPerTick",    1.0f/1000);
-        c("gravity",           9.8f * 50);
-        c("frictionFraction",  0.6f/100);
-        c("airResist",         0.2f);
-        c("fuelRate",          1.0f/1000);
+        actionsPerTick   = 1.0f/1000;
+        gravity          = 9.8f * 50;
+        frictionFraction = 0.6f/100;
+        airResist        = 0.2f;
+        fuelRate         = 1.0f/1000;
 
         tileset = view.loader().loadManagedSpriteSheet("tiles", Vehicle.TW, Vehicle.TH);
 
@@ -104,7 +100,7 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         currPlayer = players[view.playerId()];
 
         updatePos = false;
-        updatePosInterval = 300;
+        updatePosInterval = 300; //TODO: figure out if the update frequency really should be a variable
         timeTilUpdatePos = updatePosInterval;
     }
 
@@ -147,9 +143,6 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
         for (Player player : players)
             player.moveX(diff);
     }
-    public void relMoveX(Vehicle vehicle, float move) {
-        currPlayer.relMoveX(vehicle, move);
-    }
     /**
      * Checks for horizontal collision between all objects, moving them
      * should a collision be detected.
@@ -175,9 +168,6 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             vehicle.moveY(diff);
         for (Player player : players)
             player.moveY(diff);
-    }
-    public void relMoveY(Vehicle vehicle, float move) {
-        currPlayer.relMoveY(vehicle, move);
     }
     /**
      * Checks for vertical collision between all objects, moving them
@@ -296,8 +286,12 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                 int vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
                 if (vehX >= 0 && vehX < vehicle.WIDTH() &&
                     vehY >= 0 && vehY < vehicle.HEIGHT() &&
-                    vehicle.tile(vehX, vehY) != null)
-                    player.c("activate", vehicle.getID() +"."+ vehX +"."+ vehY);
+                    vehicle.tile(vehX, vehY) != null) {
+                    if (view.net().isClient())
+                        view.net().send(ShipProtocol.ACTIVATE, new ActivatePackage(player.getID(), vehicle.getID(), vehX, vehY));
+                    else
+                        vehicle.tile(vehX, vehY).activate(player);
+                }
             }
 
     }
@@ -333,7 +327,15 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
                          vehicle.existsAt(tx + 1, ty    ) ||
                          vehicle.existsAt(tx    , ty + 1) ||
                          vehicle.existsAt(tx - 1, ty    ))) {
-                    player.c("makeTile", "vehicle." +vehicle.getID()+ ".make." +player.builder().getMakeString()+ "." +tx+ "." +ty);
+                    if (view.net().isClient())
+                        view.net().send(ShipProtocol.CREATE_TILE,
+                                        new CreateTilePackage(player.getID(),
+                                                              vehicle.getID(),
+                                                              tx, ty,
+                                                              view.inventory().getSelectedItem(),
+                                                              view.inventory().getSelectedSubItem()));
+                    else
+                        vehicle.addTile(view.inventory().getSelectedTile().create(view.inventory().getSelectedSubItem(), tx, ty));
                     break;
                 }
         }
@@ -354,7 +356,10 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
             if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
                 ty >= 1 && ty < vehicle.HEIGHT() - 1)
                 if (vehicle.existsAt(tx, ty)) {
-                    player.c("deleTile", "vehicle." +vehicle.getID()+ ".dele." +tx+ "." +ty);
+                    if (view.net().isClient())
+                        view.net().send(ShipProtocol.DELETE_TILE, new DeleteTilePackage(player.getID(), vehicle.getID(), tx, ty));
+                    else
+                        vehicle.remTile(vehicle.tile(tx, ty));
                     break;
                 }
         }
@@ -460,31 +465,6 @@ public class World implements Position, Renderable, Updatable, ChangeListener, K
 
     public int ix() { return Math.round(getX()); }
     public int iy() { return Math.round(getY()); }
-
-    public final void c(String id, Object data) { node.c("world." +id, data); }
-
-    public void dataChanged(String id, String data) {}
-    public void intChanged(String id, int data) {}
-    public void booleanChanged(String id, boolean data) {}
-    public void floatChanged(String id, float data) {
-        switch (id) {
-            case "world.actionsPerTick":
-                actionsPerTick = data;
-                break;
-            case "world.gravity":
-                gravity = data;
-                break;
-            case "world.frictionFraction":
-                frictionFraction = data;
-                break;
-            case "world.airResist":
-                airResist = data;
-                break;
-            case "world.fuelRate":
-                fuelRate = data;
-                break;
-        }
-    }
 
     public boolean keyReleased(Keys keys, int key, char c) {
         return currPlayer.keyReleased(keys, key, c);

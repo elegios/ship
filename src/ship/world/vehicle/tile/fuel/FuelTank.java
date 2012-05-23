@@ -15,10 +15,13 @@ public class FuelTank extends Tile {
 
     private float content;
 
+    private float lastSentContent;
+
     public FuelTank(int x, int y) {
         super(x, y, BASETILE, STDMASS, true);
 
         content = 0;
+        lastSentContent = 0;
 
         renderPowered = false;
     }
@@ -37,7 +40,6 @@ public class FuelTank extends Tile {
                 }
             }
 
-            c("content", content);
             return true;
         }
 
@@ -49,11 +51,21 @@ public class FuelTank extends Tile {
             power(false);
     }
 
+    public void update(GameContainer gc, int diff) {
+        if (parent.world().updatePos() && lastSentContent != content) {
+            sendContentPackage(content);
+            lastSentContent = content;
+        }
+    }
+
+    public void setContent(float content) {
+        this.content = content;
+    }
+
     public boolean fuelFrom(int direction, float amount) {
         if (content + amount <= MAX_CONTENT) {
             content += amount;
 
-            c("content", content);
             return true;
         }
 
@@ -68,9 +80,6 @@ public class FuelTank extends Tile {
             return super.tile() + Math.round(content/STAGE_SIZE);
     }
 
-    public void updateFloat(String id, float data) {
-        if (id.equals("content"))
-            content = data;
-    }
+    //TODO: create a mechanism to receive ContentPackage
 
 }

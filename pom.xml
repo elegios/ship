@@ -8,8 +8,8 @@
   
   <dependencies>
   	<dependency>
-  		<groupId>DataVerse</groupId>
-  		<artifactId>DataVerse</artifactId>
+  		<groupId>NetCode</groupId>
+  		<artifactId>NetCode</artifactId>
   		<version>1.0</version>
   	</dependency>
   	

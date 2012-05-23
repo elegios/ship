@@ -9,8 +9,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.net.Socket;
-import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -25,13 +23,13 @@ import org.eclipse.wb.swing.FocusTraversalOnArray;
 import org.newdawn.slick.SlickException;
 
 import ship.View;
-import dataverse.datanode.ChangeListener;
-import dataverse.datanode.easy.EasyNode;
-import dataverse.datanode.network.ConnectListener;
-import dataverse.datanode.network.NetworkNode;
+import ship.netcode.Network;
+import ship.netcode.ShipProtocol;
+import elegios.netcode.Connection;
+import elegios.netcode.Server;
 
 @SuppressWarnings("serial")
-public class MultiPlayerDialog extends JFrame implements ConnectListener, ChangeListener {
+public class MultiPlayerDialog extends JFrame {
 
     private final JPanel contentPanel = new JPanel();
 
@@ -43,43 +41,17 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
     private JButton btnConnect;
     private JButton btnStart;
 
-    private NetworkNode netNode;
-
-    private EasyNode node;
-
-    private int id;
-    private int numPlayers;
-
-    /**
-     * Initializes netNode with the given <code>pattern</code>. Also
-     * disables all controls related to connecting or hosting.
-     * @param pattern regex matching the values netNode should pass on
-     */
-    private void netNodeInit(String pattern) {
-        addressField.setEnabled(false);
-        portField.setEnabled(false);
-        btnHost.setEnabled(false);
-        btnConnect.setEnabled(false);
-
-        netNode = new NetworkNode(node.getNode(), pattern, Controller.UPDATE_INTERVAL_NETWORK);
-        netNode.addConnectListener(this);
-        netNode.addChangeListener(this);
-
-    }
+    private Network net;
+    private ShipProtocol protocol;
 
     /**
      * Calls netNodeInit and hosts a server on the selected port. Also
      * enables the Start button.
      */
     private void host() {
-        netNodeInit("^((?!player)).+|player\\.0\\..+");
-        id = 0;
-        numPlayers = 1;
-
         try {
-            netNode.hostServer(Integer.parseInt(portField.getText()));
+            net.setServer(Server.host(protocol, net, Integer.parseInt(portField.getText())));
         } catch (NumberFormatException | IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -93,24 +65,33 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
      * selected port. Will not enable anything ui related.
      */
     private void connect() {
-        netNodeInit("player.id.request");
-
         try {
-            netNode.connectToServer(addressField.getText(), Integer.parseInt(portField.getText()));
-            id = new Random().nextInt();
-            node.c("player.id.request", id);
+            Connection conn = new Connection(protocol, addressField.getText(), Integer.parseInt(portField.getText()));
+            conn.connect();
+            net.setConnection(conn);
+            conn.listen();
+
         } catch (NumberFormatException | IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
     /**
-     * Sets the game.seed value, which will trigger all clients (and the server)
-     * to start the game.
+     * If this is a server, sends a GAME_START signal, then starts
+     * the game regardless of this being a server or not.
      */
-    private void start() {
-        node.c("game.seed", new Random().nextInt());
+    public void start() {
+        if (net.isServer())
+            net.send(ShipProtocol.GAME_START);
+
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                startGame();
+            }
+
+        }, "main game thread").start();
     }
 
     /**
@@ -118,17 +99,13 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
      * and starts the game client window.
      * @param seed
      */
-    private void startGame(int seed) {
-        netNode.remChangeListener (this);
-        netNode.remConnectListener(this);
-
+    private void startGame() {
         setVisible(false);
         dispose();
 
         try {
-            View.create(1500, 800, node, id, numPlayers);
+            View.create(1500, 800, net, net.playerId(), net.numPlayers());
         } catch (SlickException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -136,8 +113,10 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
     /**
      * Create the graphical components of the dialog.
      */
-    public MultiPlayerDialog(EasyNode node) {
-        this.node = node;
+    public MultiPlayerDialog(Network net) {
+        this.net = net;
+        net.setDialog(this);
+        protocol = new ShipProtocol();
 
         setBounds(100, 100, 450, 300);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -238,66 +217,8 @@ public class MultiPlayerDialog extends JFrame implements ConnectListener, Change
                         panel_3.add(btnStart);
     }
 
-    /**
-     * Called when a client has connected to the locally hosted server.
-     * Prints messages when a connection has been received, to give the
-     * hosting player some information regarding who has connected and
-     * who hasn't.
-     */
-    @Override
-    public void clientConnected(Socket sock) {
-        textArea.append("Got a connection from "+ sock.getInetAddress() +"\n");
-    }
-
-    /**
-     * Called when netNode has connected to a server. Prints a message to
-     * let the player know that the connection was successful.
-     */
-    @Override
-    public void connected() {
-        textArea.append("Connection established, now all we have to do is wait for the server to start the game.\n");
-    }
-
-    public void dataChanged   (String id, String  data) {}
-    public void booleanChanged(String id, boolean data) {}
-    public void floatChanged  (String id, float   data) {}
-    public void intChanged    (String id, int     data) {
-        if (id.equals("game.seed"))
-            new Thread(new GameRunnable(data), "Main game thread").start();
-
-        synchronized (this) {
-            if (id.equals("player.id.request") && this.id == 0) {
-                node.c("request.granted." +data, numPlayers++);
-                node.c("game.numPlayers", numPlayers);
-            }
-        }
-
-        if (id.equals("request.granted." +this.id)) {
-            this.id = data;
-            netNode.setPattern("player\\." +this.id+ "\\..+");
-            textArea.append("Got the id " +this.id+ " from the server. And set pattern to \"" +netNode.getPattern()+ "\"\n");
-        }
-
-        if (id.equals("game.numPlayers")) {
-            numPlayers = data;
-            textArea.append(numPlayers+" players have connected to the server.\n");
-        }
-
-    }
-
-    class GameRunnable implements Runnable {
-
-        private int seed;
-
-        public GameRunnable(int seed) {
-            this.seed = seed;
-        }
-
-        @Override
-        public void run() {
-            startGame(seed);
-        }
-
+    public void appendText(String text) {
+        textArea.append(text + "\n");
     }
 
 }

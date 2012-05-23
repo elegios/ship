@@ -16,7 +16,6 @@ import ship.control.Keys;
 import ship.ui.Box;
 import ship.ui.inventory.tilecreator.TileCreator;
 import ship.world.vehicle.Vehicle;
-import dataverse.datanode.easy.EasyNode;
 
 public class Items extends Box implements KeyReceiver, Focusable {
     public static final int WIDTH = 8;
@@ -32,9 +31,6 @@ public class Items extends Box implements KeyReceiver, Focusable {
 
     private Inventory parent;
 
-    private EasyNode node;
-    private int playerID;
-
     private FontHolder         fonts;
     private ManagedSpriteSheet tiles;
     private ManagedSpriteSheet highlight;
@@ -47,9 +43,6 @@ public class Items extends Box implements KeyReceiver, Focusable {
     public Items(Inventory parent, int x, int y, List<TileCreator> items) throws SlickException {
         super(parent, parent.view().loader(), x, y, WIDTH, (View.window().getHeight() / Box.TH) - 1);
         this.parent = parent;
-
-        node     = parent.view().node();
-        playerID = parent.view().playerId();
 
         fonts     = parent.view().fonts();
         tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles", Vehicle.TW, Vehicle.TH);
@@ -90,7 +83,8 @@ public class Items extends Box implements KeyReceiver, Focusable {
         selected = selected % items.size();
         if (selected == -1)
             selected = items.size() - 1;
-        node.c("player." +playerID+ ".selectedItem", parent.getIndexOf(getSelected()));
+
+        parent.sendSelectedItemAndSubTile();
 
         parent.updateSubMenu();
 

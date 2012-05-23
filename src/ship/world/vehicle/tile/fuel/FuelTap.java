@@ -20,6 +20,7 @@ public class FuelTap extends Tile {
     private int direction;
 
     private float content;
+    private float lastSentContent;
 
     private int renderLevel;
 
@@ -28,6 +29,7 @@ public class FuelTap extends Tile {
         this.direction = direction;
 
         content = 0;
+        lastSentContent = 0;
         renderLevel = 0;
     }
 
@@ -49,13 +51,17 @@ public class FuelTap extends Tile {
                 amount += content;
                 content = 0;
             }
-            c("content", content);
 
             if (out != null)
                 out.fuelFrom(direction, amount);
 
         } else
             renderLevel = 0;
+
+        if (parent.world().updatePos() && lastSentContent != content) {
+            sendContentPackage(content);
+            lastSentContent = content;
+        }
     }
 
     public int tile() {
@@ -64,13 +70,9 @@ public class FuelTap extends Tile {
 
     public void activate(Player player) { //TODO: add checking for whether player has enough fuel in inventory
         if (content + FILL_AMOUNT <= MAX_AMOUNT)
-            c("content", content + FILL_AMOUNT);
+            content += FILL_AMOUNT;
     }
 
-    @Override
-    public void updateFloat(String id, float data) {
-        if (id.equals("content"))
-            content = data;
-    }
+    //TODO: add mechanism to receive ContentPackage
 
 }

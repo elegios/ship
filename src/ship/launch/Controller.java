@@ -5,20 +5,9 @@ import javax.swing.JOptionPane;
 import org.newdawn.slick.SlickException;
 
 import ship.View;
-import dataverse.cliaccess.CLIAccess;
-import dataverse.datanode.easy.EasyBlockingNode;
-import dataverse.datanode.easy.EasyNode;
-import dataverse.datanode.flat.FlatNode;
+import ship.netcode.Network;
 
 public class Controller {
-    public static final int UPDATE_INTERVAL_NETWORK = 0; //0 means immediate changes
-
-    private EasyNode node;
-
-    public Controller() {
-        node = new EasyBlockingNode(new FlatNode(null, 1000));
-        CLIAccess.startCLIAccess(System.in, System.out, node.getNode(), null);
-    }
 
     /**
      * Asks whether the game should be played in single player or multiplayer.
@@ -26,7 +15,7 @@ public class Controller {
      * is created.
      * @throws SlickException
      */
-    public void start() throws SlickException {
+    public static void main(String[] args) throws SlickException {
         int opt = JOptionPane.showOptionDialog(null,
                                                "How do you want to play?",
                                                "Single or Multi",
@@ -37,18 +26,13 @@ public class Controller {
                                                "Single Player");
 
         if (opt == 0) //Single player
-            View.create(1920, 1080, node, 0, 1);
+            View.create(1920, 1080, new Network(), 0, 1);
 
         else if (opt == 1) //Multi player
-            new MultiPlayerDialog(node).setVisible(true);
+            new MultiPlayerDialog(new Network()).setVisible(true);
 
         else
             System.exit(0);
-
-    }
-
-    public static void main(String[] args) throws SlickException {
-        new Controller().start();
     }
 
 }

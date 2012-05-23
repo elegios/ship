@@ -7,6 +7,8 @@ package ship.world.vehicle.tile;
 import org.newdawn.slick.GameContainer;
 
 import ship.Updatable;
+import ship.netcode.ShipProtocol;
+import ship.netcode.tile.ContentPackage;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.player.Player;
@@ -129,11 +131,9 @@ public class Tile implements Updatable, Rectangle, RelativeMovable {
     public void pushX(float momentum) { parent.pushX(momentum); }
     public void pushY(float momentum) { parent.pushY(momentum); }
 
-    public void c(String id, Object data) { parent.c("tile." +x+ "." +y+ "." +id, data); }
-
-    public void updateData   (String id, String  data) {}
-    public void updateInt    (String id, int     data) {}
-    public void updateBoolean(String id, boolean data) {}
-    public void updateFloat  (String id, float   data) {}
+    public void sendContentPackage(float content) {
+        if (parent.world().view().net().isServer())
+            parent.world().view().net().send(ShipProtocol.CONTENT, new ContentPackage(parent.getID(), x, y, content));
+    }
 
 }

@@ -17,9 +17,9 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 
 import ship.control.Keys;
+import ship.netcode.Network;
 import ship.ui.inventory.Inventory;
 import ship.world.World;
-import dataverse.datanode.easy.EasyNode;
 
 /**
  *
@@ -27,8 +27,6 @@ import dataverse.datanode.easy.EasyNode;
  */
 public class View extends BasicGame {
     private static AppGameContainer window;
-
-    private EasyNode node;
 
     private MediaLoader loader;
     private FontHolder  fonts;
@@ -38,21 +36,24 @@ public class View extends BasicGame {
     private World     world;
     private Inventory inventory;
 
+    private Network net;
+
     private int playerId;
     private int numPlayers;
 
     private int diff;
 
-    public View(EasyNode node, int playerId, int numPlayers) {
+    public View(Network net, int playerId, int numPlayers) {
         super("Game");
 
-        this.node       = node;
+        this.net = net;
+
         this.playerId   = playerId;
         this.numPlayers = numPlayers;
     }
 
-    public static void create(int width, int height, EasyNode node, int playerId, int numPlayers) throws SlickException {
-        window = new AppGameContainer(new View(node, playerId, numPlayers));
+    public static void create(int width, int height, Network net, int playerId, int numPlayers) throws SlickException {
+        window = new AppGameContainer(new View(net, playerId, numPlayers));
         window.setDisplayMode(width, height, false);
         window.setTargetFrameRate(60);
         window.setShowFPS(true);
@@ -102,7 +103,7 @@ public class View extends BasicGame {
         world.keyReleased(keys, key, c);
     }
 
-    public EasyNode    node()       { return node;       }
+    public Network     net()        { return net;        }
     public MediaLoader loader()     { return loader;     }
     public FontHolder  fonts()      { return fonts;      }
     public Keys        keys()       { return keys;       }

@@ -29,15 +29,6 @@ public class FuelSwitch extends Tile {
             return super.tile();
     }
 
-    public void activate(Player player) { c("active", !active); }
-
-    @Override
-    public void updateBoolean(String id, boolean data) {
-        switch (id) {
-            case "active":
-                active = data;
-                break;
-        }
-    }
+    public void activate(Player player) { active = !active; }
 
 }

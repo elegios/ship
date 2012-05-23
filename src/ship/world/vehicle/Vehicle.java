@@ -11,6 +11,8 @@ import org.newdawn.slick.SlickException;
 
 import ship.Updatable;
 import ship.View;
+import ship.netcode.ShipProtocol;
+import ship.netcode.movement.VehiclePositionPackage;
 import ship.ui.inventory.Inventory;
 import ship.world.Position;
 import ship.world.Rectangle;
@@ -23,22 +25,18 @@ import ship.world.vehicle.tile.fuel.AirFuelTransport;
 import ship.world.vehicle.tile.fuel.FuelTank;
 import ship.world.vehicle.tile.fuel.FuelTransport;
 import ship.world.vehicle.tile.power.PowerSwitch;
-import dataverse.datanode.ChangeListener;
-import dataverse.datanode.easy.EasyNode;
 
 /**
  *
  * @author elegios
  */
-public class Vehicle implements Position, Renderable, Updatable, RelativeMovable, Rectangle, ChangeListener {
+public class Vehicle implements Position, Renderable, Updatable, RelativeMovable, Rectangle {
     public static final float EXTRA_MOVE = 0.0025f;
 
     public static final int VEH_WIDTH  = 65;
     public static final int VEH_HEIGHT = 65;
 
     private int id;
-
-    private String name;
 
     public static final int TW = 32;
     public static final int TH = 32;
@@ -47,13 +45,11 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
     protected float x;
     protected float y;
-    protected float toSetX;
-    protected float toSetY;
 
     protected float xSpeed;
     protected float ySpeed;
-    protected float toSetXSpeed;
-    protected float toSetYSpeed;
+
+    private VehiclePositionPackage toUpdatePos;
 
     private boolean collidedWithImmobileX;
     private boolean collidedWithImmobileY;
@@ -63,8 +59,6 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     private boolean[][] collidesAt;
 
     protected World world;
-
-    protected EasyNode node;
 
     protected ManagedSpriteSheet tileset;
 
@@ -85,9 +79,6 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     public Vehicle(World world, int id, int x, int y, boolean centerInit, String name) throws SlickException {
         this.world = world;
         this.id    = id;
-        this.name  = name;
-
-        node = world.view().node();
 
         tileset = world.view().loader().loadManagedSpriteSheet("tiles", TW, TH);
 
@@ -99,8 +90,6 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
         topY   = HEIGHT()/2;
         botY   = topY;
-
-        node.addChangeListener(this);
 
         collidesAt = new boolean[WIDTH()][HEIGHT()];
         for (int i = 0; i < collidesAt.length; i++)
@@ -114,12 +103,9 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
             this.x = x;
             this.y = y;
         }
-        c("xSpeed", 0.0f);
-        c("ySpeed", 0.0f);
-        c("mass", 0.0f);
-
-        toSetX = Float.NaN;
-        toSetY = Float.NaN;
+        xSpeed = 0.0f;
+        ySpeed = 0.0f;
+        mass   = 0.0f;
     }
 
     protected boolean updateMass() { return true; }
@@ -131,7 +117,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
      */
     public final void addTile(Tile tile) {
         if (updateMass())
-            c("mass", mass + tile.mass());
+            mass += tile.mass();
+
         tiles[tile.x()][tile.y()] = tile;
         setCollidesAt(tile.x(), tile.y(), tile.collide());
         tile.setParent(this);
@@ -148,7 +135,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
     public final void remTile(Tile tile) {
         if (updateMass())
-            c("mass", mass - tile.mass());
+            mass -= tile.mass();
+
         tiles[tile.x()][tile.y()] = null;
         setCollidesAt(tile.x(), tile.y(), false);
 
@@ -554,17 +542,11 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         collidedWithImmobileX = false;
         collisionLockX = 0;
 
-        if (world.view().playerId() != 0) {
-            if (!Float.isNaN(toSetX)) {
-                float move = toSetX - x;
-                x = toSetX;
-                toSetX = Float.NaN;
-                world.relMoveX(this, move);
-            }
-            if (!Float.isNaN(toSetXSpeed)) {
-                xSpeed = toSetXSpeed;
-                toSetXSpeed = Float.NaN;
-            }
+        if (toUpdatePos != null) {
+            toUpdatePos.xChecked(true);
+
+            x      = toUpdatePos.getX();
+            xSpeed = toUpdatePos.getXSpeed();
         }
 
         x += getAbsXMove(diff);
@@ -573,17 +555,11 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         collidedWithImmobileY = false;
         collisionLockY = 0;
 
-        if (world.view().playerId() != 0) {
-            if (!Float.isNaN(toSetY)) {
-                float move = toSetY - y;
-                y = toSetY;
-                toSetY = Float.NaN;
-                world.relMoveY(this, move);
-            }
-            if (!Float.isNaN(toSetYSpeed)) {
-                ySpeed = toSetYSpeed;
-                toSetYSpeed = Float.NaN;
-            }
+        if (toUpdatePos != null && toUpdatePos.xChecked()) {
+            y      = toUpdatePos.getY();
+            ySpeed = toUpdatePos.getYSpeed();
+
+            toUpdatePos = null;
         }
 
         y += getAbsYMove(diff);
@@ -642,11 +618,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
                 if (tiles[i][j] != null)
                     tiles[i][j].update(gc, diff);
 
-        if (world.updatePos() && world.view().playerId() == 0) {
-            c("x", x);
-            c("y", y);
-            c("xSpeed", xSpeed);
-            c("ySpeed", ySpeed);
+        if (world.updatePos() && world.view().net().isServer()) {
+            world.view().net().send(ShipProtocol.VEHICLE_POS, new VehiclePositionPackage(id, x, y, xSpeed, ySpeed));
         }
 
         pushX((float) (-xSpeed * world.airResist() * Math.pow(botY   - topY,  0.5))); //TODO: airresist from other vehicles
@@ -654,8 +627,6 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     }
 
     public int getID() { return id; }
-
-    public final void c(String id, Object data) { node.c(name+ "." +this.id+ "." +id, data); }
 
     public float getAbsXSpeed() { return xSpeed; }
     public float getAbsYSpeed() { return ySpeed; }
@@ -677,84 +648,14 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     public int ix() { return Math.round(world.getX() + getX()); }
     public int iy() { return Math.round(world.getY() + getY()); }
 
-    public void dataChanged(String id, String data) {
-        if (id.startsWith(name+ "." +this.id+ ".")) {
-            String var = id.substring((name+ "." +this.id+ ".").length());
-            if (var.startsWith("tile.")) {
-                Scanner s = new Scanner(var.substring(5));
-                s.useDelimiter("\\.");
-                Tile tile = tiles[s.nextInt()][s.nextInt()];
-                if (tile != null)
-                    tile.updateData(s.nextLine().substring(1), data);
-            }
-        }
-    }
-    public void intChanged(String id, int data) {
-        if (id.startsWith(name+ "." +this.id+ ".")) {
-            String var = id.substring((name+ "." +this.id+ ".").length());
-            if (var.startsWith("tile.")) {
-                Scanner s = new Scanner(var.substring(5));
-                s.useDelimiter("\\.");
-                Tile tile = tiles[s.nextInt()][s.nextInt()];
-                if (tile != null)
-                    tile.updateInt(s.nextLine().substring(1), data);
-            }
-        }
-    }
-    public void booleanChanged(String id, boolean data) {
-        if (id.startsWith(name+ "." +this.id+ ".")) {
-            String var = id.substring((name+ "." +this.id+ ".").length());
-            if (var.startsWith("tile.") || var.startsWith("make.") || var.startsWith("dele.")) {
-                Scanner s = new Scanner(var.substring(5));
-                s.useDelimiter("\\.");
-                if (var.startsWith("tile.")) {
-                    Tile tile = tiles[s.nextInt()][s.nextInt()];
-                    if (tile != null)
-                        tile.updateBoolean(s.nextLine().substring(1), data);
-                } else if (var.startsWith("make.")){
-                    makeScanner = s;
-                } else {
-                    deleScanner = s;
-                }
-            }
-        }
-    }
-    public void floatChanged(String id, float data) {
-        if (id.startsWith(name+ "." +this.id+ ".")) {
-            String var = id.substring((name+ "." +this.id+ ".").length());
-            switch (var) {
-                case "mass":
-                    mass = data;
-                    break;
-
-                case "x":
-                    toSetX = data;
-                    break;
-
-                case "y":
-                    toSetY = data;
-                    break;
-
-                case "xSpeed":
-                    toSetXSpeed = data;
-                    break;
-
-                case "ySpeed":
-                    toSetYSpeed = data;
-                    break;
-
-                default:
-                    if (var.startsWith("tile.")) {
-                        Scanner s = new Scanner(var.substring(5));
-                        s.useDelimiter("\\.");
-                        Tile tile = tiles[s.nextInt()][s.nextInt()];
-                        if (tile != null)
-                            tile.updateFloat(s.nextLine().substring(1), data);
-                    } else
-                        System.out.println("Unsupported variable in Vehicle: " +id);
-            }
-        }
-    }
+    /*
+     * TODO: add receiving mechanisms for the following data:
+     * - tile creation and deletion
+     * - tile activation
+     * - mass changes
+     * - x, y, xSpeed, ySpeed (set toUpdatePos after checking !toUpdatePos.xChecked())
+     * - tile data (it might be best to have this in the tiles themselves, we'll see)
+     */
 
     public void generateStandardVehicle() {
         int mx = WIDTH ()/2;
@@ -764,7 +665,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
         addTile(new AirFuelTransport(mx - 2, my - 1, false, Tile.LEFT));
         addTile(new FuelTank(mx - 2, my));
-        tiles[mx - 2][my].c("content", FuelTank.MAX_CONTENT);
+        ((FuelTank) tiles[mx - 2][my]).setContent(FuelTank.MAX_CONTENT);
         addTile(new FuelTransport(mx - 2, my + 1, false, Tile.UP));
 
         addTile(new AirFuelTransport(mx - 3, my - 1, false, Tile.DOWN));
@@ -776,7 +677,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
         addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
         addTile(new FuelTank(mx, my + 1));
-        tiles[mx][my + 1].c("content", FuelTank.MAX_CONTENT);
+        ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
         addTile(new FuelTransport(mx + 1, my + 1, false, Tile.LEFT));
 
         addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
@@ -788,7 +689,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
         addTile(new AirFuelTransport(mx + 2, my - 1, false, Tile.DOWN));
         addTile(new FuelTank(mx + 2, my));
-        tiles[mx + 2][my].c("content", FuelTank.MAX_CONTENT);
+        ((FuelTank) tiles[mx + 2][my]).setContent(FuelTank.MAX_CONTENT);
         addTile(new FuelTransport(mx + 2, my + 1, false, Tile.RIGHT));
 
         addTile(new AirFuelTransport(mx + 3, my - 1, false, Tile.LEFT));
