@@ -49,6 +49,9 @@ public class MultiPlayerDialog extends JFrame {
      * enables the Start button.
      */
     private void host() {
+        btnHost.setEnabled(false);
+        btnConnect.setEnabled(false);
+
         try {
             net.setServer(Server.host(protocol, net, Integer.parseInt(portField.getText())));
         } catch (NumberFormatException | IOException e) {
@@ -65,6 +68,9 @@ public class MultiPlayerDialog extends JFrame {
      * selected port. Will not enable anything ui related.
      */
     private void connect() {
+        btnHost.setEnabled(false);
+        btnConnect.setEnabled(false);
+
         try {
             Connection conn = new Connection(protocol, addressField.getText(), Integer.parseInt(portField.getText()));
             conn.connect();
@@ -156,7 +162,8 @@ public class MultiPlayerDialog extends JFrame {
                         panel_1.setLayout(new GridLayout(0, 1, 0, 0));
 
                                 addressField = new JTextField();
-                                addressField.setText("90.130.22.183");
+                                //addressField.setText("90.130.22.183"); //TODO: enable
+                                addressField.setText("localhost");
                                 panel_1.add(addressField);
                                 addressField.setColumns(10);
 
@@ -171,7 +178,8 @@ public class MultiPlayerDialog extends JFrame {
                 panel_2.setLayout(new GridLayout(0, 1, 0, 0));
 
                         portField = new JTextField();
-                        portField.setText("80");
+                        //portField.setText("80"); //TODO: enable
+                        portField.setText("7780");
                         panel_2.add(portField);
                         portField.setColumns(10);
                         panel.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{addressField, portField}));
