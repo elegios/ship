@@ -18,10 +18,12 @@ import ship.control.Keys;
 import ship.netcode.ShipProtocol;
 import ship.netcode.interaction.PlayerMovementPackage;
 import ship.netcode.movement.PlayerPositionPackage;
+import ship.netcode.movement.RelativePlayerPositionPackage;
 import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
+import ship.world.vehicle.ImmobileVehicle;
 import ship.world.vehicle.Vehicle;
 
 /**
@@ -49,6 +51,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     private float ySpeed;
 
     private PlayerPositionPackage toUpdatePos;
+    private RelativePlayerPositionPackage toUpdateRel;
 
     private boolean moveRight;
     private boolean moveLeft;
@@ -92,7 +95,16 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     public void moveX(int diff) {
         x += getAbsXMove(diff);
 
-        if (toUpdatePos != null) {
+        if (toUpdateRel != null) {
+            toUpdateRel.xChecked(true);
+
+            if (lastVehicle == null || lastVehicle.getID() != toUpdateRel.getVehicleId())
+                lastVehicle = world.findVehicle(toUpdateRel.getVehicleId());
+
+            x      = toUpdateRel.getX() + lastVehicle.getX();
+            xSpeed = toUpdateRel.getXSpeed();
+
+        } else if (toUpdatePos != null) {
             toUpdatePos.xChecked(true);
 
             x      = toUpdatePos.getX();
@@ -102,13 +114,32 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     public void moveY(int diff) {
         y += getAbsYMove(diff);
 
-        if (toUpdatePos != null && toUpdatePos.xChecked()) {
+        if (toUpdateRel != null && toUpdateRel.xChecked()) {
+            if (lastVehicle == null || lastVehicle.getID() != toUpdateRel.getVehicleId())
+                lastVehicle = world.findVehicle(toUpdateRel.getVehicleId());
+
+            y      = toUpdateRel.getY() + lastVehicle.getY();
+            ySpeed = toUpdateRel.getYSpeed();
+
+            toUpdateRel = null;
+
+        } else if (toUpdatePos != null && toUpdatePos.xChecked()) {
             y      = toUpdatePos.getY();
             ySpeed = toUpdatePos.getYSpeed();
 
             toUpdatePos = null;
         }
     }
+
+    public void relMoveX(Vehicle vehicle, float move) {
+        if (vehicle == lastVehicle)
+            x += move;
+    }
+    public void relMoveY(Vehicle vehicle, float move) {
+        if (vehicle == lastVehicle)
+            y += move;
+    }
+
 
     public void updateEarly(GameContainer gc, int diff) {
         //move left
@@ -182,7 +213,14 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
         if (world.updatePos() && world.currPlayer() == this && world.view().net().isOnline()) {
-            world.view().net().send(ShipProtocol.PLAYER_POS, new PlayerPositionPackage(id, x, y, xSpeed, ySpeed));
+            if (lastVehicle != null && !(lastVehicle instanceof ImmobileVehicle))
+                world.view().net().send(ShipProtocol.REL_PLAYER_POS, new RelativePlayerPositionPackage(id, lastVehicle.getID(),
+                                                                                                       x - lastVehicle.getX(),
+                                                                                                       y - lastVehicle.getY(),
+                                                                                                       xSpeed, ySpeed));
+
+            else
+                world.view().net().send(ShipProtocol.PLAYER_POS, new PlayerPositionPackage(id, x, y, xSpeed, ySpeed));
         }
 
     }
@@ -322,8 +360,13 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
      */
 
     public void receivePlayerPositionPackage(PlayerPositionPackage pack) {
-        if (toUpdatePos == null || !toUpdatePos.xChecked())
+        if ((toUpdatePos == null || !toUpdatePos.xChecked()) && (toUpdateRel == null || !toUpdateRel.xChecked()))
             toUpdatePos = pack;
+    }
+
+    public void receiveRelativePlayerPositionPackage(RelativePlayerPositionPackage pack) {
+        if ((toUpdatePos == null || !toUpdatePos.xChecked()) && (toUpdateRel == null || !toUpdateRel.xChecked()))
+            toUpdateRel = pack;
     }
 
     public void receivePlayerMovementPackage(PlayerMovementPackage pack) {

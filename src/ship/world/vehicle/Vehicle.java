@@ -547,6 +547,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         if (toUpdatePos != null) {
             toUpdatePos.xChecked(true);
 
+            world.relMoveX(this, toUpdatePos.getX() - x);
+
             x      = toUpdatePos.getX();
             xSpeed = toUpdatePos.getXSpeed();
         }
@@ -558,6 +560,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         collisionLockY = 0;
 
         if (toUpdatePos != null && toUpdatePos.xChecked()) {
+            world.relMoveY(this, toUpdatePos.getY() - y);
+
             y      = toUpdatePos.getY();
             ySpeed = toUpdatePos.getYSpeed();
 

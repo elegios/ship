@@ -15,6 +15,7 @@ import ship.netcode.inventory.ItemAndSubItemPackage;
 import ship.netcode.meta.NumPlayersPackage;
 import ship.netcode.meta.PlayerIdPackage;
 import ship.netcode.movement.PlayerPositionPackage;
+import ship.netcode.movement.RelativePlayerPositionPackage;
 import ship.netcode.movement.VehiclePositionPackage;
 import ship.netcode.tile.ContentPackage;
 import elegios.netcode.Connection;
@@ -118,15 +119,21 @@ public class Network implements ServerListener, PackageReceiver {
         //TODO: pass packages to the intended receiver
         try {
             switch (type) {
-                case ShipProtocol.PLAYER_POS: {
-                    PlayerPositionPackage p = (PlayerPositionPackage) pack;
-                    view.world().findPlayer(p.getId()).receivePlayerPositionPackage(p);
+                case ShipProtocol.REL_PLAYER_POS: {
+                    RelativePlayerPositionPackage p = (RelativePlayerPositionPackage) pack;
+                    view.world().findPlayer(p.getPlayerId()).receiveRelativePlayerPositionPackage(p);
                     break;
                 }
 
                 case ShipProtocol.PLAYER_MOVE: {
                     PlayerMovementPackage p = (PlayerMovementPackage) pack;
                     view.world().findPlayer(p.getId()).receivePlayerMovementPackage(p);
+                    break;
+                }
+
+                case ShipProtocol.PLAYER_POS: {
+                    PlayerPositionPackage p = (PlayerPositionPackage) pack;
+                    view.world().findPlayer(p.getId()).receivePlayerPositionPackage(p);
                     break;
                 }
 
@@ -183,7 +190,8 @@ public class Network implements ServerListener, PackageReceiver {
             type == ShipProtocol.PLAYER_POS   ||
             type == ShipProtocol.ITEM_AND_SUB ||
             type == ShipProtocol.BUILD_DIR    ||
-            type == ShipProtocol.BUILD_MODE) {
+            type == ShipProtocol.BUILD_MODE   ||
+            type == ShipProtocol.REL_PLAYER_POS) {
             for (Connection connection : connections) {
                 if (connection != conn)
                     connection.send(type, pack);

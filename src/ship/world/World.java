@@ -144,6 +144,19 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
             player.moveX(diff);
     }
     /**
+     * When a vehicle gets an updated position from the server
+     * it calls this method to make sure that all players currently
+     * standing on the vehicle are moved with it. This is done
+     * by letting all players know that the vehicle has moved
+     * and then letting them decide whether to do anything about it.
+     * @param vehicle the Vehicle that has moved
+     * @param move the distance it has moved
+     */
+    public void relMoveX(Vehicle vehicle, float move) {
+        for (Player player : players)
+            player.relMoveX(vehicle, move);
+    }
+    /**
      * Checks for horizontal collision between all objects, moving them
      * should a collision be detected.
      */
@@ -168,6 +181,19 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
             vehicle.moveY(diff);
         for (Player player : players)
             player.moveY(diff);
+    }
+    /**
+     * When a vehicle gets an updated position from the server
+     * it calls this method to make sure that all players currently
+     * standing on the vehicle are moved with it. This is done
+     * by letting all players know that the vehicle has moved
+     * and then letting them decide whether to do anything about it.
+     * @param vehicle the Vehicle that has moved
+     * @param move the distance it has moved
+     */
+    public void relMoveY(Vehicle vehicle, float move) {
+        for (Player player : players)
+            player.relMoveY(vehicle, move);
     }
     /**
      * Checks for vertical collision between all objects, moving them
@@ -335,14 +361,16 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
                          vehicle.existsAt(tx + 1, ty    ) ||
                          vehicle.existsAt(tx    , ty + 1) ||
                          vehicle.existsAt(tx - 1, ty    ))) {
-                    if (view.net().isClient())
+                    if (view.net().isOnline()) {
                         view.net().send(ShipProtocol.CREATE_TILE,
                                         new CreateTilePackage(player.getID(),
                                                               vehicle.getID(),
                                                               tx, ty,
                                                               view.inventory().getSelectedItem(),
                                                               view.inventory().getSelectedSubItem()));
-                    else
+                        if (view.net().isServer())
+                            vehicle.addTile(view.inventory().getSelectedTile().create(view.inventory().getSelectedSubItem(), tx, ty));
+                    } else
                         vehicle.addTile(view.inventory().getSelectedTile().create(view.inventory().getSelectedSubItem(), tx, ty));
                     break;
                 }
@@ -364,9 +392,11 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
             if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
                 ty >= 1 && ty < vehicle.HEIGHT() - 1)
                 if (vehicle.existsAt(tx, ty)) {
-                    if (view.net().isClient())
+                    if (view.net().isOnline()) {
                         view.net().send(ShipProtocol.DELETE_TILE, new DeleteTilePackage(player.getID(), vehicle.getID(), tx, ty));
-                    else
+                        if (view.net().isServer())
+                            vehicle.remTile(vehicle.tile(tx, ty));
+                    } else
                         vehicle.remTile(vehicle.tile(tx, ty));
                     break;
                 }
