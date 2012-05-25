@@ -315,7 +315,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
                     vehicle.tile(vehX, vehY) != null) {
                     if (view.net().isOnline())
                         view.net().send(ShipProtocol.ACTIVATE, new ActivatePackage(player.getID(), vehicle.getID(), vehX, vehY));
-                    if (view.net().isServer())
+                    if (view.net().isServer() || !view.net().isClient())
                         vehicle.tile(vehX, vehY).activate(player);
                 }
             }
@@ -361,16 +361,14 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
                          vehicle.existsAt(tx + 1, ty    ) ||
                          vehicle.existsAt(tx    , ty + 1) ||
                          vehicle.existsAt(tx - 1, ty    ))) {
-                    if (view.net().isOnline()) {
+                    if (view.net().isOnline())
                         view.net().send(ShipProtocol.CREATE_TILE,
                                         new CreateTilePackage(player.getID(),
                                                               vehicle.getID(),
                                                               tx, ty,
                                                               view.inventory().getSelectedItem(),
                                                               view.inventory().getSelectedSubItem()));
-                        if (view.net().isServer())
-                            vehicle.addTile(view.inventory().getSelectedTile().create(view.inventory().getSelectedSubItem(), tx, ty));
-                    } else
+                    if (view.net().isServer() || !view.net().isClient())
                         vehicle.addTile(view.inventory().getSelectedTile().create(view.inventory().getSelectedSubItem(), tx, ty));
                     break;
                 }
@@ -392,11 +390,9 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
             if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
                 ty >= 1 && ty < vehicle.HEIGHT() - 1)
                 if (vehicle.existsAt(tx, ty)) {
-                    if (view.net().isOnline()) {
+                    if (view.net().isOnline())
                         view.net().send(ShipProtocol.DELETE_TILE, new DeleteTilePackage(player.getID(), vehicle.getID(), tx, ty));
-                        if (view.net().isServer())
-                            vehicle.remTile(vehicle.tile(tx, ty));
-                    } else
+                    if (view.net().isServer() || !view.net().isClient())
                         vehicle.remTile(vehicle.tile(tx, ty));
                     break;
                 }
