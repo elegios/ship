@@ -1,6 +1,7 @@
 package ship.netcode;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import ship.View;
@@ -12,8 +13,10 @@ import ship.netcode.interaction.PlayerMovementPackage;
 import ship.netcode.inventory.BuildDirectionPackage;
 import ship.netcode.inventory.BuildModePackage;
 import ship.netcode.inventory.ItemAndSubItemPackage;
+import ship.netcode.meta.ChatPackage;
 import ship.netcode.meta.NumPlayersPackage;
 import ship.netcode.meta.PlayerIdPackage;
+import ship.netcode.meta.PlayerNamePackage;
 import ship.netcode.movement.PlayerPositionPackage;
 import ship.netcode.movement.RelativePlayerPositionPackage;
 import ship.netcode.movement.VehiclePositionPackage;
@@ -33,6 +36,8 @@ public class Network implements ServerListener, PackageReceiver {
     private Server server;
     private List<Connection> connections;
 
+    private List<PlayerName> playerNames;
+
     private Connection connection;
 
     private int numPlayers;
@@ -44,10 +49,15 @@ public class Network implements ServerListener, PackageReceiver {
         numPlayers  = 1;
 
         connections = new ArrayList<>();
+        playerNames = new ArrayList<>();
+
+        setPlayerName(id, dia.getPlayerName());
     }
 
     public void setConnection(Connection connection) {
         this.connection = connection;
+
+        playerNames = new ArrayList<>();
 
         connection.setReceiver(this);
     }
@@ -108,6 +118,9 @@ public class Network implements ServerListener, PackageReceiver {
 
         conn.send(ShipProtocol.PLAYER_ID, new PlayerIdPackage  (  numPlayers));
         send   (ShipProtocol.NUM_PLAYERS, new NumPlayersPackage(++numPlayers));
+
+        for (PlayerName name : playerNames)
+            conn.send(ShipProtocol.PLAYER_NAME, new PlayerNamePackage(name.getPlayerId(), name.getPlayerName()));
 
         guiMessage("There are now " +numPlayers+ " players connected to the server.");
     }
@@ -173,6 +186,19 @@ public class Network implements ServerListener, PackageReceiver {
                     break;
                 }
 
+                case ShipProtocol.CHAT: {
+                    ChatPackage p = (ChatPackage) pack;
+                    guiMessage(getPlayerName(p.getPlayerId()) +": "+ p.getMessage());
+                    break;
+                }
+
+                case ShipProtocol.PLAYER_NAME: {
+                    PlayerNamePackage p = (PlayerNamePackage) pack;
+                    setPlayerName(p.getPlayerId(), p.getPlayerName());
+                    guiMessage(p.getPlayerName() +" is here.");
+                    break;
+                }
+
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -186,12 +212,14 @@ public class Network implements ServerListener, PackageReceiver {
      * This method is only used when this is a server
      */
     public void receivePackage(Connection conn, int type, Package pack) {
-        if (type == ShipProtocol.PLAYER_MOVE  ||
-            type == ShipProtocol.PLAYER_POS   ||
-            type == ShipProtocol.ITEM_AND_SUB ||
-            type == ShipProtocol.BUILD_DIR    ||
-            type == ShipProtocol.BUILD_MODE   ||
-            type == ShipProtocol.REL_PLAYER_POS) {
+        if (type == ShipProtocol.PLAYER_MOVE    ||
+            type == ShipProtocol.PLAYER_POS     ||
+            type == ShipProtocol.ITEM_AND_SUB   ||
+            type == ShipProtocol.BUILD_DIR      ||
+            type == ShipProtocol.BUILD_MODE     ||
+            type == ShipProtocol.REL_PLAYER_POS ||
+            type == ShipProtocol.CHAT           ||
+            type == ShipProtocol.PLAYER_NAME) {
             for (Connection connection : connections) {
                 if (connection != conn)
                     connection.send(type, pack);
@@ -228,12 +256,15 @@ public class Network implements ServerListener, PackageReceiver {
 
                 guiMessage("Got the id " +id);
 
+                setPlayerName(id, dia.getPlayerName());
+                send(new PlayerNamePackage(id, dia.getPlayerName()));
+
                 break;
 
             case ShipProtocol.NUM_PLAYERS:
                 numPlayers = ((NumPlayersPackage) pack).getNumPlayers();
 
-                guiMessage("There are now " +numPlayers+ " connected to the server.");
+                guiMessage("There are now " +numPlayers+ " players connected to the server.");
 
                 break;
 
@@ -248,12 +279,30 @@ public class Network implements ServerListener, PackageReceiver {
         }
     }
 
-    private void guiMessage(String message) {
-        if (dia != null)
-            dia.appendText(message);
-        else {
+    public void guiMessage(String message) {
+        if (dia != null) {
+            Calendar now = Calendar.getInstance();
+            dia.appendText("[" +now.get(Calendar.HOUR_OF_DAY)+ ":" +now.get(Calendar.MINUTE)+ ":" +now.get(Calendar.SECOND)+ "] " +message);
+        } else {
             //TODO: add method to write guiMessages to the in game client
         }
+    }
+
+    public void sendChatMessage(String message) {
+        send(ShipProtocol.CHAT, new ChatPackage(id, message));
+        guiMessage(getPlayerName(id) +": "+ message);
+    }
+
+    private String getPlayerName(int playerId) {
+        for (PlayerName name : playerNames)
+            if (name.getPlayerId() == playerId)
+                return name.getPlayerName();
+
+        return null;
+    }
+
+    private void setPlayerName(int playerId, String name) {
+        playerNames.add(new PlayerName(playerId, name));
     }
 
 }
@@ -276,4 +325,17 @@ class ConnectionHolder implements PackageReceiver {
         net.receivePackage(connection, type, pack);
     }
 
+}
+
+class PlayerName {
+
+    private int playerId;
+    private String playerName;
+
+    PlayerName(int playerId, String name) {
+        this.playerId   = playerId;
+        this.playerName = name;
+    }
+    int    getPlayerId  () { return   playerId; }
+    String getPlayerName() { return playerName; }
 }

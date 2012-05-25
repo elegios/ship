@@ -7,8 +7,10 @@ import ship.netcode.interaction.PlayerMovementPackage;
 import ship.netcode.inventory.BuildDirectionPackage;
 import ship.netcode.inventory.BuildModePackage;
 import ship.netcode.inventory.ItemAndSubItemPackage;
+import ship.netcode.meta.ChatPackage;
 import ship.netcode.meta.NumPlayersPackage;
 import ship.netcode.meta.PlayerIdPackage;
+import ship.netcode.meta.PlayerNamePackage;
 import ship.netcode.movement.PlayerPositionPackage;
 import ship.netcode.movement.RelativePlayerPositionPackage;
 import ship.netcode.movement.VehiclePositionPackage;
@@ -21,6 +23,8 @@ public class ShipProtocol extends BasicProtocol {
 
     public static final int PLAYER_ID   = 1;
     public static final int NUM_PLAYERS = 2;
+    public static final int CHAT        = 14;
+    public static final int PLAYER_NAME = 15;
 
     public static final int PLAYER_POS     = 3;
     public static final int REL_PLAYER_POS = 13;
@@ -58,6 +62,9 @@ public class ShipProtocol extends BasicProtocol {
         addType(new ContentPackage());
 
         addType(new RelativePlayerPositionPackage());
+
+        addType(new ChatPackage      ());
+        addType(new PlayerNamePackage());
     }
 
 }

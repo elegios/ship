@@ -8,14 +8,18 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
@@ -43,6 +47,11 @@ public class MultiPlayerDialog extends JFrame {
 
     private Network net;
     private ShipProtocol protocol;
+    private JPanel panel_4;
+    private JTextField txtNickname;
+    private JTextField textChat;
+    private JButton btnSend;
+    private JScrollPane scrollPane;
 
     /**
      * Calls netNodeInit and hosts a server on the selected port. Also
@@ -51,16 +60,22 @@ public class MultiPlayerDialog extends JFrame {
     private void host() {
         btnHost.setEnabled(false);
         btnConnect.setEnabled(false);
+        txtNickname.setEnabled(false);
+        addressField.setEnabled(false);
+        portField.setEnabled(false);
 
         try {
             net.setServer(Server.host(protocol, net, Integer.parseInt(portField.getText())));
+
+            net.guiMessage("Server started, press the \"Start\" button when all players have joined.");
+
+            btnStart.setEnabled(true);
+            textChat.setEnabled(true);
+            btnSend.setEnabled(true);
+
         } catch (NumberFormatException | IOException e) {
             e.printStackTrace();
         }
-
-        textArea.append("Server started, press the \"Start\" button when all players have joined.\n");
-
-        btnStart.setEnabled(true);
     }
 
     /**
@@ -70,6 +85,9 @@ public class MultiPlayerDialog extends JFrame {
     private void connect() {
         btnHost.setEnabled(false);
         btnConnect.setEnabled(false);
+        txtNickname.setEnabled(false);
+        addressField.setEnabled(false);
+        portField.setEnabled(false);
 
         try {
             Connection conn = new Connection(protocol, addressField.getText(), Integer.parseInt(portField.getText()));
@@ -77,9 +95,17 @@ public class MultiPlayerDialog extends JFrame {
             net.setConnection(conn);
             conn.listen();
 
+            textChat.setEnabled(true);
+            btnSend.setEnabled(true);
+
         } catch (NumberFormatException | IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void send() {
+        net.sendChatMessage(textChat.getText());
+        textChat.setText("");
     }
 
     /**
@@ -116,6 +142,10 @@ public class MultiPlayerDialog extends JFrame {
         }
     }
 
+    public String getPlayerName() {
+        return txtNickname.getText();
+    }
+
     /**
      * Create the graphical components of the dialog.
      */
@@ -131,9 +161,9 @@ public class MultiPlayerDialog extends JFrame {
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         GridBagLayout gbl_contentPanel = new GridBagLayout();
         gbl_contentPanel.columnWidths = new int[]{0, 0};
-        gbl_contentPanel.rowHeights = new int[]{0, 0, 0, 0};
+        gbl_contentPanel.rowHeights = new int[]{0, 0, 0, 0, 0};
         gbl_contentPanel.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-        gbl_contentPanel.rowWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+        gbl_contentPanel.rowWeights = new double[]{0.0, 1.0, 0.0, 0.0, Double.MIN_VALUE};
         contentPanel.setLayout(gbl_contentPanel);
 
         JPanel panel = new JPanel();
@@ -184,19 +214,80 @@ public class MultiPlayerDialog extends JFrame {
                         portField.setColumns(10);
                         panel.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{addressField, portField}));
 
+                        scrollPane = new JScrollPane();
+                        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+                        GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+                        gbc_scrollPane.fill = GridBagConstraints.BOTH;
+                        gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
+                        gbc_scrollPane.gridx = 0;
+                        gbc_scrollPane.gridy = 1;
+                        scrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+                            public void adjustmentValueChanged(AdjustmentEvent e) {
+                                e.getAdjustable().setValue(e.getAdjustable().getMaximum());
+                            }});
+                        contentPanel.add(scrollPane, gbc_scrollPane);
+
                         textArea = new JTextArea();
-                        GridBagConstraints gbc_textArea = new GridBagConstraints();
-                        gbc_textArea.insets = new Insets(0, 0, 5, 0);
-                        gbc_textArea.fill = GridBagConstraints.BOTH;
-                        gbc_textArea.gridx = 0;
-                        gbc_textArea.gridy = 1;
-                        contentPanel.add(textArea, gbc_textArea);
+                        textArea.setLineWrap(true);
+                        scrollPane.setViewportView(textArea);
+
+                        panel_4 = new JPanel();
+                        GridBagConstraints gbc_panel_4 = new GridBagConstraints();
+                        gbc_panel_4.insets = new Insets(0, 0, 5, 0);
+                        gbc_panel_4.fill = GridBagConstraints.BOTH;
+                        gbc_panel_4.gridx = 0;
+                        gbc_panel_4.gridy = 2;
+                        contentPanel.add(panel_4, gbc_panel_4);
+                        GridBagLayout gbl_panel_4 = new GridBagLayout();
+                        gbl_panel_4.columnWidths = new int[]{75, 0, 0, 0};
+                        gbl_panel_4.rowHeights = new int[]{0, 0};
+                        gbl_panel_4.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+                        gbl_panel_4.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+                        panel_4.setLayout(gbl_panel_4);
+
+                        txtNickname = new JTextField();
+                        txtNickname.setText("Nickname");
+                        GridBagConstraints gbc_txtNickname = new GridBagConstraints();
+                        gbc_txtNickname.insets = new Insets(0, 0, 0, 5);
+                        gbc_txtNickname.anchor = GridBagConstraints.WEST;
+                        gbc_txtNickname.gridx = 0;
+                        gbc_txtNickname.gridy = 0;
+                        panel_4.add(txtNickname, gbc_txtNickname);
+                        txtNickname.setColumns(10);
+
+                        btnSend = new JButton("Send");
+                        btnSend.setEnabled(false);
+                        btnSend.addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                send();
+                            }
+                        });
+                        GridBagConstraints gbc_btnSend = new GridBagConstraints();
+                        gbc_btnSend.anchor = GridBagConstraints.EAST;
+                        gbc_btnSend.gridx = 2;
+                        gbc_btnSend.gridy = 0;
+                        panel_4.add(btnSend, gbc_btnSend);
+
+                        textChat = new JTextField();
+                        textChat.setEnabled(false);
+                        textChat.addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                send();
+                            }
+                        });
+                        GridBagConstraints gbc_textChat = new GridBagConstraints();
+                        gbc_textChat.insets = new Insets(0, 0, 0, 5);
+                        gbc_textChat.fill = GridBagConstraints.HORIZONTAL;
+                        gbc_textChat.gridx = 1;
+                        gbc_textChat.gridy = 0;
+                        panel_4.add(textChat, gbc_textChat);
+                        textChat.setColumns(10);
 
                         JPanel panel_3 = new JPanel();
                         GridBagConstraints gbc_panel_3 = new GridBagConstraints();
                         gbc_panel_3.fill = GridBagConstraints.BOTH;
                         gbc_panel_3.gridx = 0;
-                        gbc_panel_3.gridy = 2;
+                        gbc_panel_3.gridy = 3;
                         contentPanel.add(panel_3, gbc_panel_3);
 
                         btnHost = new JButton("Host");
