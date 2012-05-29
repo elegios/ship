@@ -1,7 +1,5 @@
 package ship.world.vehicle;
 
-import java.util.Scanner;
-
 import media.ManagedSpriteSheet;
 import media.Renderable;
 
@@ -15,7 +13,6 @@ import ship.netcode.ShipProtocol;
 import ship.netcode.interaction.CreateTilePackage;
 import ship.netcode.interaction.DeleteTilePackage;
 import ship.netcode.movement.VehiclePositionPackage;
-import ship.ui.inventory.Inventory;
 import ship.world.Position;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
@@ -26,7 +23,10 @@ import ship.world.vehicle.tile.Tile;
 import ship.world.vehicle.tile.fuel.AirFuelTransport;
 import ship.world.vehicle.tile.fuel.FuelTank;
 import ship.world.vehicle.tile.fuel.FuelTransport;
+import ship.world.vehicle.tile.power.AirPowerTransport;
+import ship.world.vehicle.tile.power.MomentumAbsorber;
 import ship.world.vehicle.tile.power.PowerSwitch;
+import ship.world.vehicle.tile.power.PowerTransport;
 
 /**
  *
@@ -34,6 +34,8 @@ import ship.world.vehicle.tile.power.PowerSwitch;
  */
 public class Vehicle implements Position, Renderable, Updatable, RelativeMovable, Rectangle {
     public static final float EXTRA_MOVE = 0.0025f;
+
+    public static final float SPEED_THRESHOLD = 1f;
 
     public static final int VEH_WIDTH  = 65;
     public static final int VEH_HEIGHT = 65;
@@ -52,6 +54,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     protected float ySpeed;
 
     private VehiclePositionPackage toUpdatePos;
+    private CreateTilePackage toCreate;
+    private DeleteTilePackage toDelete;
 
     private boolean collidedWithImmobileX;
     private boolean collidedWithImmobileY;
@@ -64,11 +68,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
     protected ManagedSpriteSheet tileset;
 
-    private Inventory inv;
     private Tile[][] tiles;
-
-    private Scanner makeScanner;
-    private Scanner deleScanner;
 
     private int leftX;
     private int rightX;
@@ -76,16 +76,15 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     private int botY;
 
     public Vehicle(World world, int id, int x, int y) throws SlickException {
-        this(world, id, x, y, true, "vehicle");
+        this(world, id, x, y, true);
     }
-    public Vehicle(World world, int id, int x, int y, boolean centerInit, String name) throws SlickException {
+    public Vehicle(World world, int id, int x, int y, boolean centerInit) throws SlickException {
         this.world = world;
         this.id    = id;
 
         tileset = world.view().loader().loadManagedSpriteSheet("tiles", TW, TH);
 
         tiles = new Tile[WIDTH()][HEIGHT()];
-        inv = world.view().inventory();
 
         leftX  = WIDTH()/2;
         rightX = leftX;
@@ -136,50 +135,54 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     }
 
     public final void remTile(Tile tile) {
-        if (updateMass())
-            mass -= tile.mass();
+        if (tile != null) {
+            if (updateMass())
+                mass -= tile.mass();
 
-        tiles[tile.x()][tile.y()] = null;
-        setCollidesAt(tile.x(), tile.y(), false);
+            tiles[tile.x()][tile.y()] = null;
+            setCollidesAt(tile.x(), tile.y(), false);
 
-        if (tile.x() == leftX) {
-            for (int i = leftX; i <= rightX; i++)
-                for (int j = topY; j <= botY; j++)
-                    if (tiles[i][j] != null) {
-                        leftX = i;
-                        i = rightX + 1; //To make the outer loop break;
-                        break;
-                    }
-        } else if (tile.x() == rightX) {
-            for (int i = rightX; i >= leftX; i--)
-                for (int j = topY; j <= botY; j++)
-                    if (tiles[i][j] != null) {
-                        rightX = i;
-                        i = leftX - 1; //To make the outer loop break;
-                        break;
-                    }
-        }
-
-        if (tile.y() == topY) {
-            for (int j = topY; j <= botY; j++)
+            if (tile.x() == leftX) {
                 for (int i = leftX; i <= rightX; i++)
-                    if (tiles[i][j] != null) {
-                        topY = j;
-                        j = botY + 1; //To make the outer loop break;
-                        break;
-                    }
-        } else if (tile.y() == botY) {
-            for (int j = botY; j >= topY; j--)
-                for (int i = leftX; i <= rightX; i++)
-                    if (tiles[i][j] != null) {
-                        botY = j;
-                        j = topY - 1; //To make the outer loop break;
-                        break;
-                    }
-        }
+                    for (int j = topY; j <= botY; j++)
+                        if (tiles[i][j] != null) {
+                            leftX = i;
+                            i = rightX + 1; //To make the outer loop break;
+                            break;
+                        }
+            } else if (tile.x() == rightX) {
+                for (int i = rightX; i >= leftX; i--)
+                    for (int j = topY; j <= botY; j++)
+                        if (tiles[i][j] != null) {
+                            rightX = i;
+                            i = leftX - 1; //To make the outer loop break;
+                            break;
+                        }
+            }
 
-        if (leftX == rightX && topY == botY && tiles[leftX][topY] == null)
-            world.removeVehicleFromList(this);
+            if (tile.y() == topY) {
+                for (int j = topY; j <= botY; j++)
+                    for (int i = leftX; i <= rightX; i++)
+                        if (tiles[i][j] != null) {
+                            topY = j;
+                            j = botY + 1; //To make the outer loop break;
+                            break;
+                        }
+            } else if (tile.y() == botY) {
+                for (int j = botY; j >= topY; j--)
+                    for (int i = leftX; i <= rightX; i++)
+                        if (tiles[i][j] != null) {
+                            botY = j;
+                            j = topY - 1; //To make the outer loop break;
+                            break;
+                        }
+            }
+
+            if (leftX == rightX && topY == botY && tiles[leftX][topY] == null)
+                world.removeVehicleFromList(this);
+        } else {
+            System.out.println("Tried to remove a null tile, not sure why");
+        }
     }
 
     /**
@@ -553,7 +556,9 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
             xSpeed = toUpdatePos.getXSpeed();
         }
 
-        x += getAbsXMove(diff);
+        float absSpeed = getAbsXSpeed();
+        if (absSpeed > SPEED_THRESHOLD || absSpeed < -SPEED_THRESHOLD)
+            x += getAbsXMove(diff);
     }
     public void moveY(int diff) {
         collidedWithImmobileY = false;
@@ -568,7 +573,9 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
             toUpdatePos = null;
         }
 
-        y += getAbsYMove(diff);
+        float absSpeed = getAbsYSpeed();
+        if (absSpeed > SPEED_THRESHOLD || absSpeed < -SPEED_THRESHOLD)
+            y += getAbsYMove(diff);
     }
 
     public boolean collidedWithImmobileX() { return collidedWithImmobileX; }
@@ -600,22 +607,20 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
     @Override
     public void update(GameContainer gc, int diff) {
+        if (toCreate != null) {
+            addTile(world.view().inventory().getBlockAt(toCreate.getItem()).create(toCreate.getSubItem(), toCreate.getVehX(), toCreate.getVehY()));
+            toCreate = null;
+        }
+
+        if (toDelete != null) {
+            remTile(tiles[toDelete.getVehX()][toDelete.getVehY()]);
+            toDelete = null;
+        }
+
         for (int i = leftX; i <= rightX; i++)
             for (int j = topY; j <= botY; j++)
                 if (tiles[i][j] != null)
                     tiles[i][j].updateEarly(gc, diff);
-
-        if (makeScanner != null) {
-            this.addTile(inv.getBlockAt(makeScanner.nextInt()).create(makeScanner.nextInt(), makeScanner.nextInt(), makeScanner.nextInt()));
-            makeScanner = null;
-        }
-        if (deleScanner != null) {
-            Tile tile = tiles[deleScanner.nextInt()][deleScanner.nextInt()];
-            if (tile != null)
-                this.remTile(tile);
-
-            deleScanner = null;
-        }
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
@@ -667,63 +672,96 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
             toUpdatePos = pack;
     }
 
-    public void receiveCreateTilePackage(CreateTilePackage pack) {
-        addTile(world.view().inventory().getBlockAt(pack.getItem()).create(pack.getSubItem(), pack.getVehX(), pack.getVehY()));
+    public void receiveCreateTilePackage(CreateTilePackage pack) { //TODO: fix bug when several delete/create packages are received between one loop
+        toCreate = pack;
     }
 
     public void receiveDeleteTilePackage(DeleteTilePackage pack) {
-        remTile(tiles[pack.getVehX()][pack.getVehY()]);
+        toDelete = pack;
     }
 
     public void generateStandardVehicle() {
         int mx = WIDTH ()/2;
         int my = HEIGHT()/2;
 
-        addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
+        if (id > 4) {
 
-        addTile(new AirFuelTransport(mx - 2, my - 1, false, Tile.LEFT));
-        addTile(new FuelTank(mx - 2, my));
-        ((FuelTank) tiles[mx - 2][my]).setContent(FuelTank.MAX_CONTENT);
-        addTile(new FuelTransport(mx - 2, my + 1, false, Tile.UP));
+            addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
 
-        addTile(new AirFuelTransport(mx - 3, my - 1, false, Tile.DOWN));
-        addTile(new Thruster(mx - 3, my, Tile.RIGHT));
-        addTile(new FuelTransport(mx - 3, my + 1, false, Tile.RIGHT));
+            addTile(new AirFuelTransport(mx - 2, my - 1, false, Tile.LEFT));
+            addTile(new FuelTank(mx - 2, my));
+            ((FuelTank) tiles[mx - 2][my]).setContent(FuelTank.MAX_CONTENT);
+            addTile(new FuelTransport(mx - 2, my + 1, false, Tile.UP));
 
-
-        addTile(new PowerSwitch(mx, my, Tile.UP));
-
-        addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
-        addTile(new FuelTank(mx, my + 1));
-        ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
-        addTile(new FuelTransport(mx + 1, my + 1, false, Tile.LEFT));
-
-        addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
-        addTile(new Thruster(mx, my + 2, Tile.UP));
-        addTile(new AirFuelTransport(mx + 1, my + 2, false, Tile.UP));
+            addTile(new AirFuelTransport(mx - 3, my - 1, false, Tile.DOWN));
+            addTile(new Thruster(mx - 3, my, Tile.RIGHT));
+            addTile(new FuelTransport(mx - 3, my + 1, false, Tile.RIGHT));
 
 
-        addTile(new PowerSwitch(mx + 1, my, Tile.LEFT));
+            addTile(new PowerSwitch(mx, my, Tile.UP));
 
-        addTile(new AirFuelTransport(mx + 2, my - 1, false, Tile.DOWN));
-        addTile(new FuelTank(mx + 2, my));
-        ((FuelTank) tiles[mx + 2][my]).setContent(FuelTank.MAX_CONTENT);
-        addTile(new FuelTransport(mx + 2, my + 1, false, Tile.RIGHT));
+            addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
+            addTile(new FuelTank(mx, my + 1));
+            ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
+            addTile(new FuelTransport(mx + 1, my + 1, false, Tile.LEFT));
 
-        addTile(new AirFuelTransport(mx + 3, my - 1, false, Tile.LEFT));
-        addTile(new Thruster(mx + 3, my, Tile.LEFT));
-        addTile(new FuelTransport(mx + 3, my + 1, false, Tile.UP));
+            addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
+            addTile(new Thruster(mx, my + 2, Tile.UP));
+            addTile(new AirFuelTransport(mx + 1, my + 2, false, Tile.UP));
 
 
-        addTile(new Tile(mx - 4, my + 1, 1, 5, true));
-        addTile(new Tile(mx - 5, my + 2, 1, 5, true));
+            addTile(new PowerSwitch(mx + 1, my, Tile.LEFT));
 
-        addTile(new Tile(mx + 4, my + 1, 1, 5, true));
-        addTile(new Tile(mx + 5, my + 2, 1, 5, true));
+            addTile(new AirFuelTransport(mx + 2, my - 1, false, Tile.DOWN));
+            addTile(new FuelTank(mx + 2, my));
+            ((FuelTank) tiles[mx + 2][my]).setContent(FuelTank.MAX_CONTENT);
+            addTile(new FuelTransport(mx + 2, my + 1, false, Tile.RIGHT));
 
-        addTile(new Tile(mx - 1, my - 2, 1, 5, true));
-        addTile(new Tile(mx    , my - 2, 1, 5, true));
-        addTile(new Tile(mx + 1, my - 2, 1, 5, true));
+            addTile(new AirFuelTransport(mx + 3, my - 1, false, Tile.LEFT));
+            addTile(new Thruster(mx + 3, my, Tile.LEFT));
+            addTile(new FuelTransport(mx + 3, my + 1, false, Tile.UP));
+
+
+            addTile(new Tile(mx - 4, my + 1, 1, 5, true));
+            addTile(new Tile(mx - 5, my + 2, 1, 5, true));
+
+            addTile(new Tile(mx + 4, my + 1, 1, 5, true));
+            addTile(new Tile(mx + 5, my + 2, 1, 5, true));
+
+            addTile(new Tile(mx - 1, my - 2, 1, 5, true));
+            addTile(new Tile(mx    , my - 2, 1, 5, true));
+            addTile(new Tile(mx + 1, my - 2, 1, 5, true));
+
+        } else {
+            addTile(new PowerSwitch(mx, my, Tile.UP));
+
+            addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
+            addTile(new FuelTank(mx, my + 1));
+            ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
+
+            addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
+            addTile(new Thruster(mx, my + 2, Tile.UP));
+
+            addTile(new AirPowerTransport(mx - 4, my - 2, Tile.DOWN + 2));
+            addTile(new AirPowerTransport(mx - 3, my - 2, Tile.DOWN + 6));
+            addTile(new AirPowerTransport(mx - 2, my - 2, Tile.LEFT + 2));
+
+            addTile(new AirPowerTransport(mx - 4, my - 1, Tile.RIGHT + 2));
+            addTile(new MomentumAbsorber(mx - 3, my - 1, Tile.DOWN));
+            addTile(new AirPowerTransport(mx - 2, my - 1, Tile.LEFT + 6));
+
+            addTile(new MomentumAbsorber(mx - 3, my, Tile.LEFT + 1));
+            addTile(new AirPowerTransport(mx - 2, my, Tile.RIGHT + 6));
+            addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
+
+            addTile(new PowerTransport(mx - 4, my + 1, Tile.DOWN + 2));
+            addTile(new MomentumAbsorber(mx - 3, my + 1, Tile.UP));
+            addTile(new PowerTransport(mx - 2, my + 1, Tile.LEFT + 6));
+
+            addTile(new PowerTransport(mx - 4, my + 2, Tile.RIGHT + 2));
+            addTile(new PowerTransport(mx - 3, my + 2, Tile.UP + 6));
+            addTile(new PowerTransport(mx - 2, my + 2, Tile.UP + 2));
+        }
     }
 
 }

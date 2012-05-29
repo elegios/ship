@@ -192,7 +192,7 @@ public class MultiPlayerDialog extends JFrame {
                         panel_1.setLayout(new GridLayout(0, 1, 0, 0));
 
                                 addressField = new JTextField();
-                                //addressField.setText("83.183.23.246"); //TODO: enable
+                                addressField.setText("83.183.23.246"); //TODO: enable
                                 addressField.setText("localhost");
                                 panel_1.add(addressField);
                                 addressField.setColumns(10);
@@ -208,7 +208,7 @@ public class MultiPlayerDialog extends JFrame {
                 panel_2.setLayout(new GridLayout(0, 1, 0, 0));
 
                         portField = new JTextField();
-                        //portField.setText("80"); //TODO: enable
+                        portField.setText("80"); //TODO: enable
                         portField.setText("7780");
                         panel_2.add(portField);
                         portField.setColumns(10);

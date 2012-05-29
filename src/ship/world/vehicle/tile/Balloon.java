@@ -12,7 +12,7 @@ public class Balloon extends Tile { //TODO: make these blow up when destroyed (b
         super(x, y, BASETILE, STDMASS, true);
     }
 
-    public void update(GameContainer gc, int diff) {
+    public void updateEarly(GameContainer gc, int diff) {
         parent.pushY(-LIFT_STR * parent.world().gravity() * parent.world().actionsPerTick() * diff);
     }
 

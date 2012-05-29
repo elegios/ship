@@ -23,7 +23,7 @@ public class Thruster extends Tile {
         this.direction = direction;
     }
 
-    public void update(GameContainer gc, int diff) {
+    public void updateEarly(GameContainer gc, int diff) {
         if (fuelLevel > 0) {
             float strength;
             switch (fuelLevel) {

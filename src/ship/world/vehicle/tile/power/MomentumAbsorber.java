@@ -39,7 +39,7 @@ public class MomentumAbsorber extends Tile {
         renderPowered2 = false;
     }
 
-    public void updateEarly(GameContainer gc, int diff) {
+    public void update(GameContainer gc, int diff) {
         powers = 0;
 
         if (direction == 4) {
@@ -49,12 +49,12 @@ public class MomentumAbsorber extends Tile {
                 float momentum = parent.getAbsYSpeed() * parent.getMass();
 
                 if (momentum < 0)
-                    momentum = Math.max(momentum, -ABSORB_AMOUNT);
+                    momentum = Math.max(momentum, -ABSORB_AMOUNT * parent.world().gravity() * parent.world().actionsPerTick() * parent.world().view().diff());
 
                 else if (momentum > 0)
-                    momentum = Math.min(momentum, ABSORB_AMOUNT);
+                    momentum = Math.min(momentum, ABSORB_AMOUNT * parent.world().gravity() * parent.world().actionsPerTick() * parent.world().view().diff());
 
-                parent.pushY(-momentum * parent.world().gravity() * parent.world().actionsPerTick() * parent.world().view().diff());
+                parent.pushY(-momentum);
             }
 
             if (poweredFrom[LEFT] && poweredFrom[RIGHT]) {

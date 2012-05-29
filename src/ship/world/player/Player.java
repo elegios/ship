@@ -142,6 +142,10 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
 
 
     public void updateEarly(GameContainer gc, int diff) {
+        if (lastVehicle != null && collidedY != null && collidedY instanceof Vehicle) {
+            lastVehicle = (Vehicle) collidedY; //Fix bug where last vehicle touched is moved towards a player walking towards it
+        }
+
         //move left
         if (moveLeft && !moveRight)
             if (airResistX) {
