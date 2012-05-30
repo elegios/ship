@@ -208,7 +208,7 @@ public class MultiPlayerDialog extends JFrame {
                 panel_2.setLayout(new GridLayout(0, 1, 0, 0));
 
                         portField = new JTextField();
-                        portField.setText("80"); //TODO: enable
+                        portField.setText("9500"); //TODO: enable
                         portField.setText("7780");
                         panel_2.add(portField);
                         portField.setColumns(10);
