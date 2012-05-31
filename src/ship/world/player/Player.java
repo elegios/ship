@@ -36,7 +36,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     static final float MOVE_SPEED =  160; // 5 squ/igs
     static final float BASE_MASS  =  20;
 
-    static final int NAME_HEIGHT = 20;
+    static final int NAME_HEIGHT = 18;
 
     private boolean collidedWithImobileX;
     private boolean collidedWithImobileY;
@@ -195,12 +195,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     }
 
     public void update(GameContainer gc, int diff) { //TODO: find out why position flickers for clients only
-        if (collidedY != null)
-            if (collidedY instanceof Vehicle) {
-                lastVehicle = (Vehicle) collidedY;
-            } else
-                lastVehicle = null;
-
         if (lastVehicle == null || !doAirResistX(lastVehicle)) {
             boolean airResisted = false;
             for (Vehicle vehicle : world.vehicles())
@@ -222,6 +216,12 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
             if (!airResisted)
                 doAirResistY();
         }
+
+        if (collidedY != null)
+            if (collidedY instanceof Vehicle) {
+                lastVehicle = (Vehicle) collidedY;
+            } else
+                lastVehicle = null;
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
