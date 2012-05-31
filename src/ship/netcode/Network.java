@@ -293,7 +293,7 @@ public class Network implements ServerListener, PackageReceiver {
         guiMessage(getPlayerName(id) +": "+ message);
     }
 
-    private String getPlayerName(int playerId) {
+    public String getPlayerName(int playerId) {
         for (PlayerName name : playerNames)
             if (name.getPlayerId() == playerId)
                 return name.getPlayerName();

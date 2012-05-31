@@ -8,6 +8,7 @@ import media.ManagedImage;
 import media.MediaLoader;
 import media.Renderable;
 
+import org.newdawn.slick.Font;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
@@ -34,6 +35,8 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     static final float JUMP_SPEED = -320;
     static final float MOVE_SPEED =  160; // 5 squ/igs
     static final float BASE_MASS  =  20;
+
+    static final int NAME_HEIGHT = 20;
 
     private boolean collidedWithImobileX;
     private boolean collidedWithImobileY;
@@ -72,10 +75,16 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     private MediaLoader loader;
 
     private ManagedImage player;
+    private String name;
 
     public Player(World world, int id, int x, int y) throws SlickException {
         this.world      = world;
         this.id         = id;
+
+        if (world.view().playerId() != id)
+            name = world.view().net().getPlayerName(id);
+        else
+            name = null;
 
         loader = world.view().loader();
 
@@ -314,6 +323,11 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     public void render(GameContainer gc, Graphics g) {
         player.getImage().draw(ix(), iy());
         builder.render(gc, g);
+
+        if (name != null) {
+            Font font = world.view().fonts().name();
+            font.drawString(ix() + width/2 - font.getWidth(name)/2, iy() - NAME_HEIGHT , name);
+        }
     }
 
     public void pushX(float momentum) { xSpeed += momentum / mass; }

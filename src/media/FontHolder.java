@@ -12,6 +12,7 @@ public class FontHolder {
 
     private UnicodeFont inv;
     private UnicodeFont invSelected;
+    private UnicodeFont name;
 
     @SuppressWarnings("unchecked")
     public FontHolder(Path artDir) throws SlickException {
@@ -24,9 +25,15 @@ public class FontHolder {
         invSelected.addAsciiGlyphs();
         invSelected.getEffects().add(new ColorEffect(Color.lightGray));
         invSelected.loadGlyphs();
+
+        name = new UnicodeFont(artDir.toString() + "/name.ttf", 12, false, false);
+        name.addAsciiGlyphs();
+        name.getEffects().add(new ColorEffect(Color.PINK));
+        name.loadGlyphs();
     }
 
     public UnicodeFont inv         () { return inv;          }
     public UnicodeFont invSelected () { return invSelected;  }
+    public UnicodeFont name        () { return name;         }
 
 }
