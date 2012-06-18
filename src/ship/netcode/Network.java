@@ -280,11 +280,12 @@ public class Network implements ServerListener, PackageReceiver {
     }
 
     public void guiMessage(String message) {
-        if (dia != null) {
+        if (view != null){
+            Calendar now = Calendar.getInstance();
+            view.appendText("[" +now.get(Calendar.HOUR_OF_DAY)+ ":" +now.get(Calendar.MINUTE)+ ":" +now.get(Calendar.SECOND)+ "] " +message);
+        } else if (dia != null) {
             Calendar now = Calendar.getInstance();
             dia.appendText("[" +now.get(Calendar.HOUR_OF_DAY)+ ":" +now.get(Calendar.MINUTE)+ ":" +now.get(Calendar.SECOND)+ "] " +message);
-        } else {
-            //TODO: add method to write guiMessages to the in game client
         }
     }
 

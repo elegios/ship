@@ -18,6 +18,7 @@ import org.newdawn.slick.SlickException;
 
 import ship.control.Keys;
 import ship.netcode.Network;
+import ship.ui.chat.ChatWindow;
 import ship.ui.inventory.Inventory;
 import ship.world.World;
 
@@ -33,8 +34,9 @@ public class View extends BasicGame {
 
     private Keys keys;
 
-    private World     world;
-    private Inventory inventory;
+    private World      world;
+    private Inventory  inventory;
+    private ChatWindow chat;
 
     private Network net;
 
@@ -71,6 +73,7 @@ public class View extends BasicGame {
         keys = new Keys();
 
         inventory = new Inventory(this);
+        chat      = new ChatWindow(this);
 
         world  = new World(this);
     }
@@ -80,19 +83,21 @@ public class View extends BasicGame {
         this.diff = diff;
         world.update(gc, diff);
         inventory.update(gc, diff);
+        chat.update(gc, diff);
     }
 
     @Override
     public void render(GameContainer gc, Graphics g) throws SlickException {
         world.render(gc, g);
+        chat.render(gc, g);
         inventory.render(gc, g);
     }
 
     @Override
     public void keyPressed(int key, char c) {
-        if (keys.keyPressed(keys, key, c))
-            return;
-        if (inventory.keyPressed(keys, key, c))
+        if (     keys.keyPressed(keys, key, c) ||
+            inventory.keyPressed(keys, key, c) ||
+                 chat.keyPressed(keys, key, c))
             return;
         world.keyPressed(keys, key, c);
     }
@@ -102,6 +107,10 @@ public class View extends BasicGame {
         if (inventory.keyReleased(keys, key, c))
             return;
         world.keyReleased(keys, key, c);
+    }
+
+    public void appendText(String text) {
+        chat.appendText(text);
     }
 
     public Network     net()        { return net;        }
