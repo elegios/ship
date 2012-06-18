@@ -56,10 +56,9 @@ public class InputBox implements Position, Renderable, KeyReceiver {
 
         } else if (Character.getType(c) != 15) {
             text += c;
-            return true;
         }
 
-        return false;
+        return true;
     }
 
     @Override

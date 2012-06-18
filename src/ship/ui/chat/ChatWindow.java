@@ -35,6 +35,7 @@ public class ChatWindow extends Box implements Renderable, Updatable, KeyReceive
 
     public ChatWindow(View view) throws SlickException {
         super(null, view.loader(), X, Y, WIDTH, (View.window().getHeight() / Box.TH) - 2);
+        setX(View.window().getWidth() - X - getWidth());
         this.view = view;
 
         text  = "";
