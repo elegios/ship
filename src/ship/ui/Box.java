@@ -84,8 +84,18 @@ public class Box implements Renderable, Position, Rectangle {
     public void setWidth (int width ) { this.width  = width;  }
     public void setHeight(int height) { this.height = height; }
 
-    public float getX() { return parent.getX() + x; }
-    public float getY() { return parent.getY() + y; }
+    public float getX() {
+        if (parent != null)
+            return parent.getX() + x;
+        else
+            return x;
+    }
+    public float getY() {
+        if (parent != null)
+            return parent.getY() + y;
+        else
+            return y;
+    }
 
     public float getX2() { return getX() + getWidth () - 1; }
     public float getY2() { return getY() + getHeight() - 1; }
