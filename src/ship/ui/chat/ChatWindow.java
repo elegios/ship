@@ -115,7 +115,6 @@ public class ChatWindow extends Box implements Renderable, Updatable, KeyReceive
 
     @Override
     public boolean keyReleased(Keys keys, int key, char c) {
-        // TODO Auto-generated method stub
         return false;
     }
 

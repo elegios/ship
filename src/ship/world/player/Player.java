@@ -194,7 +194,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         collidedWithImobileY = false;
     }
 
-    public void update(GameContainer gc, int diff) { //TODO: find out why position flickers for clients only
+    public void update(GameContainer gc, int diff) {
         if (lastVehicle == null || !doAirResistX(lastVehicle)) {
             boolean airResisted = false;
             for (Vehicle vehicle : world.vehicles())
@@ -366,16 +366,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     public Builder builder() { return builder; }
 
     public World world() { return world; }
-
-    /*
-     * TODO: create receiving mechanisms for the following:
-     * - x, y, xSpeed, ySpeed
-     * - mass
-     * - moveLeft
-     * - moveRight
-     * - jump
-     * - builder data
-     */
 
     public void receivePlayerPositionPackage(PlayerPositionPackage pack) {
         if ((toUpdatePos == null || !toUpdatePos.xChecked()) && (toUpdateRel == null || !toUpdateRel.xChecked()))

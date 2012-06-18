@@ -32,7 +32,7 @@ import ship.world.vehicle.Vehicle;
  *
  * @author elegios
  */
-public class World implements Position, Renderable, Updatable, KeyReceiver {
+public class World implements Position, Renderable, Updatable, KeyReceiver { //TODO: implement world clock, to synchronise position updates
     public static final int SKY_GRADIENT_MINIMUM = 220 * Vehicle.TW;
     public static final int SKY_GRADIENT_LENGTH  = 10;
     public static final int SKY_MAX_R = 62;

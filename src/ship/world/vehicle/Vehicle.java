@@ -659,14 +659,6 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     public int ix() { return Math.round(world.getX() + getX()); }
     public int iy() { return Math.round(world.getY() + getY()); }
 
-    /*
-     * TODO: add receiving mechanisms for the following data:
-     * - tile creation and deletion
-     * - tile activation
-     * - x, y, xSpeed, ySpeed (set toUpdatePos after checking !toUpdatePos.xChecked())
-     * - tile data (it might be best to have this in the tiles themselves, we'll see)
-     */
-
     public void receiveVehiclePositionPackage(VehiclePositionPackage pack) {
         if (toUpdatePos == null || !toUpdatePos.xChecked())
             toUpdatePos = pack;
