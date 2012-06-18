@@ -157,6 +157,7 @@ public class MultiPlayerDialog extends JFrame {
         setBounds(100, 100, 450, 300);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
+        contentPanel.setFocusCycleRoot(true);
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         GridBagLayout gbl_contentPanel = new GridBagLayout();
@@ -192,8 +193,8 @@ public class MultiPlayerDialog extends JFrame {
                         panel_1.setLayout(new GridLayout(0, 1, 0, 0));
 
                                 addressField = new JTextField();
-                                addressField.setText("83.183.23.246"); //TODO: enable
-                                addressField.setText("localhost");
+                                addressField.setText("83.183.23.246");
+                                addressField.setText("localhost"); //TODO: remove localhost
                                 panel_1.add(addressField);
                                 addressField.setColumns(10);
 
@@ -208,11 +209,9 @@ public class MultiPlayerDialog extends JFrame {
                 panel_2.setLayout(new GridLayout(0, 1, 0, 0));
 
                         portField = new JTextField();
-                        portField.setText("9500"); //TODO: enable
-                        portField.setText("7780");
+                        portField.setText("9500");
                         panel_2.add(portField);
                         portField.setColumns(10);
-                        panel.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{addressField, portField}));
 
                         scrollPane = new JScrollPane();
                         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -228,6 +227,7 @@ public class MultiPlayerDialog extends JFrame {
                         contentPanel.add(scrollPane, gbc_scrollPane);
 
                         textArea = new JTextArea();
+                        textArea.setEditable(false);
                         textArea.setLineWrap(true);
                         scrollPane.setViewportView(textArea);
 
@@ -269,6 +269,7 @@ public class MultiPlayerDialog extends JFrame {
                         panel_4.add(btnSend, gbc_btnSend);
 
                         textChat = new JTextField();
+                        textChat.setFocusTraversalKeysEnabled(false);
                         textChat.setEnabled(false);
                         textChat.addActionListener(new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
@@ -314,6 +315,7 @@ public class MultiPlayerDialog extends JFrame {
                         });
                         btnStart.setEnabled(false);
                         panel_3.add(btnStart);
+                        contentPanel.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{addressField, portField, txtNickname, btnHost, btnConnect}));
     }
 
     public void appendText(String text) {
