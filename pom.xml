@@ -56,6 +56,9 @@
               <classpathPrefix>lib/</classpathPrefix>
               <mainClass>ship.launch.Controller</mainClass>
             </manifest>
+            <manifestEntries>
+              <Class-Path>lib/slick.jar lib/lwjgl.jar</Class-Path>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
