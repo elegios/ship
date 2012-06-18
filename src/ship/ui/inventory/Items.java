@@ -45,8 +45,8 @@ public class Items extends Box implements KeyReceiver, Focusable {
         this.parent = parent;
 
         fonts     = parent.view().fonts();
-        tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles", Vehicle.TW, Vehicle.TH);
-        highlight = parent.view().loader().loadManagedSpriteSheet("item_highlight",      HIGHLIGHT_W,      ITEM_HEIGHT);
+        tiles     = parent.view().loader().loadManagedSpriteSheet(         "tiles",  Vehicle.TW,  Vehicle.TH);
+        highlight = parent.view().loader().loadManagedSpriteSheet("item_highlight", HIGHLIGHT_W, ITEM_HEIGHT);
 
         this.items = new ArrayList<TileCreator>(items);
     }
