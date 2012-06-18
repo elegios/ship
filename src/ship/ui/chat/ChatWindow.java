@@ -1,5 +1,6 @@
 package ship.ui.chat;
 
+import media.AnimateFloat;
 import media.Renderable;
 
 import org.newdawn.slick.GameContainer;
@@ -25,8 +26,9 @@ public class ChatWindow extends Box implements Renderable, Updatable, KeyReceive
 
     private View view;
 
-    private int     timeUntilHide;
-    private boolean visible;
+    private int timeUntilHide;
+
+    private AnimateFloat xPos;
 
     private boolean acceptingInput;
 
@@ -34,16 +36,24 @@ public class ChatWindow extends Box implements Renderable, Updatable, KeyReceive
     private InputBox input;
 
     public ChatWindow(View view) throws SlickException {
-        super(null, view.loader(), X, Y, WIDTH, (View.window().getHeight() / Box.TH) - 2);
-        setX(View.window().getWidth() - X - getWidth());
+        super(null, view.loader(), View.window().getWidth(), Y, WIDTH, (View.window().getHeight() / Box.TH) - 2);
         this.view = view;
+
+        xPos = new AnimateFloat();
+        xPos.force(View.window().getWidth());
 
         text  = "";
         input = new InputBox(this);
 
         acceptingInput = false;
         timeUntilHide = 0;
-        visible = false;
+    }
+
+    private void show() {
+        xPos.set(View.window().getWidth() - X - getWidth());
+    }
+    private void hide() {
+        xPos.set(View.window().getWidth());
     }
 
     public void appendText(String text) {
@@ -51,30 +61,31 @@ public class ChatWindow extends Box implements Renderable, Updatable, KeyReceive
 
         if (timeUntilHide != -1)
             timeUntilHide = DEFAULT_TIME_UNTIL_HIDE;
-        visible = true;
+        show();
     }
 
     @Override
     public void update(GameContainer gc, int diff) {
+        xPos.update(diff);
+        setX(Math.round(xPos.get()));
+
         if (timeUntilHide > 0) {
             timeUntilHide -= diff;
 
             if (timeUntilHide <= 0) {
                 timeUntilHide = 0;
-                visible = false;
+                hide();
             }
         }
     }
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        if (visible) {
-            super.render(gc, g);
-            view.fonts().chat().drawString(ix() + TEXT_X_OFF, iy() + TEXT_Y_OFF, text);
+        super.render(gc, g);
+        view.fonts().chat().drawString(ix() + TEXT_X_OFF, iy() + TEXT_Y_OFF, text);
 
-            if (acceptingInput)
-                input.render(gc, g);
-        }
+        if (acceptingInput)
+            input.render(gc, g);
     }
 
     @Override
@@ -82,7 +93,6 @@ public class ChatWindow extends Box implements Renderable, Updatable, KeyReceive
         if (view.net().isOnline()) {
             if (key == Input.KEY_ENTER) {
 
-                visible = true;
                 acceptingInput = !acceptingInput;
 
                 if (acceptingInput)
@@ -91,6 +101,8 @@ public class ChatWindow extends Box implements Renderable, Updatable, KeyReceive
                     timeUntilHide = DEFAULT_TIME_UNTIL_HIDE;
                     input.sendMessage();
                 }
+
+                show();
 
                 return true;
 
