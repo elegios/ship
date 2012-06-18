@@ -129,8 +129,7 @@ public class Network implements ServerListener, PackageReceiver {
      * This method deals with the package types that both clients and servers can receive
      */
     private void passPackage(int type, Package pack) {
-        //TODO: pass packages to the intended receiver
-        try {
+        if (view != null) {
             switch (type) {
                 case ShipProtocol.REL_PLAYER_POS: {
                     RelativePlayerPositionPackage p = (RelativePlayerPositionPackage) pack;
@@ -185,23 +184,18 @@ public class Network implements ServerListener, PackageReceiver {
                     view.world().findVehicle(p.getVehicleId()).receiveDeleteTilePackage(p);
                     break;
                 }
-
-                case ShipProtocol.CHAT: {
-                    ChatPackage p = (ChatPackage) pack;
-                    guiMessage(getPlayerName(p.getPlayerId()) +": "+ p.getMessage());
-                    break;
-                }
-
-                case ShipProtocol.PLAYER_NAME: {
-                    PlayerNamePackage p = (PlayerNamePackage) pack;
-                    setPlayerName(p.getPlayerId(), p.getPlayerName());
-                    guiMessage(p.getPlayerName() +" is here.");
-                    break;
-                }
-
             }
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+        }
+        
+        if (type == ShipProtocol.CHAT) {
+            ChatPackage p = (ChatPackage) pack;
+            guiMessage(getPlayerName(p.getPlayerId()) +": "+ p.getMessage());
+            
+        } else if (type == ShipProtocol.PLAYER_NAME) {
+            PlayerNamePackage p = (PlayerNamePackage) pack;
+            setPlayerName(p.getPlayerId(), p.getPlayerName());
+            guiMessage(p.getPlayerName() +" is here.");
+            
         }
     }
 
@@ -240,14 +234,18 @@ public class Network implements ServerListener, PackageReceiver {
     public void receivePackage(int type, Package pack) {
         switch (type) {
             case ShipProtocol.VEHICLE_POS: {
-                VehiclePositionPackage p = (VehiclePositionPackage) pack;
-                view.world().findVehicle(p.getId()).receiveVehiclePositionPackage(p);
+                if (view != null) {
+                    VehiclePositionPackage p = (VehiclePositionPackage) pack;
+                    view.world().findVehicle(p.getId()).receiveVehiclePositionPackage(p);
+                }
                 break;
             }
 
             case ShipProtocol.CONTENT: {
-                ContentPackage p = (ContentPackage) pack;
-                view.world().findVehicle(p.getVehicleId()).tile(p.getVehX(), p.getVehY()).receiveContentPackage(p);
+                if (view != null) {
+                    ContentPackage p = (ContentPackage) pack;
+                    view.world().findVehicle(p.getVehicleId()).tile(p.getVehX(), p.getVehY()).receiveContentPackage(p);
+                }
                 break;
             }
 
