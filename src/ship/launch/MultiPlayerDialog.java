@@ -150,10 +150,13 @@ public class MultiPlayerDialog extends JFrame {
      * Create the graphical components of the dialog.
      */
     public MultiPlayerDialog(Network net) {
+        super();
+
         this.net = net;
         net.setDialog(this);
         protocol = new ShipProtocol();
 
+        setTitle("Multiplayer Dialog");
         setBounds(100, 100, 450, 300);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
@@ -316,6 +319,7 @@ public class MultiPlayerDialog extends JFrame {
                         btnStart.setEnabled(false);
                         panel_3.add(btnStart);
                         contentPanel.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{addressField, portField, txtNickname, btnHost, btnConnect}));
+
     }
 
     public void appendText(String text) {
