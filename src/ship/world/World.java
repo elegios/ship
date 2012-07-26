@@ -39,6 +39,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     public static final int SKY_MAX_G = 209;
     public static final int SKY_MAX_B = 255;
 
+    public static final int UPDATE_POS_INTERVAL = 200;
+
     private View view;
 
     private int x;
@@ -61,8 +63,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     private float fuelRate;
 
     private boolean updatePos;
+    private int     time;
     private int     timeTilUpdatePos;
-    private int     updatePosInterval;
 
     public World(View view) throws SlickException {
         if (skyColors == null) {
@@ -99,9 +101,10 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
             players[i] = new Player(this, i, island.getWidth()/2 + 32, -100 - i*10);
         currPlayer = players[view.playerId()];
 
+        time = Integer.MIN_VALUE;
+
         updatePos = false;
-        updatePosInterval = 300; //TODO: figure out if the update frequency really should be a variable
-        timeTilUpdatePos = updatePosInterval;
+        timeTilUpdatePos = UPDATE_POS_INTERVAL;
     }
 
     @Override
@@ -114,10 +117,12 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
         moveY(diff);
         collideY();
 
+        time += diff;
+
         timeTilUpdatePos -= diff;
         if (timeTilUpdatePos < 0) {
             updatePos = true;
-            timeTilUpdatePos += updatePosInterval;
+            timeTilUpdatePos += UPDATE_POS_INTERVAL;
         } else
             updatePos = false;
 
@@ -485,12 +490,13 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
     public View view() { return view; }
 
-    public float  actionsPerTick()   { return actionsPerTick; }
-    public float  gravity()          { return gravity; }
+    public int    time()             { return             time; }
+    public float  actionsPerTick()   { return   actionsPerTick; }
+    public float  gravity()          { return          gravity; }
     public float  frictionFraction() { return frictionFraction; }
-    public float  airResist()        { return airResist; }
-    public Player currPlayer()       { return currPlayer; }
-    public float  fuelRate()         { return fuelRate; }
+    public float  airResist()        { return        airResist; }
+    public Player currPlayer()       { return       currPlayer; }
+    public float  fuelRate()         { return         fuelRate; }
 
     public List<Vehicle> vehicles() { return vehicles; }
 
