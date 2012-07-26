@@ -129,6 +129,7 @@ public class Network implements ServerListener, PackageReceiver {
      * This method deals with the package types that both clients and servers can receive
      */
     private void passPackage(int type, Package pack) {
+        try {
         if (view != null) {
             switch (type) {
                 case ShipProtocol.REL_PLAYER_POS: {
@@ -186,16 +187,20 @@ public class Network implements ServerListener, PackageReceiver {
                 }
             }
         }
-        
+
         if (type == ShipProtocol.CHAT) {
             ChatPackage p = (ChatPackage) pack;
             guiMessage(getPlayerName(p.getPlayerId()) +": "+ p.getMessage());
-            
+
         } else if (type == ShipProtocol.PLAYER_NAME) {
             PlayerNamePackage p = (PlayerNamePackage) pack;
             setPlayerName(p.getPlayerId(), p.getPlayerName());
             guiMessage(p.getPlayerName() +" is here.");
-            
+
+        }
+        } catch (Exception e) {
+            System.out.println("\nGot an error in a connection listener"); //TODO: make game not start until everyone has finished loading
+            e.printStackTrace();
         }
     }
 
