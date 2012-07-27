@@ -5,12 +5,15 @@ import elegios.netcode.Package;
 
 /*
  * Specification:
- * id | x | y | xSpeed | ySpeed
+ * id | time | x | y | xSpeed | ySpeed
  */
 
 public class PlayerPositionPackage extends BasicPackage {
 
     private int id;
+
+    private int time;
+
     private float x;
     private float y;
     private float xSpeed;
@@ -18,8 +21,10 @@ public class PlayerPositionPackage extends BasicPackage {
 
     private boolean xChecked;
 
-    public PlayerPositionPackage(int id, float x, float y, float xSpeed, float ySpeed) {
+    public PlayerPositionPackage(int id, int time, float x, float y, float xSpeed, float ySpeed) {
         append(id +"");
+
+        append(time +"");
 
         appendFloat(x);
         appendFloat(y);
@@ -28,6 +33,8 @@ public class PlayerPositionPackage extends BasicPackage {
         appendFloat(ySpeed);
 
         this.id = id;
+
+        this.time = time;
 
         this.x = x;
         this.y = y;
@@ -40,6 +47,8 @@ public class PlayerPositionPackage extends BasicPackage {
         super(message);
 
         id = getNextInt();
+
+        time = getNextInt();
 
         x = getNextFloat();
         y = getNextFloat();
@@ -54,9 +63,10 @@ public class PlayerPositionPackage extends BasicPackage {
 
     public Package receivePackage(String message) { return new PlayerPositionPackage(message); }
 
-    public int   getId() { return id; }
-    public float getX()  { return  x; }
-    public float getY()  { return  y; }
+    public int   getId()   { return id; }
+    public int   getTime() { return time; }
+    public float getX()    { return  x; }
+    public float getY()    { return  y; }
     public float getXSpeed() { return xSpeed; }
     public float getYSpeed() { return ySpeed; }
 

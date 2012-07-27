@@ -14,6 +14,8 @@ import ship.netcode.interaction.CreateTilePackage;
 import ship.netcode.interaction.DeleteTilePackage;
 import ship.netcode.movement.VehiclePositionPackage;
 import ship.world.Position;
+import ship.world.PositionMemory;
+import ship.world.PositionMemoryBank;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
@@ -53,6 +55,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     protected float xSpeed;
     protected float ySpeed;
 
+    private PositionMemoryBank posBank;
     private VehiclePositionPackage toUpdatePos;
     private CreateTilePackage toCreate;
     private DeleteTilePackage toDelete;
@@ -96,6 +99,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         for (int i = 0; i < collidesAt.length; i++)
             for (int j = 0; j < collidesAt[0].length; j++)
                 collidesAt[i][j] = false;
+
+        posBank = new PositionMemoryBank(World.POS_MEMORY_COUNT);
 
         if (centerInit) {
             this.x = x - getWidth()/2;
@@ -550,10 +555,21 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         if (toUpdatePos != null) {
             toUpdatePos.xChecked(true);
 
-            world.relMoveX(this, toUpdatePos.getX() - x);
+            PositionMemory closest = posBank.getClosest(toUpdatePos.getTime());
+            if (closest != null) {
+                float diffMove = toUpdatePos.getX() - closest.getX();
 
-            x      = toUpdatePos.getX();
-            xSpeed = toUpdatePos.getXSpeed();
+                world.relMoveX(this, diffMove);
+
+                x      += diffMove;
+                xSpeed += toUpdatePos.getXSpeed() - closest.getXSpeed();
+
+            } else {
+                world.relMoveX(this, toUpdatePos.getX() - x);
+
+                x      = toUpdatePos.getX();
+                xSpeed = toUpdatePos.getXSpeed();
+            }
         }
 
         float absSpeed = getAbsXSpeed();
@@ -565,10 +581,21 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         collisionLockY = 0;
 
         if (toUpdatePos != null && toUpdatePos.xChecked()) {
-            world.relMoveY(this, toUpdatePos.getY() - y);
+            PositionMemory closest = posBank.getClosest(toUpdatePos.getTime());
+            if (closest != null) {
+                float diffMove = toUpdatePos.getY() - closest.getY();
 
-            y      = toUpdatePos.getY();
-            ySpeed = toUpdatePos.getYSpeed();
+                world.relMoveY(this, diffMove);
+
+                y      += diffMove;
+                ySpeed += toUpdatePos.getYSpeed() - closest.getYSpeed();
+
+            } else {
+                world.relMoveY(this, toUpdatePos.getY() - y);
+
+                y      = toUpdatePos.getY();
+                ySpeed = toUpdatePos.getYSpeed();
+            }
 
             toUpdatePos = null;
         }
@@ -576,6 +603,15 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         float absSpeed = getAbsYSpeed();
         if (absSpeed > SPEED_THRESHOLD || absSpeed < -SPEED_THRESHOLD)
             y += getAbsYMove(diff);
+    }
+
+    /**
+     * Only here to help Players update their relative position.
+     * @param time
+     * @return the closest matching PositionMemory from the Vehicles PositionMemoryBank
+     */
+    public PositionMemory getClosest(int time) {
+        return posBank.getClosest(time);
     }
 
     public boolean collidedWithImmobileX() { return collidedWithImmobileX; }
@@ -629,8 +665,11 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
                 if (tiles[i][j] != null)
                     tiles[i][j].update(gc, diff);
 
-        if (world.updatePos() && world.view().net().isServer()) {
-            world.view().net().send(ShipProtocol.VEHICLE_POS, new VehiclePositionPackage(id, x, y, xSpeed, ySpeed));
+        if (world.updatePos()) {
+            if (world.view().net().isServer())
+                world.view().net().send(ShipProtocol.VEHICLE_POS, new VehiclePositionPackage(id, world.time(), x, y, xSpeed, ySpeed));
+
+            posBank.store(world.time(), x, y, xSpeed, ySpeed, null);
         }
 
         pushX((float) (-xSpeed * world.airResist() * Math.pow(botY   - topY,  0.5))); //TODO: airresist from other vehicles
@@ -676,83 +715,85 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         int mx = WIDTH ()/2;
         int my = HEIGHT()/2;
 
-        if (id > 4) {
+        switch (id % 2) {
+            case 0:
 
-            addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
+                addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
 
-            addTile(new AirFuelTransport(mx - 2, my - 1, false, Tile.LEFT));
-            addTile(new FuelTank(mx - 2, my));
-            ((FuelTank) tiles[mx - 2][my]).setContent(FuelTank.MAX_CONTENT);
-            addTile(new FuelTransport(mx - 2, my + 1, false, Tile.UP));
+                addTile(new AirFuelTransport(mx - 2, my - 1, false, Tile.LEFT));
+                addTile(new FuelTank(mx - 2, my));
+                ((FuelTank) tiles[mx - 2][my]).setContent(FuelTank.MAX_CONTENT);
+                addTile(new FuelTransport(mx - 2, my + 1, false, Tile.UP));
 
-            addTile(new AirFuelTransport(mx - 3, my - 1, false, Tile.DOWN));
-            addTile(new Thruster(mx - 3, my, Tile.RIGHT));
-            addTile(new FuelTransport(mx - 3, my + 1, false, Tile.RIGHT));
-
-
-            addTile(new PowerSwitch(mx, my, Tile.UP));
-
-            addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
-            addTile(new FuelTank(mx, my + 1));
-            ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
-            addTile(new FuelTransport(mx + 1, my + 1, false, Tile.LEFT));
-
-            addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
-            addTile(new Thruster(mx, my + 2, Tile.UP));
-            addTile(new AirFuelTransport(mx + 1, my + 2, false, Tile.UP));
+                addTile(new AirFuelTransport(mx - 3, my - 1, false, Tile.DOWN));
+                addTile(new Thruster(mx - 3, my, Tile.RIGHT));
+                addTile(new FuelTransport(mx - 3, my + 1, false, Tile.RIGHT));
 
 
-            addTile(new PowerSwitch(mx + 1, my, Tile.LEFT));
+                addTile(new PowerSwitch(mx, my, Tile.UP));
 
-            addTile(new AirFuelTransport(mx + 2, my - 1, false, Tile.DOWN));
-            addTile(new FuelTank(mx + 2, my));
-            ((FuelTank) tiles[mx + 2][my]).setContent(FuelTank.MAX_CONTENT);
-            addTile(new FuelTransport(mx + 2, my + 1, false, Tile.RIGHT));
+                addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
+                addTile(new FuelTank(mx, my + 1));
+                ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
+                addTile(new FuelTransport(mx + 1, my + 1, false, Tile.LEFT));
 
-            addTile(new AirFuelTransport(mx + 3, my - 1, false, Tile.LEFT));
-            addTile(new Thruster(mx + 3, my, Tile.LEFT));
-            addTile(new FuelTransport(mx + 3, my + 1, false, Tile.UP));
+                addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
+                addTile(new Thruster(mx, my + 2, Tile.UP));
+                addTile(new AirFuelTransport(mx + 1, my + 2, false, Tile.UP));
 
 
-            addTile(new Tile(mx - 4, my + 1, 1, 5, true));
-            addTile(new Tile(mx - 5, my + 2, 1, 5, true));
+                addTile(new PowerSwitch(mx + 1, my, Tile.LEFT));
 
-            addTile(new Tile(mx + 4, my + 1, 1, 5, true));
-            addTile(new Tile(mx + 5, my + 2, 1, 5, true));
+                addTile(new AirFuelTransport(mx + 2, my - 1, false, Tile.DOWN));
+                addTile(new FuelTank(mx + 2, my));
+                ((FuelTank) tiles[mx + 2][my]).setContent(FuelTank.MAX_CONTENT);
+                addTile(new FuelTransport(mx + 2, my + 1, false, Tile.RIGHT));
 
-            addTile(new Tile(mx - 1, my - 2, 1, 5, true));
-            addTile(new Tile(mx    , my - 2, 1, 5, true));
-            addTile(new Tile(mx + 1, my - 2, 1, 5, true));
+                addTile(new AirFuelTransport(mx + 3, my - 1, false, Tile.LEFT));
+                addTile(new Thruster(mx + 3, my, Tile.LEFT));
+                addTile(new FuelTransport(mx + 3, my + 1, false, Tile.UP));
 
-        } else {
-            addTile(new PowerSwitch(mx, my, Tile.UP));
 
-            addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
-            addTile(new FuelTank(mx, my + 1));
-            ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
+                addTile(new Tile(mx - 4, my + 1, 1, 5, true));
+                addTile(new Tile(mx - 5, my + 2, 1, 5, true));
 
-            addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
-            addTile(new Thruster(mx, my + 2, Tile.UP));
+                addTile(new Tile(mx + 4, my + 1, 1, 5, true));
+                addTile(new Tile(mx + 5, my + 2, 1, 5, true));
 
-            addTile(new AirPowerTransport(mx - 4, my - 2, Tile.DOWN + 2));
-            addTile(new AirPowerTransport(mx - 3, my - 2, Tile.DOWN + 6));
-            addTile(new AirPowerTransport(mx - 2, my - 2, Tile.LEFT + 2));
+                addTile(new Tile(mx - 1, my - 2, 1, 5, true));
+                addTile(new Tile(mx    , my - 2, 1, 5, true));
+                addTile(new Tile(mx + 1, my - 2, 1, 5, true));
+                break;
 
-            addTile(new AirPowerTransport(mx - 4, my - 1, Tile.RIGHT + 2));
-            addTile(new MomentumAbsorber(mx - 3, my - 1, Tile.DOWN));
-            addTile(new AirPowerTransport(mx - 2, my - 1, Tile.LEFT + 6));
+            case 1:
+                addTile(new PowerSwitch(mx, my, Tile.UP));
 
-            addTile(new MomentumAbsorber(mx - 3, my, Tile.LEFT + 1));
-            addTile(new AirPowerTransport(mx - 2, my, Tile.RIGHT + 6));
-            addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
+                addTile(new FuelTransport(mx - 1, my + 1, false, Tile.DOWN));
+                addTile(new FuelTank(mx, my + 1));
+                ((FuelTank) tiles[mx][my + 1]).setContent(FuelTank.MAX_CONTENT);
 
-            addTile(new PowerTransport(mx - 4, my + 1, Tile.DOWN + 2));
-            addTile(new MomentumAbsorber(mx - 3, my + 1, Tile.UP));
-            addTile(new PowerTransport(mx - 2, my + 1, Tile.LEFT + 6));
+                addTile(new AirFuelTransport(mx - 1, my + 2, false, Tile.RIGHT));
+                addTile(new Thruster(mx, my + 2, Tile.UP));
 
-            addTile(new PowerTransport(mx - 4, my + 2, Tile.RIGHT + 2));
-            addTile(new PowerTransport(mx - 3, my + 2, Tile.UP + 6));
-            addTile(new PowerTransport(mx - 2, my + 2, Tile.UP + 2));
+                addTile(new AirPowerTransport(mx - 4, my - 2, Tile.DOWN + 2));
+                addTile(new AirPowerTransport(mx - 3, my - 2, Tile.DOWN + 6));
+                addTile(new AirPowerTransport(mx - 2, my - 2, Tile.LEFT + 2));
+
+                addTile(new AirPowerTransport(mx - 4, my - 1, Tile.RIGHT + 2));
+                addTile(new MomentumAbsorber(mx - 3, my - 1, Tile.DOWN));
+                addTile(new AirPowerTransport(mx - 2, my - 1, Tile.LEFT + 6));
+
+                addTile(new MomentumAbsorber(mx - 3, my, Tile.LEFT + 1));
+                addTile(new AirPowerTransport(mx - 2, my, Tile.RIGHT + 6));
+                addTile(new PowerSwitch(mx - 1, my, Tile.RIGHT));
+
+                addTile(new PowerTransport(mx - 4, my + 1, Tile.DOWN + 2));
+                addTile(new MomentumAbsorber(mx - 3, my + 1, Tile.UP));
+                addTile(new PowerTransport(mx - 2, my + 1, Tile.LEFT + 6));
+
+                addTile(new PowerTransport(mx - 4, my + 2, Tile.RIGHT + 2));
+                addTile(new PowerTransport(mx - 3, my + 2, Tile.UP + 6));
+                addTile(new PowerTransport(mx - 2, my + 2, Tile.UP + 2));
         }
     }
 

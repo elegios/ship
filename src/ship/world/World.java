@@ -40,6 +40,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     public static final int SKY_MAX_B = 255;
 
     public static final int UPDATE_POS_INTERVAL = 200;
+    public static final int POS_MEMORY_COUNT = 5;
 
     private View view;
 
@@ -431,7 +432,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
         if (currPlayer.builder().buildMode())
             renderBuilder(currPlayer.builder(), gc, g);
-        g.drawString("xSpeed: " +Math.round(currPlayer.getAbsXSpeed()/32)+ " squ/igs\n" +
+        g.drawString("time: " +time+ "\n" +
+                     "xSpeed: " +Math.round(currPlayer.getAbsXSpeed()/32)+ " squ/igs\n" +
         		     "ySpeed: " +Math.round(currPlayer.getAbsYSpeed()/32)+ " squ/igs\n\nPlayer " +view.playerId(), 10, 100);
     }
     /**
