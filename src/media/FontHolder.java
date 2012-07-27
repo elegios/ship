@@ -3,6 +3,7 @@ package media;
 import java.awt.Color;
 import java.nio.file.Path;
 
+import org.newdawn.slick.Font;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
@@ -38,9 +39,9 @@ public class FontHolder {
         chat.loadGlyphs();
     }
 
-    public UnicodeFont inv         () { return inv;          }
-    public UnicodeFont invSelected () { return invSelected;  }
-    public UnicodeFont name        () { return name;         }
-    public UnicodeFont chat        () { return chat;         }
+    public Font inv         () { return inv;          }
+    public Font invSelected () { return invSelected;  }
+    public Font name        () { return name;         }
+    public Font chat        () { return chat;         }
 
 }
