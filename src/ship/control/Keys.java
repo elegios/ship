@@ -23,8 +23,10 @@ public class Keys implements KeyReceiver {
     private int buildDown;
     private int buildLeft;
 
-    public Keys() { //default is a somewhat neutral control scheme, except it requires numpad
-        setDvorak(); //temporary
+    private int pause;
+
+    public Keys() {
+        setDvorak();
     }
 
     /**
@@ -48,6 +50,8 @@ public class Keys implements KeyReceiver {
         buildRight = Input.KEY_N;
         buildDown  = Input.KEY_T;
         buildLeft  = Input.KEY_H;
+
+        pause = Input.KEY_P;
     }
 
     /**
@@ -71,6 +75,8 @@ public class Keys implements KeyReceiver {
         buildRight = Input.KEY_L;
         buildDown  = Input.KEY_K;
         buildLeft  = Input.KEY_J;
+
+        pause = Input.KEY_P;
     }
 
     /**
@@ -119,6 +125,7 @@ public class Keys implements KeyReceiver {
         buildDown  = Input.KEY_S;
         buildLeft  = Input.KEY_A;
 
+        pause = Input.KEY_P;
     }
 
     public int up   () { return up; }
@@ -139,6 +146,8 @@ public class Keys implements KeyReceiver {
     public int buildDown () { return buildDown;  }
     public int buildLeft () { return buildLeft;  }
 
+    public int pause() { return pause; }
+
 
     public void up   (int key) { up    = key; }
     public void right(int key) { right = key; }
@@ -157,6 +166,8 @@ public class Keys implements KeyReceiver {
     public void buildRight(int key) { buildRight = key; }
     public void buildDown (int key) { buildDown  = key; }
     public void buildLeft (int key) { buildLeft  = key; }
+
+    public void pause (int key) { pause = key; }
 
     @Override
     public boolean keyPressed(Keys keys, int key, char c) {

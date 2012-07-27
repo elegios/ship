@@ -13,6 +13,7 @@ import media.Renderable;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
 import ship.Updatable;
@@ -67,6 +68,11 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     private int     time;
     private int     timeTilUpdatePos;
 
+    private String systemMessage;
+
+    private boolean running;
+    private int     unpauseTimer; //TODO: implement unpause (and figure out the best way to do it)
+
     public World(View view) throws SlickException {
         if (skyColors == null) {
             skyColors = new Color[256];
@@ -106,34 +112,39 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
         updatePos = false;
         timeTilUpdatePos = UPDATE_POS_INTERVAL;
+
+        running = true;
+        togglePause();
     }
 
     @Override
     public void update(GameContainer gc, int diff) {
-        for (Player player : players)
-            player.updateEarly(gc, diff);
+        if (running) {
+            for (Player player : players)
+                player.updateEarly(gc, diff);
 
-        moveX(diff);
-        collideX();
-        moveY(diff);
-        collideY();
+            moveX(diff);
+            collideX();
+            moveY(diff);
+            collideY();
 
-        time += diff;
+            time += diff;
 
-        timeTilUpdatePos -= diff;
-        if (timeTilUpdatePos < 0) {
-            updatePos = true;
-            timeTilUpdatePos += UPDATE_POS_INTERVAL;
-        } else
-            updatePos = false;
+            timeTilUpdatePos -= diff;
+            if (timeTilUpdatePos < 0) {
+                updatePos = true;
+                timeTilUpdatePos += UPDATE_POS_INTERVAL;
+            } else
+                updatePos = false;
 
-        for (Player player : players)
-            player.update(gc, diff);
-        for (Vehicle vehicle : vehicles)
-            vehicle.update(gc, diff);
+            for (Player player : players)
+                player.update(gc, diff);
+            for (Vehicle vehicle : vehicles)
+                vehicle.update(gc, diff);
 
-        x = Math.round(currPlayer.getX()) + currPlayer.getWidth()/2  - View.window().getWidth()/2;
-        y = Math.round(currPlayer.getY()) + currPlayer.getHeight()/2 - View.window().getHeight()/2;
+            x = Math.round(currPlayer.getX()) + currPlayer.getWidth()/2  - View.window().getWidth()/2;
+            y = Math.round(currPlayer.getY()) + currPlayer.getHeight()/2 - View.window().getHeight()/2;
+        }
     }
 
     /**
@@ -238,7 +249,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     }
 
     /**
-     * First collides <code>vehicle</code> with all vehicle with a higher ID,
+     * First collides <code>vehicle</code> with all vehicles with a higher ID,
      * redoing collision with all vehicles, including those of lower ID, should
      * a collision be detected. Those of lower ID will result in a call to
      * collideVehicleY(other), while those with a higher ID will give a
@@ -435,6 +446,11 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
         g.drawString("time: " +time+ "\n" +
                      "xSpeed: " +Math.round(currPlayer.getAbsXSpeed()/32)+ " squ/igs\n" +
         		     "ySpeed: " +Math.round(currPlayer.getAbsYSpeed()/32)+ " squ/igs\n\nPlayer " +view.playerId(), 10, 100);
+
+        if (systemMessage != null)
+            view.fonts().message().drawString(View.window().getWidth()/2 - view.fonts().message().getWidth(systemMessage)/2,
+                                              View.window().getHeight()/2,
+                                              systemMessage);
     }
     /**
      * Renders the highlight of the player builder, if in overlaps a position
@@ -483,6 +499,28 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
         View.window().getGraphics().flush();
     }
 
+    private void togglePause() {
+        running = !running;
+        if (running) {
+            systemMessage(null);
+        } else
+            if (view.net().isClient())
+                systemMessage("Game is paused. Please wait for the server player to resume.");
+
+            else
+                systemMessage("Game is paused. Resume by pressing " +Input.getKeyName(view.keys().pause()));
+
+    }
+
+    /**
+     * Sets the current systemMessage. Null means that no message
+     * should be shown.
+     * @param message the message to be shown
+     */
+    public void systemMessage(String message) {
+        systemMessage = message;
+    }
+
     /**
      * Check whether objects should update their values in DataVerse.
      * This will periodically be true.
@@ -513,7 +551,15 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     }
 
     public boolean keyPressed(Keys keys, int key, char c) {
-        return currPlayer.keyPressed(keys, key, c);
+        if (key == keys.pause() && !view.net().isOnline()) { //TODO: implement multiplayer pausing
+            togglePause();
+            return true;
+        }
+
+        if (running)
+            return currPlayer.keyPressed(keys, key, c);
+        else
+            return false;
     }
 
 }

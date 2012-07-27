@@ -15,6 +15,7 @@ public class FontHolder {
     private UnicodeFont invSelected;
     private UnicodeFont name;
     private UnicodeFont chat;
+    private UnicodeFont message;
 
     @SuppressWarnings("unchecked")
     public FontHolder(Path artDir) throws SlickException {
@@ -37,11 +38,17 @@ public class FontHolder {
         chat.addAsciiGlyphs();
         chat.getEffects().add(new ColorEffect(Color.BLACK));
         chat.loadGlyphs();
+
+        message = new UnicodeFont(artDir.toString() + "/message.ttf", 40, false, false);
+        message.addAsciiGlyphs();
+        message.getEffects().add(new ColorEffect(Color.RED));
+        message.loadGlyphs();
     }
 
     public Font inv         () { return inv;          }
     public Font invSelected () { return invSelected;  }
     public Font name        () { return name;         }
     public Font chat        () { return chat;         }
+    public Font message     () { return message;      }
 
 }
