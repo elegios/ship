@@ -10,14 +10,10 @@ public class PowerTransport extends Tile {
 
     private boolean[] directions;
 
-    private boolean renderPowered;
-
     public PowerTransport(int x, int y, int type) {
         super(x, y, BASETILE + type, Tile.STDMASS, true);
 
         setDirections(type);
-
-        renderPowered = false;
     }
     protected PowerTransport(int x, int y, int tile, float mass, boolean collide, boolean render) {
         super(x, y, tile, mass, collide);
@@ -62,7 +58,6 @@ public class PowerTransport extends Tile {
     public boolean powerFrom(int direction) {
         if (directions[direction] && !powered()) {
             power(true);
-            renderPowered = true;
 
             Tile block;
             if (direction != Tile.UP && directions[Tile.UP] && (block = getFrom(UP)) != null)
@@ -89,8 +84,7 @@ public class PowerTransport extends Tile {
     }
 
     public int tile() {
-        if (renderPowered) {
-            renderPowered = false;
+        if (powered()) {
             return super.tile() + 11;
         }
 

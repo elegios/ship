@@ -1,5 +1,7 @@
 package ship.world.vehicle.tile.fuel;
 
+import org.newdawn.slick.GameContainer;
+
 import ship.world.vehicle.tile.Tile;
 
 public class FuelTransport extends Tile {
@@ -53,14 +55,21 @@ public class FuelTransport extends Tile {
         return false;
     }
 
+    public void updateEarly(GameContainer gc, int diff) {
+        if (fueled())
+            fuel(false);
+
+    }
+
     public int tile() {
         int ret = super.tile();
+
         if (straight)
             ret -= 2;
-        if (fueled()) {
+
+        if (fueled())
             ret += 6;
-            fuel(false);
-        }
+
         return ret;
     }
 

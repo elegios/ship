@@ -12,8 +12,6 @@ public class FuelTank extends Tile {
     public static final float MAX_CONTENT = 600;
     public static final float STAGE_SIZE  = MAX_CONTENT / 4;
 
-    private boolean renderPowered;
-
     private float content;
 
     private float lastSentContent;
@@ -23,14 +21,11 @@ public class FuelTank extends Tile {
 
         content = 0;
         lastSentContent = 0;
-
-        renderPowered = false;
     }
 
     public boolean powerFrom(int direction) {
         if (!powered()) {
             power(true);
-            renderPowered = true;
 
             float amount = Math.min(parent.world().fuelRate() * parent.world().view().diff(), content);
             for (int i = 0; i < 4 && amount > 0; i++) {
@@ -74,10 +69,9 @@ public class FuelTank extends Tile {
     }
 
     public int tile() {
-        if (renderPowered) {
-            renderPowered = false;
+        if (powered())
             return super.tile() + Math.round(content/STAGE_SIZE) + 5;
-        } else
+        else
             return super.tile() + Math.round(content/STAGE_SIZE);
     }
 
