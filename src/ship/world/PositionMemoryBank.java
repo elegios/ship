@@ -4,6 +4,8 @@ import ship.world.vehicle.Vehicle;
 
 public class PositionMemoryBank {
 
+    public static final int MAX_DIFF = World.UPDATE_POS_INTERVAL/3;
+
     private PositionMemory[] memories;
     private int    lastItem;
 
@@ -18,7 +20,7 @@ public class PositionMemoryBank {
     }
 
     public PositionMemory getClosest(int time) {
-        int diff = World.UPDATE_POS_INTERVAL * 5;
+        /*int diff = World.UPDATE_POS_INTERVAL * 5;
         PositionMemory closestMemory = null;
 
         for (PositionMemory i : memories) {
@@ -33,6 +35,14 @@ public class PositionMemoryBank {
         }
 
         return closestMemory;
+        */
+
+        for (PositionMemory i : memories)
+            if (i != null)
+                if (Math.abs(time - i.time) <= MAX_DIFF)
+                    return i;
+
+        return null;
     }
 
 }

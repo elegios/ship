@@ -114,7 +114,7 @@ public class MultiPlayerDialog extends JFrame {
      */
     public void start() {
         if (net.isServer())
-            net.send(ShipProtocol.GAME_START);
+            net.send(ShipProtocol.INIT_GAME_LOAD);
 
         new Thread(new Runnable() {
 
@@ -197,7 +197,7 @@ public class MultiPlayerDialog extends JFrame {
 
                                 addressField = new JTextField();
                                 addressField.setText("83.183.23.246");
-                                addressField.setText("localhost"); //TODO: remove localhost
+                                //addressField.setText("localhost"); //TODO: remove localhost
                                 panel_1.add(addressField);
                                 addressField.setColumns(10);
 

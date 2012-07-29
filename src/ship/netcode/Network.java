@@ -2,6 +2,7 @@ package ship.netcode;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import ship.View;
@@ -17,6 +18,7 @@ import ship.netcode.meta.ChatPackage;
 import ship.netcode.meta.NumPlayersPackage;
 import ship.netcode.meta.PlayerIdPackage;
 import ship.netcode.meta.PlayerNamePackage;
+import ship.netcode.meta.TimeSyncPackage;
 import ship.netcode.movement.PlayerPositionPackage;
 import ship.netcode.movement.RelativePlayerPositionPackage;
 import ship.netcode.movement.VehiclePositionPackage;
@@ -38,6 +40,9 @@ public class Network implements ServerListener, PackageReceiver {
 
     private List<PlayerName> playerNames;
 
+    private int[] collectedLatency;
+    private Date  lastSent;
+
     private Connection connection;
 
     private int numPlayers;
@@ -57,7 +62,8 @@ public class Network implements ServerListener, PackageReceiver {
     public void setConnection(Connection connection) {
         this.connection = connection;
 
-        playerNames = new ArrayList<>();
+        playerNames      = new ArrayList<>();
+        collectedLatency = new int[ShipProtocol.PING_END - ShipProtocol.PING_START + 1];
 
         connection.setReceiver(this);
     }
@@ -162,11 +168,12 @@ public class Network implements ServerListener, PackageReceiver {
                     break;
                 }
 
-                case ShipProtocol.ITEM_AND_SUB: {
-                    ItemAndSubItemPackage p = (ItemAndSubItemPackage) pack;
-                    view.world().findPlayer(p.getPlayerId()).builder().receiveItemAndSubItemPackage(p);
+                case ShipProtocol.ITEM_AND_SUB:
+                    if (view != null) {
+                        ItemAndSubItemPackage p = (ItemAndSubItemPackage) pack;
+                        view.world().findPlayer(p.getPlayerId()).builder().receiveItemAndSubItemPackage(p);
+                    }
                     break;
-                }
 
                 case ShipProtocol.ACTIVATE: {
                     ActivatePackage p = (ActivatePackage) pack;
@@ -211,6 +218,18 @@ public class Network implements ServerListener, PackageReceiver {
      * This method is only used when this is a server
      */
     public void receivePackage(Connection conn, int type, Package pack) {
+        if (type >= ShipProtocol.PING_START && type <= ShipProtocol.PING_END){
+            conn.send(type);
+            //TODO: update some kind of player status on the server side, so it knows when a player is done syncing
+
+            if (type == ShipProtocol.PING_END) {
+                send(ShipProtocol.INIT_GAME_START);
+                view.world().initUnpauseTimer(0);
+            }
+
+            return;
+        }
+
         if (type == ShipProtocol.PLAYER_MOVE    ||
             type == ShipProtocol.PLAYER_POS     ||
             type == ShipProtocol.ITEM_AND_SUB   ||
@@ -218,14 +237,14 @@ public class Network implements ServerListener, PackageReceiver {
             type == ShipProtocol.BUILD_MODE     ||
             type == ShipProtocol.REL_PLAYER_POS ||
             type == ShipProtocol.CHAT           ||
-            type == ShipProtocol.PLAYER_NAME) {
+            type == ShipProtocol.PLAYER_NAME) { //These packages are distributed to all players but the sender
             for (Connection connection : connections) {
                 if (connection != conn)
                     connection.send(type, pack);
             }
         } else if (type == ShipProtocol.CREATE_TILE ||
                    type == ShipProtocol.DELETE_TILE ||
-                   type == ShipProtocol.ACTIVATE) {
+                   type == ShipProtocol.ACTIVATE) { //These packages are bounced to the sender as well as all other players
             send(type, pack);
         }
 
@@ -237,6 +256,19 @@ public class Network implements ServerListener, PackageReceiver {
      */
     @Override
     public void receivePackage(int type, Package pack) {
+        if (type >= ShipProtocol.PING_START && type <= ShipProtocol.PING_END) { //It's a ping message, do calculations
+            collectedLatency[type - ShipProtocol.PING_START] = (int) (new Date().getTime() - lastSent.getTime());
+
+            if (type < ShipProtocol.PING_END) {
+                lastSent = new Date();
+                send(type + 1);
+                view.world().systemMessage("Syncing (" +(type - ShipProtocol.PING_START)+ "/" +(collectedLatency.length) +")");
+            } else
+                view.world().systemMessage("Done syncing. Waiting for others.");
+
+            return;
+        }
+
         switch (type) {
             case ShipProtocol.VEHICLE_POS: {
                 if (view != null) {
@@ -271,15 +303,47 @@ public class Network implements ServerListener, PackageReceiver {
 
                 break;
 
-            case ShipProtocol.GAME_START:
+            case ShipProtocol.INIT_GAME_START:
+                int latency = 0;
+
+                for (int i : collectedLatency) latency += i;
+                latency /= collectedLatency.length;
+
+                view.world().initUnpauseTimer(latency);
+
+                for (int i : collectedLatency) System.out.println(i);
+                System.out.println("latency calculated to: " +latency); //TODO: REMOVE
+
+                break;
+
+            case ShipProtocol.INIT_GAME_LOAD:
                 if (dia != null)
                     dia.start();
+
+                break;
+
+            case ShipProtocol.PAUSE:
+                view.world().pause();
+
+                break;
+
+            case ShipProtocol.TIME_SYNC:
+                TimeSyncPackage p = (TimeSyncPackage) pack;
+                view.world().timeSync(p.getTime(), p.getTimeTilUpdatePos());
+
+                lastSent = new Date();
+                send(ShipProtocol.PING_START);
 
                 break;
 
             default:
                 passPackage(type, pack);
         }
+    }
+
+    public void initUnpause(int time, int timeTilUpdatePos) {
+        send(ShipProtocol.TIME_SYNC, new TimeSyncPackage(time, timeTilUpdatePos));
+        //TODO: print status message on the syncing (just 0/10 for everyone, but still)
     }
 
     public void guiMessage(String message) {

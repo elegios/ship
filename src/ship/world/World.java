@@ -43,6 +43,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     public static final int UPDATE_POS_INTERVAL = 200;
     public static final int POS_MEMORY_COUNT = 5;
 
+    public static final int UNPAUSE_COUNTDOWN_START = 3000;
+
     private View view;
 
     private int x;
@@ -114,6 +116,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
         timeTilUpdatePos = UPDATE_POS_INTERVAL;
 
         running = true;
+        unpauseTimer = -1;
         togglePause();
     }
 
@@ -144,6 +147,18 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
             x = Math.round(currPlayer.getX()) + currPlayer.getWidth()/2  - View.window().getWidth()/2;
             y = Math.round(currPlayer.getY()) + currPlayer.getHeight()/2 - View.window().getHeight()/2;
+        } else {
+            if (unpauseTimer >= 0) {
+                unpauseTimer -= diff;
+                if (unpauseTimer > 0)
+                    systemMessage("Resuming in " +Math.ceil(((float) unpauseTimer) / 1000)+ " seconds.");
+                else {
+                    time             -= unpauseTimer;
+                    timeTilUpdatePos += unpauseTimer;
+                    unpauseTimer      = -1;
+                    togglePause();
+                }
+            }
         }
     }
 
@@ -449,7 +464,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
         if (systemMessage != null)
             view.fonts().message().drawString(View.window().getWidth()/2 - view.fonts().message().getWidth(systemMessage)/2,
-                                              View.window().getHeight()/2,
+                                              View.window().getHeight()/4 - view.fonts().message().getHeight(systemMessage)/4,
                                               systemMessage);
     }
     /**
@@ -513,11 +528,37 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     }
 
     /**
+     * Pauses the game. This is only used for when player is a client.
+     */
+    public void pause() {
+        running = true;
+        togglePause();
+    }
+
+    public void timeSync(int time, int timeTilUpdatePos) {
+        this.time             = time;
+        this.timeTilUpdatePos = timeTilUpdatePos;
+
+        systemMessage("Syncing (0/" +(ShipProtocol.PING_END - ShipProtocol.PING_START + 1));
+    }
+
+    /**
+     * Starts the unpause timer. This method is used both in clients and
+     * servers, but in the server the latency is always 0. Clients get
+     * a calculated latency after a series of pings to make sure everyone's
+     * in sync.
+     * @param latency the latency between a client and the server
+     */
+    public void initUnpauseTimer(int latency) {
+        unpauseTimer = UNPAUSE_COUNTDOWN_START - latency;
+    }
+
+    /**
      * Sets the current systemMessage. Null means that no message
      * should be shown.
      * @param message the message to be shown
      */
-    public void systemMessage(String message) {
+    public synchronized void systemMessage(String message) {
         systemMessage = message;
     }
 
@@ -551,8 +592,18 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     }
 
     public boolean keyPressed(Keys keys, int key, char c) {
-        if (key == keys.pause() && !view.net().isOnline()) { //TODO: implement multiplayer pausing
-            togglePause();
+        if (key == keys.pause()) { //TODO: implement multiplayer pausing
+            if (!view.net().isOnline())
+                togglePause();
+
+            else if (view.net().isServer()) {
+                if (running) {
+                    togglePause();
+                    view.net().send(ShipProtocol.PAUSE);
+                } else
+                    view.net().initUnpause(time, timeTilUpdatePos);
+            }
+
             return true;
         }
 

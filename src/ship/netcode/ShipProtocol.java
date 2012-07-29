@@ -11,6 +11,7 @@ import ship.netcode.meta.ChatPackage;
 import ship.netcode.meta.NumPlayersPackage;
 import ship.netcode.meta.PlayerIdPackage;
 import ship.netcode.meta.PlayerNamePackage;
+import ship.netcode.meta.TimeSyncPackage;
 import ship.netcode.movement.PlayerPositionPackage;
 import ship.netcode.movement.RelativePlayerPositionPackage;
 import ship.netcode.movement.VehiclePositionPackage;
@@ -19,11 +20,14 @@ import elegios.netcode.BasicProtocol;
 
 public class ShipProtocol extends BasicProtocol {
 
-    public static final int PING_START = -10;
-    public static final int PING_END   = -2;
+    public static final int PING_START = -20; //this means there will be ten message-pairs altogether
+    public static final int PING_END   = -11;
 
-    public static final int GAME_START = -1;
+    public static final int PAUSE           = -3;
+    public static final int INIT_GAME_START = -2;
+    public static final int INIT_GAME_LOAD  = -1;
 
+    public static final int TIME_SYNC   = 16;
     public static final int PLAYER_ID   = 1;
     public static final int NUM_PLAYERS = 2;
     public static final int CHAT        = 14;
@@ -68,6 +72,8 @@ public class ShipProtocol extends BasicProtocol {
 
         addType(new ChatPackage      ());
         addType(new PlayerNamePackage());
+
+        addType(new TimeSyncPackage());
     }
 
 }
