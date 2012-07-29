@@ -113,11 +113,11 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
             toUpdateRel.xChecked(true);
             int time = toUpdateRel.getTime();
 
-            if (lastVehicle == null || lastVehicle.getID() != toUpdateRel.getVehicleId())
-                lastVehicle = world.findVehicle(toUpdateRel.getVehicleId());
-
             PositionMemory closest = posBank.getClosest(time);
-            if (closest != null) { //There is a PositionMemory that can be used
+            if (closest != null) {
+
+                if (lastVehicle == null || lastVehicle.getID() != toUpdateRel.getVehicleId())
+                    lastVehicle = world.findVehicle(toUpdateRel.getVehicleId());
 
                 PositionMemory lastClosest = lastVehicle.getClosest(time);
 
@@ -129,7 +129,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
                         PositionMemory vehClosest = closest.getVehicle().getClosest(time);
                         if (vehClosest != null && lastClosest != null) {
                             x += toUpdateRel.getX() + lastClosest.getX() -
-                                (closest    .getX() +  vehClosest.getX());
+                                    (closest    .getX() +  vehClosest.getX());
                         }
                     }
 
@@ -138,11 +138,8 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
                 }
 
                 xSpeed += toUpdateRel.getXSpeed() - closest.getXSpeed();
-
-            } else { //There is no PositionMemory
-                x      = toUpdateRel.getX() + lastVehicle.getX();
-                xSpeed = toUpdateRel.getXSpeed();
-            }
+            } else
+                toUpdateRel.xChecked(false);
 
         } else if (toUpdatePos != null) {
             toUpdatePos.xChecked(true);
@@ -158,10 +155,8 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
 
                 xSpeed += toUpdatePos.getXSpeed() - closest.getXSpeed();
 
-            } else {
-                x      = toUpdatePos.getX();
-                xSpeed = toUpdatePos.getXSpeed();
-            }
+            } else
+                toUpdatePos.xChecked(false);
         }
     }
     public void moveY(int diff) {
@@ -173,53 +168,43 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
             if (lastVehicle == null || lastVehicle.getID() != toUpdateRel.getVehicleId())
                 lastVehicle = world.findVehicle(toUpdateRel.getVehicleId());
 
-            PositionMemory closest = posBank.getClosest(time);
-            if (closest != null) { //There is a PositionMemory that can be used
+            PositionMemory closest = posBank.getClosest(time); //This will work, because Y is always set after x which won't happen
+                                                               //unless there is a PositionMemory
+            PositionMemory lastClosest = lastVehicle.getClosest(time);
 
-                PositionMemory lastClosest = lastVehicle.getClosest(time);
+            if (closest.getVehicle() != null) { //The PositionMemory is relative
+                if (closest.getVehicle() == lastVehicle) { //The Vehicle in the PositionMemory is equal to that of toUpdateRel
+                    y += toUpdateRel.getY() - closest.getY();
 
-                if (closest.getVehicle() != null) { //The PositionMemory is relative
-                    if (closest.getVehicle() == lastVehicle) { //The Vehicle in the PositionMemory is equal to that of toUpdateRel
-                        y += toUpdateRel.getY() - closest.getY();
-
-                    } else { //The Vehicles in the PositionMemory and toUpdateRel are different
-                        PositionMemory vehClosest = closest.getVehicle().getClosest(time);
-                        if (vehClosest != null && lastClosest != null) {
-                            y += toUpdateRel.getY() + lastClosest.getY() -
+                } else { //The Vehicles in the PositionMemory and toUpdateRel are different
+                    PositionMemory vehClosest = closest.getVehicle().getClosest(time);
+                    if (vehClosest != null && lastClosest != null) {
+                        y += toUpdateRel.getY() + lastClosest.getY() -
                                 (closest    .getY() +  vehClosest.getY());
-                        }
                     }
-
-                } else if (lastClosest != null){ //The PositionMemory isn't relative
-                    y += toUpdateRel.getY() + lastClosest.getY() - closest.getY();
                 }
 
-                ySpeed += toUpdateRel.getYSpeed() - closest.getYSpeed();
-
-            } else { //There is no PositionMemory
-                y      = toUpdateRel.getY() + lastVehicle.getY();
-                ySpeed = toUpdateRel.getYSpeed();
+            } else if (lastClosest != null){ //The PositionMemory isn't relative
+                y += toUpdateRel.getY() + lastClosest.getY() - closest.getY();
             }
+
+            ySpeed += toUpdateRel.getYSpeed() - closest.getYSpeed();
 
             toUpdateRel = null;
 
         } else if (toUpdatePos != null && toUpdatePos.xChecked()) {
             int time = toUpdatePos.getTime();
 
-            PositionMemory closest = posBank.getClosest(time);
-            if (closest != null) {
-                if (closest.getVehicle() == null) { //The PositionMemory isn't relative
-                    y += toUpdatePos.getY() - closest.getY();
+            PositionMemory closest = posBank.getClosest(time); //This will work because Y is always set after X which won't happen
+                                                               //unless there is a PositionMemory
+            if (closest.getVehicle() == null) { //The PositionMemory isn't relative
+                y += toUpdatePos.getY() - closest.getY();
 
-                } else //The PositionMemory is relative
-                    y += toUpdatePos.getY() - (closest.getY() + closest.getVehicle().getClosest(time).getY());
+            } else //The PositionMemory is relative
+                y += toUpdatePos.getY() - (closest.getY() + closest.getVehicle().getClosest(time).getY());
 
-                ySpeed += toUpdatePos.getYSpeed() - closest.getYSpeed();
+            ySpeed += toUpdatePos.getYSpeed() - closest.getYSpeed();
 
-            } else { //There is no PositionMemory
-                y      = toUpdatePos.getY();
-                ySpeed = toUpdatePos.getYSpeed();
-            }
             toUpdatePos = null;
         }
     }

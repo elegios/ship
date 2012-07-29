@@ -564,12 +564,8 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
                 x      += diffMove;
                 xSpeed += toUpdatePos.getXSpeed() - closest.getXSpeed();
 
-            } else {
-                world.relMoveX(this, toUpdatePos.getX() - x);
-
-                x      = toUpdatePos.getX();
-                xSpeed = toUpdatePos.getXSpeed();
-            }
+            } else
+                toUpdatePos.xChecked(false);
         }
 
         float absSpeed = getAbsXSpeed();
@@ -581,21 +577,14 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         collisionLockY = 0;
 
         if (toUpdatePos != null && toUpdatePos.xChecked()) {
-            PositionMemory closest = posBank.getClosest(toUpdatePos.getTime());
-            if (closest != null) {
-                float diffMove = toUpdatePos.getY() - closest.getY();
+            PositionMemory closest = posBank.getClosest(toUpdatePos.getTime()); //This will work as Y always updates after x which
+                                                                                //won't happen unless there is a positionMemory
+            float diffMove = toUpdatePos.getY() - closest.getY();
 
-                world.relMoveY(this, diffMove);
+            world.relMoveY(this, diffMove);
 
-                y      += diffMove;
-                ySpeed += toUpdatePos.getYSpeed() - closest.getYSpeed();
-
-            } else {
-                world.relMoveY(this, toUpdatePos.getY() - y);
-
-                y      = toUpdatePos.getY();
-                ySpeed = toUpdatePos.getYSpeed();
-            }
+            y      += diffMove;
+            ySpeed += toUpdatePos.getYSpeed() - closest.getYSpeed();
 
             toUpdatePos = null;
         }
