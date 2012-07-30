@@ -38,7 +38,7 @@ public class Network implements ServerListener, PackageReceiver {
     private Server server;
     private List<Connection> connections;
 
-    private List<PlayerName> playerNames;
+    private PlayerBank players;
 
     private int[] collectedLatency;
     private Date  lastSent;
@@ -54,15 +54,16 @@ public class Network implements ServerListener, PackageReceiver {
         numPlayers  = 1;
 
         connections = new ArrayList<>();
-        playerNames = new ArrayList<>();
+        players     = new PlayerBank(ShipProtocol.PING_END - ShipProtocol.PING_START + 1);
 
-        setPlayerName(id, dia.getPlayerName());
+        players.addPlayer(id);
+        players.setPlayerName(id, dia.getPlayerName());
     }
 
     public void setConnection(Connection connection) {
         this.connection = connection;
 
-        playerNames      = new ArrayList<>();
+        players          = new PlayerBank(ShipProtocol.PING_END - ShipProtocol.PING_START + 1);
         collectedLatency = new int[ShipProtocol.PING_END - ShipProtocol.PING_START + 1];
 
         connection.setReceiver(this);
@@ -125,8 +126,8 @@ public class Network implements ServerListener, PackageReceiver {
         conn.send(ShipProtocol.PLAYER_ID, new PlayerIdPackage  (  numPlayers));
         send   (ShipProtocol.NUM_PLAYERS, new NumPlayersPackage(++numPlayers));
 
-        for (PlayerName name : playerNames)
-            conn.send(ShipProtocol.PLAYER_NAME, new PlayerNamePackage(name.getPlayerId(), name.getPlayerName()));
+        for (PlayerData data : players)
+            conn.send(ShipProtocol.PLAYER_NAME, new PlayerNamePackage(data.playerId, data.playerName));
 
         guiMessage("There are now " +numPlayers+ " players connected to the server.");
     }
@@ -197,11 +198,12 @@ public class Network implements ServerListener, PackageReceiver {
 
         if (type == ShipProtocol.CHAT) {
             ChatPackage p = (ChatPackage) pack;
-            guiMessage(getPlayerName(p.getPlayerId()) +": "+ p.getMessage());
+            guiMessage(players.getPlayerName(p.getPlayerId()) +": "+ p.getMessage());
 
         } else if (type == ShipProtocol.PLAYER_NAME) {
             PlayerNamePackage p = (PlayerNamePackage) pack;
-            setPlayerName(p.getPlayerId(), p.getPlayerName());
+            players.addPlayer(p.getPlayerId());
+            players.setPlayerName(p.getPlayerId(), p.getPlayerName());
             guiMessage(p.getPlayerName() +" is here.");
 
         }
@@ -217,15 +219,18 @@ public class Network implements ServerListener, PackageReceiver {
     /*
      * This method is only used when this is a server
      */
-    public void receivePackage(Connection conn, int type, Package pack) {
+    public void receivePackage(Connection conn, int playerId, int type, Package pack) {
         if (type >= ShipProtocol.PING_START && type <= ShipProtocol.PING_END){
             conn.send(type);
-            //TODO: update some kind of player status on the server side, so it knows when a player is done syncing
+            players.incrementPingCount(playerId);
 
-            if (type == ShipProtocol.PING_END) {
+            if (type == ShipProtocol.PING_END && players.pingReady()) {
+                players.resetAllPings();
                 send(ShipProtocol.INIT_GAME_START);
                 view.world().initUnpauseTimer(0);
             }
+
+            view.world().systemMessage(players.createPingStatusMessage());
 
             return;
         }
@@ -291,7 +296,8 @@ public class Network implements ServerListener, PackageReceiver {
 
                 guiMessage("Got the id " +id);
 
-                setPlayerName(id, dia.getPlayerName());
+                players.addPlayer(id);
+                players.setPlayerName(id, dia.getPlayerName());
                 send(new PlayerNamePackage(id, dia.getPlayerName()));
 
                 break;
@@ -343,7 +349,7 @@ public class Network implements ServerListener, PackageReceiver {
 
     public void initUnpause(int time, int timeTilUpdatePos) {
         send(ShipProtocol.TIME_SYNC, new TimeSyncPackage(time, timeTilUpdatePos));
-        //TODO: print status message on the syncing (just 0/10 for everyone, but still)
+        view.world().systemMessage(players.createPingStatusMessage());
     }
 
     public void guiMessage(String message) {
@@ -358,19 +364,11 @@ public class Network implements ServerListener, PackageReceiver {
 
     public void sendChatMessage(String message) {
         send(ShipProtocol.CHAT, new ChatPackage(id, message));
-        guiMessage(getPlayerName(id) +": "+ message);
+        guiMessage(players.getPlayerName(id) +": "+ message);
     }
 
     public String getPlayerName(int playerId) {
-        for (PlayerName name : playerNames)
-            if (name.getPlayerId() == playerId)
-                return name.getPlayerName();
-
-        return null;
-    }
-
-    private void setPlayerName(int playerId, String name) {
-        playerNames.add(new PlayerName(playerId, name));
+        return players.getPlayerName(playerId);
     }
 
 }
@@ -379,6 +377,8 @@ class ConnectionHolder implements PackageReceiver {
 
     private Connection connection;
     private Network net;
+
+    private int playerId;
 
     ConnectionHolder(Connection connection, Network net) {
         this.connection = connection;
@@ -390,20 +390,11 @@ class ConnectionHolder implements PackageReceiver {
 
     @Override
     public void receivePackage(int type, Package pack) {
-        net.receivePackage(connection, type, pack);
+        net.receivePackage(connection, playerId, type, pack);
     }
 
-}
-
-class PlayerName {
-
-    private int playerId;
-    private String playerName;
-
-    PlayerName(int playerId, String name) {
-        this.playerId   = playerId;
-        this.playerName = name;
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
     }
-    int    getPlayerId  () { return   playerId; }
-    String getPlayerName() { return playerName; }
+
 }
