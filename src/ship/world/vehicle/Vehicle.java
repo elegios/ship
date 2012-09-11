@@ -283,8 +283,9 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
                     return 0;
                 }
             }
-            if ((rel.collisionLockX() < 0 && fixMove > 0) ||
-                (rel.collisionLockX() > 0 && fixMove < 0)) {
+            if (!collidedWithImmobileX() &&
+                ((rel.collisionLockX() < 0 && fixMove > 0) ||
+                 (rel.collisionLockX() > 0 && fixMove < 0))) {
                 collisionLockX(-fixMove);
                 x -= fixMove;
                 return 0;
@@ -420,75 +421,113 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     /**
      * Checks for collision between this CollisionGrid and <code>rect</code>.
      * Returns the amount of pixels that <code>rect</code> needs to move to
-     * be outside the CollisionGrid.
+     * be outside the Vehicle.
      *
      * This method will call pushBackAndFixMoveX at least once for every collision.
      * This is to fix edge-cases, when <code>rect</code> cannot be moved for one
      * reason or another. If that is the case, pushBackAndFixMoveX will probably move
-     * the CollisionGrid.
+     * the Vehicle.
      * @param rect the rectangle to be checked for collision
      * @param ySpeed the speed of <code>rect</code> relative to the CollisionGrid
      * @return the number of pixels <code>rect</code> needs to be moved.
      */
-    public  float collideRectangleX(Rectangle rect, float xSpeed) { return collideRectangleX(rect, xSpeed, 0, true); }
-    private float collideRectangleX(Rectangle rect, float xSpeed, float xMod, boolean first) {
-        int i2 = (int) Math.ceil(rect.getX2() + xMod - getX())/TW;
-        int j1 = (int)          (rect.getY()         - getY())/TH;
-        int j2 = (int) Math.ceil(rect.getY2()        - getY())/TH;
-        if (collides(i2, j1) || collides(i2, j2)) {
-            float fixMove = getX() - rect.getX() - xMod - rect.getWidth() + i2*TW - EXTRA_MOVE;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
-            if (fixMove > -EXTRA_MOVE)
-                return fixMove;
-            fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, first);
-            return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod, false);
-        }
-        int i1  = (int) (rect.getX() + xMod - getX())/TW;
-        if (collides(i1, j1) || collides(i1, j2)) {
-            float fixMove = getX() - rect.getX() - xMod + i1*TW + TW + EXTRA_MOVE;
-            if (fixMove < EXTRA_MOVE)
-                return fixMove;
-            fixMove = pushBackAndFixMoveX(rect, xSpeed, fixMove, first);
-            return fixMove + collideRectangleX(rect, xSpeed, fixMove + xMod, false);
-        }
+    public float collideRectangleX(Rectangle rect, float relXSpeed) {
+        float xMod = 0;
+        boolean first = true;
 
-        return 0;
+        while (true) {
+            int i1 = (int)          (rect.getX()  + xMod - getX())/TW;
+            int i2 = (int) Math.ceil(rect.getX2() + xMod - getX())/TW;
+            int j1 = (int)          (rect.getY()         - getY())/TH;
+            int j2 = (int) Math.ceil(rect.getY2()        - getY())/TH;
+
+            if (collides(i2, j1) || collides(i2, j2)) { //collision to the right of self, move left
+                float fixMove = getX() - rect.getX() - xMod - rect.getWidth() + i2*TW - EXTRA_MOVE;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
+
+                if (fixMove > -EXTRA_MOVE) //If the move is minimal it's probably just a rounding error or something similar
+                    return xMod + fixMove;
+
+                fixMove = pushBackAndFixMoveX(rect, relXSpeed, fixMove, first);
+                first = false;
+                xMod += fixMove;
+
+                continue;
+
+            }
+
+            if (collides(i1, j1) || collides(i1, j2)) { //collision to the left of self, move right
+                float fixMove = getX() - rect.getX() - xMod + i1*TW + TW + EXTRA_MOVE;
+
+                if (fixMove < EXTRA_MOVE)
+                    return xMod + fixMove;
+
+                fixMove = pushBackAndFixMoveX(rect, relXSpeed, fixMove, first);
+                first = false;
+                xMod += fixMove;
+
+                continue;
+
+            }
+
+            return xMod; //No more collisions, should be done now
+
+        }
     }
 
     /**
      * Checks for collision between this CollisionGrid and <code>rect</code>.
      * Returns the amount of pixels that <code>rect</code> needs to move to
-     * be outside the CollisionGrid.
+     * be outside the Vehicle.
      *
      * This method will call pushBackAndFixMoveY at least once for every collision.
      * This is to fix edge-cases, when <code>rect</code> cannot be moved for one
      * reason or another. If that is the case, pushBackAndFixMoveY will probably move
-     * the CollisionGrid.
+     * the Vehicle.
      * @param rect the rectangle to be checked for collision
      * @param ySpeed the speed of <code>rect</code> relative to the CollisionGrid
      * @return the number of pixels <code>rect</code> needs to be moved.
      */
-    public  float collideRectangleY(Rectangle rect, float ySpeed) { return collideRectangleY(rect, ySpeed, 0, true); } //TODO: refactor as loop with max number of loops
-    private float collideRectangleY(Rectangle rect, float ySpeed, float yMod, boolean first) {
-        int i1 = (int)          (rect.getX()         - getX())/TW;
-        int i2 = (int) Math.ceil(rect.getX2()        - getX())/TW;
-        int j2 = (int) Math.ceil(rect.getY2() + yMod - getY())/TH;
-        if (collides(i1, j2) || collides(i2, j2)) {
-            float fixMove = getY() - rect.getY() - yMod - rect.getHeight() + j2*TH - EXTRA_MOVE;
-            if (fixMove > -EXTRA_MOVE)
-                return fixMove;
-            fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, first);
-            return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod, false);
-        }
-        int j1 = (int) (rect.getY() + yMod - getY())/TH;
-        if (collides(i1, j1) || collides(i2, j1)) {
-            float fixMove = getY() - rect.getY() - yMod + j1*TH + TH + EXTRA_MOVE;
-            if (fixMove < EXTRA_MOVE)
-                return fixMove;
-            fixMove = pushBackAndFixMoveY(rect, ySpeed, fixMove, first);
-            return fixMove + collideRectangleY(rect, ySpeed, fixMove + yMod, false);
-        }
+    public float collideRectangleY(Rectangle rect, float relYSpeed) {
+        float yMod = 0;
+        boolean first = true;
 
-        return 0;
+        while (true) {
+            int i1 = (int)          (rect.getX()         - getX())/TW;
+            int i2 = (int) Math.ceil(rect.getX2()        - getX())/TW;
+            int j1 = (int)          (rect.getY()  + yMod - getY())/TH;
+            int j2 = (int) Math.ceil(rect.getY2() + yMod - getY())/TH;
+
+            if (collides(i1, j2) || collides(i2, j2)) { //collision below self, move up
+                float fixMove = getY() - rect.getY() - yMod - rect.getHeight() + j2*TH - EXTRA_MOVE;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
+
+                if (fixMove > -EXTRA_MOVE) //If the move is minimal it's probably just a rounding error or something similar
+                    return yMod + fixMove;
+
+                fixMove = pushBackAndFixMoveY(rect, relYSpeed, fixMove, first);
+                first = false;
+                yMod += fixMove;
+
+                continue;
+
+            }
+
+            if (collides(i1, j1) || collides(i2, j1)) { //collision above self, move down
+                float fixMove = getY() - rect.getY() - yMod + j1*TH + TH + EXTRA_MOVE;
+
+                if (fixMove < EXTRA_MOVE)
+                    return yMod + fixMove;
+
+                fixMove = pushBackAndFixMoveY(rect, relYSpeed, fixMove, first);
+                first = false;
+                yMod += fixMove;
+
+                continue;
+
+            }
+
+            return yMod; //No more collisions, should be done now
+
+        }
     }
 
     /**
