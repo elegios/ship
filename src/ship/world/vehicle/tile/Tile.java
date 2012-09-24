@@ -53,6 +53,8 @@ public class Tile implements Updatable, Rectangle, RelativeMovable {
 
     public Tile setParent(Vehicle parent) { this.parent = parent; return this; }
 
+    public Vehicle getParent() { return parent; }
+
     /**
      * Get the Tile adjacent to the current Tile in the given direction.
      * @param direction the direction in which the Tile is

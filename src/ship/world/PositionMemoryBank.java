@@ -1,6 +1,6 @@
 package ship.world;
 
-import ship.world.vehicle.Vehicle;
+import ship.world.vehicle.VehicleHolder;
 
 public class PositionMemoryBank {
 
@@ -14,7 +14,7 @@ public class PositionMemoryBank {
         lastItem = -1;
     }
 
-    public void store(int time, float x, float y, float xSpeed, float ySpeed, Vehicle veh) {
+    public void store(int time, float x, float y, float xSpeed, float ySpeed, VehicleHolder veh) {
         lastItem = (lastItem + 1) % memories.length;
         memories[lastItem] = new PositionMemory(time, x, y, xSpeed, ySpeed, veh);
     }

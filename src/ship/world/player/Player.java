@@ -28,6 +28,8 @@ import ship.world.RelativeMovable;
 import ship.world.World;
 import ship.world.vehicle.ImmobileVehicle;
 import ship.world.vehicle.Vehicle;
+import ship.world.vehicle.VehicleHolder;
+import ship.world.vehicle.VehiclePiece;
 
 /**
  *
@@ -37,6 +39,8 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     static final float JUMP_SPEED = -320;
     static final float MOVE_SPEED =  160; // 5 squ/igs
     static final float BASE_MASS  =  20;
+
+    static final float AIR_RESIST_RANGE = 200; //The range of vehicle airresist in pixels
 
     static final int NAME_HEIGHT = 18;
 
@@ -63,10 +67,10 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     private boolean moveLeft;
     private boolean jump;
 
-    private boolean downMotion;
-    private RelativeMovable collidedY;
-    private Vehicle lastVehicle;
-    private boolean airResistX;
+    private boolean       downMotion;
+    private VehicleHolder collidedY;
+    private VehicleHolder lastVehicle;
+    private boolean       airResistX;
 
     private Builder builder;
 
@@ -117,16 +121,16 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
             if (closest != null) {
 
                 if (lastVehicle == null || lastVehicle.getID() != toUpdateRel.getVehicleId())
-                    lastVehicle = world.findVehicle(toUpdateRel.getVehicleId());
+                    lastVehicle = world.findVehicleHolder(toUpdateRel.getVehicleId());
 
-                PositionMemory lastClosest = lastVehicle.getClosest(time);
+                PositionMemory lastClosest = lastVehicle.getVehicle().getClosest(time);
 
                 if (closest.getVehicle() != null) { //The PositionMemory is relative
                     if (closest.getVehicle() == lastVehicle) { //The Vehicle in the PositionMemory is equal to that of toUpdateRel
                         x += toUpdateRel.getX() - closest.getX();
 
                     } else { //The Vehicles in the PositionMemory and toUpdateRel are different
-                        PositionMemory vehClosest = closest.getVehicle().getClosest(time);
+                        PositionMemory vehClosest = closest.getVehicle().getVehicle().getClosest(time);
                         if (vehClosest != null && lastClosest != null) {
                             x += toUpdateRel.getX() + lastClosest.getX() -
                                     (closest    .getX() +  vehClosest.getX());
@@ -151,7 +155,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
                     x += toUpdatePos.getX() - closest.getX();
 
                 } else //The PositionMemory is relative
-                    x += toUpdatePos.getX() - (closest.getX() + closest.getVehicle().getClosest(time).getX());
+                    x += toUpdatePos.getX() - (closest.getX() + closest.getVehicle().getVehicle().getClosest(time).getX());
 
                 xSpeed += toUpdatePos.getXSpeed() - closest.getXSpeed();
 
@@ -166,18 +170,18 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
             int time = toUpdateRel.getTime();
 
             if (lastVehicle == null || lastVehicle.getID() != toUpdateRel.getVehicleId())
-                lastVehicle = world.findVehicle(toUpdateRel.getVehicleId());
+                lastVehicle = world.findVehicleHolder(toUpdateRel.getVehicleId());
 
             PositionMemory closest = posBank.getClosest(time); //This will work, because Y is always set after x which won't happen
                                                                //unless there is a PositionMemory
-            PositionMemory lastClosest = lastVehicle.getClosest(time);
+            PositionMemory lastClosest = lastVehicle.getVehicle().getClosest(time);
 
             if (closest.getVehicle() != null) { //The PositionMemory is relative
                 if (closest.getVehicle() == lastVehicle) { //The Vehicle in the PositionMemory is equal to that of toUpdateRel
                     y += toUpdateRel.getY() - closest.getY();
 
                 } else { //The Vehicles in the PositionMemory and toUpdateRel are different
-                    PositionMemory vehClosest = closest.getVehicle().getClosest(time);
+                    PositionMemory vehClosest = closest.getVehicle().getVehicle().getClosest(time);
                     if (vehClosest != null && lastClosest != null) {
                         y += toUpdateRel.getY() + lastClosest.getY() -
                                 (closest    .getY() +  vehClosest.getY());
@@ -201,7 +205,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
                 y += toUpdatePos.getY() - closest.getY();
 
             } else //The PositionMemory is relative
-                y += toUpdatePos.getY() - (closest.getY() + closest.getVehicle().getClosest(time).getY());
+                y += toUpdatePos.getY() - (closest.getY() + closest.getVehicle().getVehicle().getClosest(time).getY());
 
             ySpeed += toUpdatePos.getYSpeed() - closest.getYSpeed();
 
@@ -210,26 +214,26 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     }
 
     public void relMoveX(Vehicle vehicle, float move) {
-        if (vehicle == lastVehicle)
+        if (lastVehicle != null && vehicle == lastVehicle.getVehicle())
             x += move;
     }
     public void relMoveY(Vehicle vehicle, float move) {
-        if (vehicle == lastVehicle)
+        if (lastVehicle != null && vehicle == lastVehicle.getVehicle())
             y += move;
     }
 
 
     public void updateEarly(GameContainer gc, int diff) {
-        if (lastVehicle != null && collidedY != null && collidedY instanceof Vehicle) {
-            lastVehicle = (Vehicle) collidedY; //Fix bug where last vehicle touched is moved towards a player walking towards it
+        if (lastVehicle != null && collidedY != null) {
+            lastVehicle = collidedY; //Fix bug where last vehicle touched is moved towards a player walking towards it
         }
 
         //move left
         if (moveLeft && !moveRight)
             if (airResistX) {
-                if (xSpeed > lastVehicle.getAbsXSpeed() - MOVE_SPEED) {
-                    if (!lastVehicle.collidedWithImmobileY())
-                        lastVehicle.pushX(mass * 32);
+                if (xSpeed > lastVehicle.getVehicle().getAbsXSpeed() - MOVE_SPEED) {
+                    if (!lastVehicle.getVehicle().collidedWithImmobileY())
+                        lastVehicle.getVehicle().pushX(mass * 32);
                     xSpeed -= 32;
                 }
             } else
@@ -239,9 +243,9 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         //move right
         if (!moveLeft && moveRight)
             if (airResistX) {
-                if (xSpeed < lastVehicle.getAbsXSpeed() + MOVE_SPEED) {
-                    if (!lastVehicle.collidedWithImmobileY())
-                        lastVehicle.pushX(-mass * 32);
+                if (xSpeed < lastVehicle.getVehicle().getAbsXSpeed() + MOVE_SPEED) {
+                    if (!lastVehicle.getVehicle().collidedWithImmobileY())
+                        lastVehicle.getVehicle().pushX(-mass * 32);
                     xSpeed += 32;
                 }
             } else
@@ -250,11 +254,11 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
 
         //jump
         if (collidedY != null && downMotion && jump) {
-            collidedY.pushY(-JUMP_SPEED * mass);
-            if (collidedY.collidedWithImmobileY())
+            if (collidedY.getVehicle().collidedWithImmobileY())
                 ySpeed = JUMP_SPEED;
             else
-                ySpeed = JUMP_SPEED + collidedY.getAbsYSpeed();
+                ySpeed = JUMP_SPEED + collidedY.getVehicle().getAbsYSpeed();
+            collidedY.getVehicle().pushY(-JUMP_SPEED * mass);
         }
 
         downMotion = false;
@@ -266,7 +270,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     public void update(GameContainer gc, int diff) {
         if (lastVehicle == null || !doAirResistX(lastVehicle)) {
             boolean airResisted = false;
-            for (Vehicle vehicle : world.vehicles())
+            for (VehicleHolder vehicle : world.vehicles())
                 if (doAirResistX(vehicle)) {
                     lastVehicle = vehicle;
                     airResisted = true;
@@ -277,7 +281,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         }
         if (lastVehicle == null || !doAirResistY(lastVehicle)) {
             boolean airResisted = false;
-            for (Vehicle vehicle : world.vehicles())
+            for (VehicleHolder vehicle : world.vehicles())
                 if (doAirResistY(vehicle)) {
                     airResisted = true;
                     break;
@@ -287,54 +291,58 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         }
 
         if (collidedY != null)
-            if (collidedY instanceof Vehicle) {
-                lastVehicle = (Vehicle) collidedY;
-            } else
-                lastVehicle = null;
+            lastVehicle = collidedY;
 
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
         if (world.updatePos() && world.view().net().isOnline()) {
             if (world.currPlayer() == this) {
-                if (lastVehicle != null && !(lastVehicle instanceof ImmobileVehicle))
+                if (lastVehicle != null && !(lastVehicle.getVehicle() instanceof ImmobileVehicle))
                     world.view().net().send(ShipProtocol.REL_PLAYER_POS, new RelativePlayerPositionPackage(id, lastVehicle.getID(),
                                                                                                            world.time(),
-                                                                                                           x - lastVehicle.getX(),
-                                                                                                           y - lastVehicle.getY(),
+                                                                                                           x - lastVehicle.getVehicle().getX(),
+                                                                                                           y - lastVehicle.getVehicle().getY(),
                                                                                                            xSpeed, ySpeed));
 
                 else
                     world.view().net().send(ShipProtocol.PLAYER_POS, new PlayerPositionPackage(id, world.time(), x, y, xSpeed, ySpeed));
             } else {
-                if (lastVehicle != null && !(lastVehicle instanceof ImmobileVehicle)) {
-                    posBank.store(world.time(), x - lastVehicle.getX(), y - lastVehicle.getY(), xSpeed, ySpeed, lastVehicle);
+                if (lastVehicle != null && !(lastVehicle.getVehicle() instanceof ImmobileVehicle)) {
+                    posBank.store(world.time(), x - lastVehicle.getVehicle().getX(), y - lastVehicle.getVehicle().getY(), xSpeed, ySpeed, lastVehicle);
                 } else {
                     posBank.store(world.time(), x, y, xSpeed, ySpeed, null);
                 }
             }
         }
-
     }
 
-    private boolean doAirResistX(Vehicle vehicle) {
-        int playX = vehicle.getTileXUnderPos(getX() + getWidth ()/2);
-        int playY = vehicle.getTileYUnderPos(getY() + getHeight()/2);
+    private boolean doAirResistX(VehicleHolder vehicle) {
+        VehiclePiece closestPiece = vehicle.findClosestPiece(getX(), getY());
 
-        if (playX >= 0              && playX <  vehicle.WIDTH() &&
-            playY >= vehicle.topY() && playY <= vehicle.botY ()) {
-            if (xSpeed > 0) {
-                for (int i = playX; i <= vehicle.rightX(); i++) {
-                    if (vehicle.existsAt(i, playY)) {
-                        pushX(-(xSpeed - vehicle.getAbsXSpeed()) * world.airResist());
+        int playX = closestPiece.getTileXUnderPos(getX() + getWidth ()/2);
+        int playY = closestPiece.getTileYUnderPos(getY() + getHeight()/2);
+
+        if (getX() >= closestPiece.getBoundX() - AIR_RESIST_RANGE && getX() < closestPiece.getBoundX2() + AIR_RESIST_RANGE &&
+            getY() >= closestPiece.getBoundY()                    && getY() <= closestPiece.getBoundY2()) {
+
+            if (xSpeed - vehicle.getVehicle().getAbsXSpeed() > 0) {
+                for (int i = Math.max(playX, closestPiece.leftX()); i <= closestPiece.rightX(); i++) {
+                    if (vehicle.getVehicle().existsAt(i, playY)) {
+                        pushX(-(xSpeed - vehicle.getVehicle().getAbsXSpeed()) * world.airResist());
                         airResistX = true;
                         return true;
                     }
                 }
 
-            } else if (xSpeed < 0) {
-                for (int i = playX; i >= vehicle.leftX(); i--) {
-                    if (vehicle.existsAt(i, playY)) {
-                        pushX(-(xSpeed - vehicle.getAbsXSpeed()) * world.airResist());
+            } else if (xSpeed - vehicle.getVehicle().getAbsXSpeed() < 0) {
+                //The following if statement is to fix a bug when the player is to the right of the VehiclePiece
+                //and getTileXUnderPos returns -1
+                if (playX == -1)
+                    playX = closestPiece.rightX();
+
+                for (int i = playX; i >= closestPiece.leftX(); i--) {
+                    if (vehicle.getVehicle().existsAt(i, playY)) {
+                        pushX(-(xSpeed - vehicle.getVehicle().getAbsXSpeed()) * world.airResist());
                         airResistX = true;
                         return true;
                     }
@@ -350,24 +358,32 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         airResistX = false;
     }
 
-    private boolean doAirResistY(Vehicle vehicle) {
-        int playX = vehicle.getTileXUnderPos(getX() + getWidth ()/2);
-        int playY = vehicle.getTileYUnderPos(getY() + getHeight()/2);
+    private boolean doAirResistY(VehicleHolder vehicle) {
+        VehiclePiece closestPiece = vehicle.findClosestPiece(getX(), getY());
 
-        if (playX >= vehicle.leftX() && playX <= vehicle.rightX() &&
-            playY >= 0               && playY <  vehicle.HEIGHT()) {
-            if (ySpeed > 0) {
-                for (int j = playY; j <= vehicle.botY(); j++) {
-                    if (vehicle.existsAt(playX, j)) {
-                        pushY(-(ySpeed - vehicle.getAbsYSpeed()) * world.airResist());
+        int playX = closestPiece.getTileXUnderPos(getX() + getWidth ()/2);
+        int playY = closestPiece.getTileYUnderPos(getY() + getHeight()/2);
+
+        if (getX() >= closestPiece.getBoundX()                    && getX() <  closestPiece.getBoundX2() &&
+            getY() >= closestPiece.getBoundY() - AIR_RESIST_RANGE && getY() <= closestPiece.getBoundY2() + AIR_RESIST_RANGE) {
+
+            if (ySpeed - vehicle.getVehicle().getAbsYSpeed() > 0) {
+                for (int j = Math.max(playY, closestPiece.topY()); j <= closestPiece.botY(); j++) {
+                    if (vehicle.getVehicle().existsAt(playX, j)) {
+                        pushY(-(ySpeed - vehicle.getVehicle().getAbsYSpeed()) * world.airResist());
                         return true;
                     }
                 }
 
-            } else if (ySpeed < 0) {
-                for (int j = playY; j >= vehicle.topY(); j--) {
-                    if (vehicle.existsAt(playX, j)) {
-                        pushY(-(ySpeed - vehicle.getAbsYSpeed()) * world.airResist());
+            } else if (ySpeed - vehicle.getVehicle().getAbsYSpeed() < 0) {
+                //The following if statement is to fix a bug when the player is to the right of the VehiclePiece
+                //and getTileXUnderPos returns -1
+                if (playY == -1)
+                    playY = closestPiece.botY();
+
+                for (int j = playY; j >= closestPiece.topY(); j--) {
+                    if (vehicle.getVehicle().existsAt(playX, j)) {
+                        pushY(-(ySpeed - vehicle.getVehicle().getAbsYSpeed()) * world.airResist());
                         return true;
                     }
                 }
@@ -381,20 +397,20 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         pushY(-ySpeed * world.airResist());
     }
 
-    public void collisionFixPosX(float xMove, RelativeMovable collisionOrigin) {
+    public void collisionFixPosX(float xMove, VehicleHolder collisionOrigin) {
         x += xMove;
 
-        if (collisionOrigin.collidedWithImmobileX())
+        if (collisionOrigin.getVehicle().collidedWithImmobileX())
             collidedWithImobileX = true;
     }
 
-    public void collisionFixPosY(float yMove, RelativeMovable collisionOrigin) {
+    public void collisionFixPosY(float yMove, VehicleHolder collisionOrigin) {
         y += yMove;
         if (yMove < 0)
             downMotion = true;
         collidedY = collisionOrigin;
 
-        if (collisionOrigin.collidedWithImmobileY())
+        if (collisionOrigin.getVehicle().collidedWithImmobileY())
             collidedWithImobileY = true;
     }
 

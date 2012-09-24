@@ -35,7 +35,7 @@ import ship.world.vehicle.tile.power.PowerTransport;
  * @author elegios
  */
 public class Vehicle implements Position, Renderable, Updatable, RelativeMovable, Rectangle {
-    public static final float EXTRA_MOVE = 0.0025f;
+    public static final float EXTRA_MOVE = 0.005f;
 
     public static final float SPEED_THRESHOLD = 1f;
 
@@ -78,10 +78,12 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     private int topY;
     private int botY;
 
-    public Vehicle(World world, int id, int x, int y) throws SlickException {
+    private VehicleHolder holder;
+
+    public Vehicle(World world, int id, float x, float y) throws SlickException {
         this(world, id, x, y, true);
     }
-    public Vehicle(World world, int id, int x, int y, boolean centerInit) throws SlickException {
+    public Vehicle(World world, int id, float x, float y, boolean centerInit) throws SlickException {
         this.world = world;
         this.id    = id;
 
@@ -113,6 +115,11 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
         ySpeed = 0.0f;
         mass   = 0.0f;
     }
+
+    public void setVehicleHolder(VehicleHolder holder) { this.holder = holder; }
+
+    protected boolean[][] getCollidesAt() { return collidesAt; }
+    protected Tile   [][] getTiles     () { return      tiles; }
 
     protected boolean updateMass() { return true; }
 
@@ -184,7 +191,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
             }
 
             if (leftX == rightX && topY == botY && tiles[leftX][topY] == null)
-                world.removeVehicleFromList(this);
+                world.removeVehicleFromList(holder);
         } else {
             System.out.println("Tried to remove a null tile, not sure why");
         }
@@ -312,7 +319,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
             if (first) {
                 float frictionMomentum = rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff();
                 rel.pushX(-frictionMomentum);
-                if (!(rect instanceof Player) || !collidedWithImmobileY())
+                if (!(rect instanceof Player))
                     pushX(frictionMomentum);
                 float minMomentum = Math.min(rel.getMass(), getMass()) * ySpeed;
                 pushY(minMomentum);
@@ -358,194 +365,6 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
 
     public World world() { return world; }
 
-    /**
-     * Checks for collision with <code>other</code>. If true, it
-     * will primarily be this CollisionGrid that moves, with a few exceptions.
-     * @param other the CollisionGrid to be checked for collision
-     * @return true if collision has been detected, false otherwise
-     */
-    public boolean collideWithVehicleX(Vehicle other) {
-        boolean hasCollidedWithImmobile = false;
-        boolean hasCollided = false;
-
-        if (other.overlaps(this) || this.overlaps(other))
-            for (int i = leftX(); i <= rightX(); i++)
-                for (int j = topY(); j <= botY(); j++)
-                    if (collidesAt[i][j]) {
-                        float fixMove = other.collideRectangleX(tiles[i][j], getAbsXSpeed() - other.getAbsXSpeed());
-                        if (fixMove != 0) {
-                            x += fixMove;
-                            collisionLockX = fixMove;
-                            hasCollided = true;
-                            if (other.collidedWithImmobileX())
-                                hasCollidedWithImmobile = true;
-                        }
-                    }
-
-        if (hasCollidedWithImmobile)
-            collidedWithImmobileX = true;
-
-        return hasCollided;
-    }
-
-    /**
-     * Checks for collision with <code>other</code>. If true, it
-     * will primarily be this CollisionGrid that moves, with a few exceptions.
-     * @param other the CollisionGrid to be checked for collision
-     * @return true if collision has been detected, false otherwise
-     */
-    public boolean collideWithVehicleY(Vehicle other) {
-        boolean hasCollidedWithImmobile = false;
-        boolean hasCollided = false;
-
-        if (other.overlaps(this) || this.overlaps(other))
-            for (int i = leftX(); i <= rightX(); i++)
-                for (int j = topY(); j <= botY(); j++)
-                    if (collidesAt[i][j]) {
-                        float fixMove = other.collideRectangleY(tiles[i][j], getAbsYSpeed() - other.getAbsYSpeed());
-                        if (Math.abs(fixMove) >= EXTRA_MOVE) {
-                            y += fixMove;
-                            collisionLockY = fixMove;
-                            hasCollided = true;
-                            if (other.collidedWithImmobileY())
-                                hasCollidedWithImmobile = true;
-                        }
-                    }
-
-        if (hasCollidedWithImmobile)
-            collidedWithImmobileY = true;
-
-        return hasCollided;
-    }
-
-    /**
-     * Checks for collision between this CollisionGrid and <code>rect</code>.
-     * Returns the amount of pixels that <code>rect</code> needs to move to
-     * be outside the Vehicle.
-     *
-     * This method will call pushBackAndFixMoveX at least once for every collision.
-     * This is to fix edge-cases, when <code>rect</code> cannot be moved for one
-     * reason or another. If that is the case, pushBackAndFixMoveX will probably move
-     * the Vehicle.
-     * @param rect the rectangle to be checked for collision
-     * @param ySpeed the speed of <code>rect</code> relative to the CollisionGrid
-     * @return the number of pixels <code>rect</code> needs to be moved.
-     */
-    public float collideRectangleX(Rectangle rect, float relXSpeed) {
-        float xMod = 0;
-        boolean first = true;
-
-        while (true) {
-            int i1 = (int)          (rect.getX()  + xMod - getX())/TW;
-            int i2 = (int) Math.ceil(rect.getX2() + xMod - getX())/TW;
-            int j1 = (int)          (rect.getY()         - getY())/TH;
-            int j2 = (int) Math.ceil(rect.getY2()        - getY())/TH;
-
-            if (collides(i2, j1) || collides(i2, j2)) { //collision to the right of self, move left
-                float fixMove = getX() - rect.getX() - xMod - rect.getWidth() + i2*TW - EXTRA_MOVE;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
-
-                if (fixMove > -EXTRA_MOVE) //If the move is minimal it's probably just a rounding error or something similar
-                    return xMod + fixMove;
-
-                fixMove = pushBackAndFixMoveX(rect, relXSpeed, fixMove, first);
-                first = false;
-                xMod += fixMove;
-
-                continue;
-
-            }
-
-            if (collides(i1, j1) || collides(i1, j2)) { //collision to the left of self, move right
-                float fixMove = getX() - rect.getX() - xMod + i1*TW + TW + EXTRA_MOVE;
-
-                if (fixMove < EXTRA_MOVE)
-                    return xMod + fixMove;
-
-                fixMove = pushBackAndFixMoveX(rect, relXSpeed, fixMove, first);
-                first = false;
-                xMod += fixMove;
-
-                continue;
-
-            }
-
-            return xMod; //No more collisions, should be done now
-
-        }
-    }
-
-    /**
-     * Checks for collision between this CollisionGrid and <code>rect</code>.
-     * Returns the amount of pixels that <code>rect</code> needs to move to
-     * be outside the Vehicle.
-     *
-     * This method will call pushBackAndFixMoveY at least once for every collision.
-     * This is to fix edge-cases, when <code>rect</code> cannot be moved for one
-     * reason or another. If that is the case, pushBackAndFixMoveY will probably move
-     * the Vehicle.
-     * @param rect the rectangle to be checked for collision
-     * @param ySpeed the speed of <code>rect</code> relative to the CollisionGrid
-     * @return the number of pixels <code>rect</code> needs to be moved.
-     */
-    public float collideRectangleY(Rectangle rect, float relYSpeed) {
-        float yMod = 0;
-        boolean first = true;
-
-        while (true) {
-            int i1 = (int)          (rect.getX()         - getX())/TW;
-            int i2 = (int) Math.ceil(rect.getX2()        - getX())/TW;
-            int j1 = (int)          (rect.getY()  + yMod - getY())/TH;
-            int j2 = (int) Math.ceil(rect.getY2() + yMod - getY())/TH;
-
-            if (collides(i1, j2) || collides(i2, j2)) { //collision below self, move up
-                float fixMove = getY() - rect.getY() - yMod - rect.getHeight() + j2*TH - EXTRA_MOVE;  //The weird order fixes a bug, apparently floats lose precision or something otherwise
-
-                if (fixMove > -EXTRA_MOVE) //If the move is minimal it's probably just a rounding error or something similar
-                    return yMod + fixMove;
-
-                fixMove = pushBackAndFixMoveY(rect, relYSpeed, fixMove, first);
-                first = false;
-                yMod += fixMove;
-
-                continue;
-
-            }
-
-            if (collides(i1, j1) || collides(i2, j1)) { //collision above self, move down
-                float fixMove = getY() - rect.getY() - yMod + j1*TH + TH + EXTRA_MOVE;
-
-                if (fixMove < EXTRA_MOVE)
-                    return yMod + fixMove;
-
-                fixMove = pushBackAndFixMoveY(rect, relYSpeed, fixMove, first);
-                first = false;
-                yMod += fixMove;
-
-                continue;
-
-            }
-
-            return yMod; //No more collisions, should be done now
-
-        }
-    }
-
-    /**
-     * Checks if the tile at (x, y) collides. This is merely a wrapper of
-     * collidesAt(x, y), with the exception that this method will return
-     * false if (x, y) is outside the CollisionGrid, instead of throwing an
-     * exception
-     * @param x the x coordinate of the tile to be checked
-     * @param y the y coordinate of the tile to be checked
-     * @return true if (x, y) is within the CollisionGrid and collides, false otherwise
-     */
-    private boolean collides(int x, int y) {
-        if (0 <= x && x < WIDTH() &&
-            0 <= y && y < HEIGHT())
-            return collidesAt[x][y];
-        return false;
-    }
-
     @Override
     public void render(GameContainer gc, Graphics g) {
         int xMax = (int) Math.min((View.window().getWidth()  - getX() - world.getX())/TW, WIDTH () - 1);
@@ -570,19 +389,19 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     }
 
     /**
-     * Checks if <code>rect</code> overlaps the current CollisionGrid.
-     * This only checks if any of the four corners of <code>rect</code>
-     * is within the CollisionGrid, so if the CollisionGrid is entirely
-     * within <code>rect</code> false is returned.
-     * @param rect the Rectangle to be checked for overlap
-     * @return true if any corner of <code>rect</code> overlaps
+     * Checks if <code>player</code> overlaps the current Vehicle.
+     * This only checks if any of the four corners of <code>player</code>
+     * is within the Vehicle, so if the Vehicle is entirely
+     * within <code>player</code> false is returned.
+     * @param player the Rectangle to be checked for overlap
+     * @return true if any corner of <code>player</code> overlaps
      */
-    public boolean overlaps(Rectangle rect) {
-        if (((rect.getX()  >= getX() && rect.getX()  <= getX2()) ||
-             (rect.getX2() >= getX() && rect.getX2() <= getX2()))
+    public boolean overlaps(Player player) {
+        if (((player.getX()  >= getX() && player.getX()  <= getX2()) ||
+             (player.getX2() >= getX() && player.getX2() <= getX2()))
             &&
-            ((rect.getY()  >= getY() && rect.getY()  <= getY2()) ||
-             (rect.getY2() >= getY() && rect.getY2() <= getY2())))
+            ((player.getY()  >= getY() && player.getY()  <= getY2()) ||
+             (player.getY2() >= getY() && player.getY2() <= getY2())))
             return true;
         return false;
     }
@@ -655,7 +474,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     /**
      * Gets the internal x coordinate of the tile that would be underneath the
      * given global x coordinate. Will return an answer even if the tile would
-     * be outside the CollisionGrid, so be careful with the values returned from here
+     * be outside the Vehicle, so be careful with the values returned from here
      * @param x a global x-coordinate
      * @return the internal x-coordinate of the tile
      */
@@ -663,7 +482,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
     /**
      * Gets the internal y coordinate of the tile that would be underneath the
      * given global y coordinate. Will return an answer even if the tile would
-     * be outside the CollisionGrid, so be careful with the values returned from here
+     * be outside the Vehicle, so be careful with the values returned from here
      * @param y a global y-coordinate
      * @return the internal y-coordinate of the tile
      */

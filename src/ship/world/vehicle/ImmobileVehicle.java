@@ -12,7 +12,7 @@ public class ImmobileVehicle extends Vehicle {
     public static final int IMMOBILE_VEH_WIDTH  = 512;
     public static final int IMMOBILE_VEH_HEIGHT = 512;
 
-    public ImmobileVehicle(World world, int id, int x, int y) throws SlickException {
+    public ImmobileVehicle(World world, int id, float x, float y) throws SlickException {
         super(world, id, x, y, false);
 
         for (int i = 1; i < WIDTH(); i++)

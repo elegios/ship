@@ -28,12 +28,14 @@ import ship.world.player.Builder;
 import ship.world.player.Player;
 import ship.world.vehicle.ImmobileVehicle;
 import ship.world.vehicle.Vehicle;
+import ship.world.vehicle.VehicleHolder;
+import ship.world.vehicle.VehiclePiece;
 
 /**
  *
  * @author elegios
  */
-public class World implements Position, Renderable, Updatable, KeyReceiver { //TODO: implement world clock, to synchronise position updates
+public class World implements Position, Renderable, Updatable, KeyReceiver {
     public static final int SKY_GRADIENT_MINIMUM = 220 * Vehicle.TW;
     public static final int SKY_GRADIENT_LENGTH  = 10;
     public static final int SKY_MAX_R = 62;
@@ -55,10 +57,10 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
     private ParallaxBackground paraBack;
 
-    private ImmobileVehicle island;
+    private VehicleHolder island;
     private Player[] players;
     private Player currPlayer;
-    private List<Vehicle> vehicles;
+    private List<VehicleHolder> vehicles;
 
     private float actionsPerTick;
     private float gravity;
@@ -73,7 +75,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     private String systemMessage;
 
     private boolean running;
-    private int     unpauseTimer; //TODO: implement unpause (and figure out the best way to do it)
+    private int     unpauseTimer;
 
     public World(View view) throws SlickException {
         if (skyColors == null) {
@@ -98,16 +100,19 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
         tileset = view.loader().loadManagedSpriteSheet("tiles", Vehicle.TW, Vehicle.TH);
 
-        island  = new ImmobileVehicle(this, 0,  0, 0);
+        island  = new VehicleHolder(new ImmobileVehicle(this, 0,  0.5f, 0.4f));
         vehicles = new ArrayList<>();
-        for (int i = 0; i < 10; i++)
-            vehicles.add(new Vehicle(this, i, island.getWidth()/2 + 128 +i*400, -32));
-        for (Vehicle vehicle : vehicles)
+        for (int i = 0; i < 10; i++) {
+            Vehicle vehicle = new Vehicle(this, i, island.getVehicle().getWidth()/2 + 128 +i*400, -32);
             vehicle.generateStandardVehicle();
+            VehicleHolder holder = new VehicleHolder(vehicle);
+            vehicle.setVehicleHolder(holder);
+            vehicles.add(holder);
+        }
 
         players = new Player[view.numPlayers()];
         for (int i = 0; i < view.numPlayers(); i++)
-            players[i] = new Player(this, i, island.getWidth()/2 + 32, -100 - i*10);
+            players[i] = new Player(this, i, island.getVehicle().getWidth()/2 + 32, -100 - i*10);
         currPlayer = players[view.playerId()];
 
         time = Integer.MIN_VALUE;
@@ -142,11 +147,12 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
             for (Player player : players)
                 player.update(gc, diff);
-            for (Vehicle vehicle : vehicles)
+            for (VehicleHolder vehicle : vehicles)
                 vehicle.update(gc, diff);
 
             x = Math.round(currPlayer.getX()) + currPlayer.getWidth()/2  - View.window().getWidth()/2;
             y = Math.round(currPlayer.getY()) + currPlayer.getHeight()/2 - View.window().getHeight()/2;
+
         } else {
             if (unpauseTimer >= 0) {
                 unpauseTimer -= diff;
@@ -170,7 +176,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param diff the time since the last frame
      */
     private void moveX(int diff) {
-        for (Vehicle vehicle : vehicles)
+        for (VehicleHolder vehicle : vehicles)
             vehicle.moveX(diff);
         for (Player player : players)
             player.moveX(diff);
@@ -193,9 +199,9 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * should a collision be detected.
      */
     private void collideX() {
-        for (Vehicle vehicle : vehicles)
-            vehicle.collideWithVehicleX(island);
-        for (Vehicle vehicle : vehicles)
+        for (VehicleHolder vehicle : vehicles)
+            vehicle.collideWithVehicleHolderX(island);
+        for (VehicleHolder vehicle : vehicles)
             collideVehicleX(vehicle);
 
         for (Player player : players)
@@ -209,7 +215,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param diff the time since the last frame
      */
     private void moveY(int diff) {
-        for (Vehicle vehicle : vehicles)
+        for (VehicleHolder vehicle : vehicles)
             vehicle.moveY(diff);
         for (Player player : players)
             player.moveY(diff);
@@ -232,9 +238,9 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * should a collision be detected.
      */
     private void collideY() {
-        for (Vehicle vehicle : vehicles)
-            vehicle.collideWithVehicleY(island);
-        for (Vehicle vehicle : vehicles)
+        for (VehicleHolder vehicle : vehicles)
+            vehicle.collideWithVehicleHolderY(island);
+        for (VehicleHolder vehicle : vehicles)
             collideVehicleY(vehicle);
 
         for (Player player : players)
@@ -251,14 +257,14 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * higher IDs if that is possible.
      * @param vehicle the Vehicle which should be tested
      */
-    public void collideVehicleX(Vehicle vehicle) {
+    public void collideVehicleX(VehicleHolder vehicle) {
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++)
             if (vehicles.get(i).getID() != vehicle.getID()) {
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleX(vehicles.get(i));
-                else if (vehicle.collideWithVehicleX(vehicles.get(i)))
+                else if (vehicle.collideWithVehicleHolderX(vehicles.get(i)))
                     i = -1;
-                if (i == vehicles.size() - 1 && vehicle.collideWithVehicleX(island))
+                if (i == vehicles.size() - 1 && vehicle.collideWithVehicleHolderX(island))
                     i = -1;
             }
     }
@@ -276,14 +282,14 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * restarting from the lowest ID vehicle should a collision be detected.
      * @param vehicle the Vehicle which should be tested
      */
-    public void collideVehicleY(Vehicle vehicle) {
+    public void collideVehicleY(VehicleHolder vehicle) {
         for (int i = (vehicles.indexOf(vehicle) + 1); i < vehicles.size(); i++) {
             if (vehicles.get(i).getID() != vehicle.getID()) {
                 if (vehicles.get(i).getID() < vehicle.getID())
                     collideVehicleY(vehicles.get(i));
-                else if (vehicle.collideWithVehicleY(vehicles.get(i))) {
+                else if (vehicle.collideWithVehicleHolderY(vehicles.get(i))) {
                     i = -1;
-                } if (i == vehicles.size() - 1 && vehicle.collideWithVehicleY(island)) {
+                } if (i == vehicles.size() - 1 && vehicle.collideWithVehicleHolderY(island)) {
                     i = -1;
                 }
             }
@@ -296,18 +302,10 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param player the Player to be checked
      */
     public void collidePlayerX(Player player) {
-        for (Vehicle vehicle : vehicles)
-            if (vehicle.overlaps(player)) {
-                float fixMove = vehicle.collideRectangleX(player, player.getAbsXSpeed() - vehicle.getAbsXSpeed());
-                if (fixMove != 0)
-                    player.collisionFixPosX(fixMove, vehicle);
-            }
+        for (VehicleHolder vehicle : vehicles)
+            vehicle.collideWithPlayerX(player);
 
-        if (island.overlaps(player)) {
-            float fixMove = island.collideRectangleX(player, player.getAbsXSpeed());
-            if (fixMove != 0)
-                player.collisionFixPosX(fixMove, island);
-        }
+        island.collideWithPlayerY(player);
     }
 
     /**
@@ -316,18 +314,10 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param player the Player to be checked
      */
     public void collidePlayerY(Player player) {
-        for (Vehicle vehicle : vehicles)
-            if (vehicle.overlaps(player)) {
-                float fixMove = vehicle.collideRectangleY(player, player.getAbsYSpeed() - vehicle.getAbsYSpeed());
-                if (fixMove != 0)
-                    player.collisionFixPosY(fixMove, vehicle);
-            }
+        for (VehicleHolder vehicle : vehicles)
+            vehicle.collideWithPlayerY(player);
 
-        if (island.overlaps(player)) {
-            float fixMove = island.collideRectangleY(player, player.getAbsYSpeed());
-            if (fixMove != 0)
-                player.collisionFixPosY(fixMove, island);
-        }
+        island.collideWithPlayerY(player);
     }
 
     /**
@@ -338,19 +328,19 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param player the player that is activating
      */
     public void activateUnderPlayer(Player player) {
-        for (Vehicle vehicle : vehicles)
-            if (vehicle.overlaps(player)) {
-                int vehX = vehicle.getTileXUnderPos(player.getX() + player.getWidth ()/2);
-                int vehY = vehicle.getTileYUnderPos(player.getY() + player.getHeight()/2);
-                if (vehX >= 0 && vehX < vehicle.WIDTH() &&
-                    vehY >= 0 && vehY < vehicle.HEIGHT() &&
-                    vehicle.tile(vehX, vehY) != null) {
-                    if (view.net().isOnline())
-                        view.net().send(ShipProtocol.ACTIVATE, new ActivatePackage(player.getID(), vehicle.getID(), vehX, vehY));
-                    if (view.net().isServer() || !view.net().isClient())
-                        vehicle.tile(vehX, vehY).activate(player);
-                }
+        for (VehicleHolder vehicle : vehicles) {
+            VehiclePiece closestPiece = vehicle.findClosestPiece(player.getX() + player.getWidth()/2, player.getY() + player.getHeight()/2);
+
+            int vehX = closestPiece.getTileXUnderPos(player.getX() + player.getWidth ()/2);
+            int vehY = closestPiece.getTileYUnderPos(player.getY() + player.getHeight()/2);
+
+            if (vehX != -1 && vehY != -1 && vehicle.getVehicle().tile(vehX, vehY) != null) {
+                if (view.net().isOnline())
+                    view.net().send(ShipProtocol.ACTIVATE, new ActivatePackage(player.getID(), vehicle.getVehicle().getID(), vehX, vehY));
+                if (view.net().isServer() || !view.net().isClient())
+                    vehicle.getVehicle().tile(vehX, vehY).activate(player);
             }
+        }
 
     }
 
@@ -360,11 +350,20 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @return the Vehicle with the ID <code>vehicleID</code>
      */
     public Vehicle findVehicle(int vehicleID) {
-        for (Vehicle vehicle : vehicles)
+        VehicleHolder ret = findVehicleHolder(vehicleID);
+        if (ret != null)
+            return ret.getVehicle();
+
+        return null;
+    }
+
+    public VehicleHolder findVehicleHolder(int vehicleID) {
+        for (VehicleHolder vehicle : vehicles)
             if (vehicle.getID() == vehicleID)
                 return vehicle;
 
         return null;
+
     }
 
     public Player findPlayer(int playerID) {
@@ -383,16 +382,17 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param player the player doing the building
      */
     public void buildUnderPlayerBuilder(Player player) {
-        for (Vehicle vehicle : vehicles) {
-            int tx = vehicle.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
-            int ty = vehicle.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
-            if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
-                ty >= 1 && ty < vehicle.HEIGHT() - 1)
-                if (!vehicle.existsAt(tx, ty) &&
-                        (vehicle.existsAt(tx    , ty - 1) ||
-                         vehicle.existsAt(tx + 1, ty    ) ||
-                         vehicle.existsAt(tx    , ty + 1) ||
-                         vehicle.existsAt(tx - 1, ty    ))) {
+        for (VehicleHolder vehicle : vehicles) {
+            VehiclePiece closestPiece = vehicle.findClosestPiece(player.getX(), player.getY());
+
+            int tx = closestPiece.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
+            int ty = closestPiece.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
+            if (tx != -1 && ty != -1)
+                if (!vehicle.getVehicle().existsAt(tx, ty) &&
+                        (vehicle.getVehicle().existsAt(tx    , ty - 1) ||
+                         vehicle.getVehicle().existsAt(tx + 1, ty    ) ||
+                         vehicle.getVehicle().existsAt(tx    , ty + 1) ||
+                         vehicle.getVehicle().existsAt(tx - 1, ty    ))) {
                     if (view.net().isOnline())
                         view.net().send(ShipProtocol.CREATE_TILE,
                                         new CreateTilePackage(player.getID(),
@@ -401,7 +401,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
                                                               view.inventory().getSelectedItem(),
                                                               view.inventory().getSelectedSubItem()));
                     if (view.net().isServer() || !view.net().isClient())
-                        vehicle.addTile(view.inventory().getSelectedTile().create(view.inventory().getSelectedSubItem(), tx, ty));
+                        vehicle.getVehicle().addTile(view.inventory().getSelectedTile().create(view.inventory().getSelectedSubItem(), tx, ty));
                     break;
                 }
         }
@@ -416,16 +416,17 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param player the player doing the destroying
      */
     public void destroyUnderPlayerBuilder(Player player) {
-        for (Vehicle vehicle : vehicles) {
-            int tx = vehicle.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
-            int ty = vehicle.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
-            if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
-                ty >= 1 && ty < vehicle.HEIGHT() - 1)
-                if (vehicle.existsAt(tx, ty)) {
+        for (VehicleHolder vehicle : vehicles) {
+            VehiclePiece closestPiece = vehicle.findClosestPiece(player.getX(), player.getY());
+
+            int tx = closestPiece.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
+            int ty = closestPiece.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
+            if (tx != -1 && ty != -1)
+                if (vehicle.getVehicle().existsAt(tx, ty)) {
                     if (view.net().isOnline())
                         view.net().send(ShipProtocol.DELETE_TILE, new DeleteTilePackage(player.getID(), vehicle.getID(), tx, ty));
                     if (view.net().isServer() || !view.net().isClient())
-                        vehicle.remTile(vehicle.tile(tx, ty));
+                        vehicle.getVehicle().remTile(vehicle.getVehicle().tile(tx, ty));
                     break;
                 }
         }
@@ -437,7 +438,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * destroying it.
      * @param vehicle the Vehicle to be removed
      */
-    public void removeVehicleFromList(Vehicle vehicle) {
+    public void removeVehicleFromList(VehicleHolder vehicle) {
         vehicles.remove(vehicle);
     }
 
@@ -449,7 +450,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
 
         tileset.getSpriteSheet().startUse();
         island.render(gc, g);
-        for (Vehicle vehicle : vehicles)
+        for (VehicleHolder vehicle : vehicles)
             vehicle.render(gc, g);
         tileset.getSpriteSheet().endUse();
 
@@ -475,20 +476,21 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * @param g the Graphics object that draws everything
      */
     private void renderBuilder(Builder builder, GameContainer gc, Graphics g) {
-        for (Vehicle vehicle : vehicles) {
-            int tx = vehicle.getTileXUnderPos(builder.getX() + builder.getWidth ()/2);
-            int ty = vehicle.getTileYUnderPos(builder.getY() + builder.getHeight()/2);
-            if (tx >= 1 && tx < vehicle.WIDTH() - 1 &&
-                ty >= 1 && ty < vehicle.HEIGHT() - 1)
-                if (!vehicle.existsAt(tx, ty) &&
-                        (vehicle.existsAt(tx    , ty - 1) ||
-                         vehicle.existsAt(tx + 1, ty    ) ||
-                         vehicle.existsAt(tx    , ty + 1) ||
-                         vehicle.existsAt(tx - 1, ty    ))) {
-                    builder.renderHighlight(gc, g, vehicle.ix() + tx*Vehicle.TW, vehicle.iy() + ty*Vehicle.TH, true);
+        for (VehicleHolder vehicle : vehicles) {
+            VehiclePiece closestPiece = vehicle.findClosestPiece(builder.getX(), builder.getY());
+
+            int tx = closestPiece.getTileXUnderPos(builder.getX() + builder.getWidth ()/2);
+            int ty = closestPiece.getTileYUnderPos(builder.getY() + builder.getHeight()/2);
+            if (tx != -1 && ty != -1)
+                if (!vehicle.getVehicle().existsAt(tx, ty) &&
+                        (vehicle.getVehicle().existsAt(tx    , ty - 1) ||
+                         vehicle.getVehicle().existsAt(tx + 1, ty    ) ||
+                         vehicle.getVehicle().existsAt(tx    , ty + 1) ||
+                         vehicle.getVehicle().existsAt(tx - 1, ty    ))) {
+                    builder.renderHighlight(gc, g, closestPiece.ix() + tx*Vehicle.TW, closestPiece.iy() + ty*Vehicle.TH, true);
                     break;
-                } else if (vehicle.existsAt(tx, ty)) {
-                    builder.renderHighlight(gc, g, vehicle.ix() + tx*Vehicle.TW, vehicle.iy() + ty*Vehicle.TH, false);
+                } else if (vehicle.getVehicle().existsAt(tx, ty)) {
+                    builder.renderHighlight(gc, g, closestPiece.ix() + tx*Vehicle.TW, closestPiece.iy() + ty*Vehicle.TH, false);
                     break;
                 }
         }
@@ -500,8 +502,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
      * the nearest island the player is.
      */
     private void renderBackgroundGradient() {
-        long deltaX = View.window().getWidth ()/2 - island.ix() - island.getWidth ()/2;
-        long deltaY = View.window().getHeight()/2 - island.iy() - island.getHeight()/2;
+        long deltaX = View.window().getWidth ()/2 - island.getVehicle().ix() - island.getVehicle().getWidth ()/2;
+        long deltaY = View.window().getHeight()/2 - island.getVehicle().iy() - island.getVehicle().getHeight()/2;
         float dist = (float) Math.sqrt(deltaX*deltaX + deltaY*deltaY) - SKY_GRADIENT_MINIMUM;
 
         View.window().getGraphics().drawString("dist: " + dist, 10, 200);
@@ -579,7 +581,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     public Player currPlayer()       { return       currPlayer; }
     public float  fuelRate()         { return         fuelRate; }
 
-    public List<Vehicle> vehicles() { return vehicles; }
+    public List<VehicleHolder> vehicles() { return vehicles; }
 
     public float getX() { return -x; }
     public float getY() { return -y; }
@@ -592,7 +594,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver { //T
     }
 
     public boolean keyPressed(Keys keys, int key, char c) {
-        if (key == keys.pause()) { //TODO: implement multiplayer pausing
+        if (key == keys.pause()) {
             if (!view.net().isOnline())
                 togglePause();
 

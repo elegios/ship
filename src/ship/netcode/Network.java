@@ -208,7 +208,7 @@ public class Network implements ServerListener, PackageReceiver {
 
         }
         } catch (Exception e) {
-            System.out.println("\nGot an error in a connection listener"); //TODO: make game not start until everyone has finished loading
+            System.out.println("\nGot an error in a connection listener");
             e.printStackTrace();
         }
     }

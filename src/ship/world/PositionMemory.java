@@ -1,19 +1,19 @@
 package ship.world;
 
-import ship.world.vehicle.Vehicle;
+import ship.world.vehicle.VehicleHolder;
 
 public class PositionMemory {
 
     int time;
 
-    Vehicle veh;
+    VehicleHolder veh;
 
     float x;
     float y;
     float xSpeed;
     float ySpeed;
 
-    PositionMemory(int time, float x, float y, float xSpeed, float ySpeed, Vehicle veh) {
+    PositionMemory(int time, float x, float y, float xSpeed, float ySpeed, VehicleHolder veh) {
         this.time = time;
 
         this.veh = veh;
@@ -24,7 +24,7 @@ public class PositionMemory {
         this.ySpeed = ySpeed;
     }
 
-    public Vehicle getVehicle() { return veh; }
+    public VehicleHolder getVehicle() { return veh; }
     public float getX() { return x; }
     public float getY() { return y; }
     public float getXSpeed() { return xSpeed; }
