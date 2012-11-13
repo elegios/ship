@@ -7,7 +7,6 @@ import org.newdawn.slick.Graphics;
 
 import ship.Updatable;
 import ship.world.Rectangle;
-import ship.world.player.Player;
 
 public class VehicleHolder implements Updatable, Renderable {
 
@@ -35,24 +34,6 @@ public class VehicleHolder implements Updatable, Renderable {
             return wholeVehicle.collideWithVehiclePieceY(collision);
 
         return false;
-    }
-
-    public void collideWithPlayerX(Player player) {
-        VehiclePiece collision = findOverlappingPiece(player);
-        if (collision != null) {
-            float fixMove = collision.collideRectangleX(player, player.getAbsXSpeed() - vehicle.getAbsXSpeed());
-            if (fixMove != 0)
-                player.collisionFixPosX(fixMove, this);
-        }
-    }
-
-    public void collideWithPlayerY(Player player) {
-        VehiclePiece collision = findOverlappingPiece(player);
-        if (collision != null) {
-            float fixMove = collision.collideRectangleY(player, player.getAbsYSpeed() - vehicle.getAbsYSpeed());
-            if (fixMove != 0)
-                player.collisionFixPosY(fixMove, this);
-        }
     }
 
     public void updateSplits() {

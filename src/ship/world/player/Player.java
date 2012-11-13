@@ -38,6 +38,7 @@ import ship.world.vehicle.VehiclePiece;
 public class Player implements Position, Renderable, Updatable, RelativeMovable, Rectangle, KeyReceiver {
     static final float JUMP_SPEED = -320;
     static final float MOVE_SPEED =  160; // 5 squ/igs
+    static final float MOVE_ACCEL =  32;
     static final float BASE_MASS  =  20;
 
     static final float AIR_RESIST_RANGE = 200; //The range of vehicle airresist in pixels
@@ -53,8 +54,8 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
 
     private int id;
 
-    private float x;
-    private float y;
+    protected float x;
+    protected float y;
 
     private float xSpeed;
     private float ySpeed;
@@ -71,8 +72,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     private VehicleHolder collidedY;
     private VehicleHolder lastVehicle;
     private boolean       airResistX;
-
-    private Builder builder;
 
     private int width;
     private int height;
@@ -98,8 +97,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         player = loader.loadManagedImage("player");
         width  = player.getImage().getWidth();
         height = player.getImage().getHeight();
-
-        builder = new Builder(world.view().inventory(), this);
 
         posBank = new PositionMemoryBank(World.POS_MEMORY_COUNT);
 
@@ -233,24 +230,24 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
             if (airResistX) {
                 if (xSpeed > lastVehicle.getVehicle().getAbsXSpeed() - MOVE_SPEED) {
                     if (!lastVehicle.getVehicle().collidedWithImmobileY())
-                        lastVehicle.getVehicle().pushX(mass * 32);
-                    xSpeed -= 32;
+                        lastVehicle.getVehicle().pushX(mass * MOVE_ACCEL);
+                    xSpeed -= MOVE_ACCEL;
                 }
             } else
-                if (xSpeed > - MOVE_SPEED)
-                    xSpeed -= 32;
+                if (xSpeed > -MOVE_SPEED)
+                    xSpeed -= MOVE_ACCEL;
 
         //move right
         if (!moveLeft && moveRight)
             if (airResistX) {
                 if (xSpeed < lastVehicle.getVehicle().getAbsXSpeed() + MOVE_SPEED) {
                     if (!lastVehicle.getVehicle().collidedWithImmobileY())
-                        lastVehicle.getVehicle().pushX(-mass * 32);
-                    xSpeed += 32;
+                        lastVehicle.getVehicle().pushX(mass * -MOVE_ACCEL);
+                    xSpeed += MOVE_ACCEL;
                 }
             } else
-                if (xSpeed < MOVE_SPEED)
-                    xSpeed += 32;
+                if (xSpeed <  MOVE_SPEED)
+                    xSpeed += MOVE_ACCEL;
 
         //jump
         if (collidedY != null && downMotion && jump) {
@@ -296,7 +293,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
         ySpeed += world.actionsPerTick() * diff * world.gravity();
 
         if (world.updatePos() && world.view().net().isOnline()) {
-            if (world.currPlayer() == this) {
+            if (world.currPlayerHolder().getPlayer() == this) {
                 if (lastVehicle != null && !(lastVehicle.getVehicle() instanceof ImmobileVehicle))
                     world.view().net().send(ShipProtocol.REL_PLAYER_POS, new RelativePlayerPositionPackage(id, lastVehicle.getID(),
                                                                                                            world.time(),
@@ -416,7 +413,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
 
     public void render(GameContainer gc, Graphics g) {
         player.getImage().draw(ix(), iy());
-        builder.render(gc, g);
 
         if (name != null) {
             Font font = world.view().fonts().name();
@@ -456,8 +452,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     public void collidedWithImmobileY(boolean val) { collidedWithImobileY = val; }
     public void collisionLockX       (float   val) { collisionLockX       = val; }
     public void collisionLockY       (float   val) { collisionLockY       = val; }
-
-    public Builder builder() { return builder; }
 
     public World world() { return world; }
 
@@ -506,12 +500,9 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
                 world.view().net().send(ShipProtocol.PLAYER_MOVE, new PlayerMovementPackage(id, PlayerMovementPackage.JUMP, true));
             return true;
 
-        } if (key == keys.activateDevice()) {
-            world.activateUnderPlayer(this);
-            return true;
         }
 
-        return builder.keyPressed(keys, key, c);
+        return false;
     }
 
     public boolean keyReleased(Keys keys, int key, char c) {
@@ -534,7 +525,7 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
             return true;
         }
 
-        return builder.keyReleased(keys, key, c);
+        return false;
     }
 
     public int getID() {

@@ -14,15 +14,18 @@ import ship.netcode.inventory.BuildDirectionPackage;
 import ship.netcode.inventory.BuildModePackage;
 import ship.netcode.inventory.ItemAndSubItemPackage;
 import ship.ui.inventory.Inventory;
-import ship.world.Position;
 import ship.world.vehicle.Vehicle;
 import ship.world.vehicle.tile.Tile;
 
-public class Builder implements Renderable, KeyReceiver, Position {
+public class Builder implements Renderable, KeyReceiver {
 
     private Inventory inv;
 
-    private Player player;
+    private PlayerHolder player;
+
+    private float   renderX;
+    private float   renderY;
+    private boolean renderHighlight;
 
     private ManagedSpriteSheet tiles;
     private boolean buildMode;
@@ -32,7 +35,7 @@ public class Builder implements Renderable, KeyReceiver, Position {
 
     private ManagedSpriteSheet highlight;
 
-    public Builder(Inventory inv, Player player) throws SlickException {
+    public Builder(Inventory inv, PlayerHolder player) throws SlickException {
         this.inv = inv;
 
         this.player = player;
@@ -41,26 +44,43 @@ public class Builder implements Renderable, KeyReceiver, Position {
         highlight = player.world().view().loader().loadManagedSpriteSheet("builder_highlight", Vehicle.TW, Vehicle.TH);
     }
 
+    public void setRenderPos(Player player) {
+        setRenderPos(player, 0, 0);
+    }
+    public void setRenderPos(Player player, float offsetX, float offsetY) {
+        renderX = player.getX() + getModX(false) + offsetX;
+        renderY = player.getY() + getModY(false) + offsetY;
+    }
+
+    public void dontRenderHighlight() { renderHighlight = false; }
+
     @Override
     public void render(GameContainer gc, Graphics g) {
-        if (player.world().currPlayer() == player) {
-            if (buildMode && inv.getSelectedTile() != null) {
-                int tileX = inv.getSelectedSubTile()%tiles.getSpriteSheet().getHorizontalCount();
-                int tileY = inv.getSelectedSubTile()/tiles.getSpriteSheet().getHorizontalCount();
+        if (buildMode) {
+            if (player.world().currPlayerHolder() == player) {
+                if (inv.getSelectedTile() != null) {
+                    int tileX = inv.getSelectedSubTile()%tiles.getSpriteSheet().getHorizontalCount();
+                    int tileY = inv.getSelectedSubTile()/tiles.getSpriteSheet().getHorizontalCount();
 
-                tiles.getSpriteSheet().getSprite(tileX, tileY).draw(ix(), iy());
-            }
-        } else {
-            if (buildMode && item != -1) {
+                    tiles.getSpriteSheet().getSprite(tileX, tileY).draw(ix(renderX), iy(renderY));
+                }
+
+                if (renderHighlight)
+                    player.world().renderBuilder(player, gc, g);
+                renderHighlight = true;
+
+            } else if (item != -1) {
                 int tileX = inv.getBlockAt(item).subTile(subItem)%tiles.getSpriteSheet().getHorizontalCount();
                 int tileY = inv.getBlockAt(item).subTile(subItem)/tiles.getSpriteSheet().getHorizontalCount();
 
-                tiles.getSpriteSheet().getSprite(tileX, tileY).draw(ix(), iy());
+                tiles.getSpriteSheet().getSprite(tileX, tileY).draw(ix(renderX), iy(renderY));
             }
         }
     }
 
     public void renderHighlight(GameContainer gc, Graphics g, int x, int y, boolean create) {
+        g.clearClip();
+
         if (create)
             highlight.getSpriteSheet().getSprite(0, 0).draw(x, y);
         else
@@ -69,41 +89,55 @@ public class Builder implements Renderable, KeyReceiver, Position {
 
     public boolean buildMode() { return buildMode; }
 
-    public float getX() {
+    public float getModX() { return getModX(true); }
+    public float getModX(boolean buildPos) {
         switch (direction) {
             case Tile.UP:
             case Tile.DOWN:
-                return player.getX() - 1;
+                return - 1;
 
             case Tile.RIGHT:
-                return player.getX2() + 1 + Vehicle.TW/2;
+                if (buildPos)
+                    return player.getPlayer().getWidth() + Vehicle.TW/2;
+                else
+                    return player.getPlayer().getWidth();
 
             case Tile.LEFT:
-                return player.getX() - Vehicle.TW - Vehicle.TW/2;
+                if (buildPos)
+                    return -Vehicle.TW - Vehicle.TW/2;
+                else
+                    return -Vehicle.TW;
 
             default:
                 return Float.NaN;
         }
     }
-    public float getY() {
+    public float getModY() { return getModY(true); }
+    public float getModY(boolean buildPos) {
         switch (direction) {
             case Tile.UP:
-                return player.getY() - Vehicle.TH - Vehicle.TH/2;
+                if (buildPos)
+                    return -Vehicle.TH - Vehicle.TH/2;
+                else
+                    return -Vehicle.TH;
 
             case Tile.RIGHT:
             case Tile.LEFT:
-                return player.getY() - 1;
+                return - 1;
 
             case Tile.DOWN:
-                return player.getY2() + 1 + Vehicle.TH/2;
+                if (buildPos)
+                    return player.getPlayer().getHeight() + Vehicle.TH/2;
+                else
+                    return player.getPlayer().getHeight();
 
             default:
                 return Float.NaN;
         }
     }
 
-    public int ix() { return Math.round(player.world().getX() + getX()); }
-    public int iy() { return Math.round(player.world().getY() + getY()); }
+    public int ix(float x) { return Math.round(player.world().getX() + x); }
+    public int iy(float y) { return Math.round(player.world().getY() + y); }
 
     public int getWidth()  { return Vehicle.TW; }
     public int getHeight() { return Vehicle.TH; }

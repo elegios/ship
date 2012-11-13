@@ -14,12 +14,12 @@ public interface Position {
     float getY();
 
     /**
-     * Get x coordinate on the screen in integers, for rendering
+     * Get top left x coordinate on the screen in integers, for rendering
      * @return coordinate on the screen
      */
     int ix();
     /**
-     * Get x coordinate on the screen in integers, for rendering
+     * Get top left y coordinate on the screen in integers, for rendering
      * @return coordinate on the screen
      */
     int iy();

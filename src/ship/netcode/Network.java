@@ -159,20 +159,20 @@ public class Network implements ServerListener, PackageReceiver {
 
                 case ShipProtocol.BUILD_DIR: {
                     BuildDirectionPackage p = (BuildDirectionPackage) pack;
-                    view.world().findPlayer(p.getPlayerId()).builder().receiveBuildDirectionPackage(p);
+                    view.world().findPlayerHolder(p.getPlayerId()).getPieces().builder().receiveBuildDirectionPackage(p);
                     break;
                 }
 
                 case ShipProtocol.BUILD_MODE: {
                     BuildModePackage p = (BuildModePackage) pack;
-                    view.world().findPlayer(p.getPlayerId()).builder().receiveBuildModePackage(p);
+                    view.world().findPlayerHolder(p.getPlayerId()).getPieces().builder().receiveBuildModePackage(p);
                     break;
                 }
 
                 case ShipProtocol.ITEM_AND_SUB:
                     if (view != null) {
                         ItemAndSubItemPackage p = (ItemAndSubItemPackage) pack;
-                        view.world().findPlayer(p.getPlayerId()).builder().receiveItemAndSubItemPackage(p);
+                        view.world().findPlayerHolder(p.getPlayerId()).getPieces().builder().receiveItemAndSubItemPackage(p);
                     }
                     break;
 

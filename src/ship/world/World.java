@@ -24,8 +24,8 @@ import ship.netcode.ShipProtocol;
 import ship.netcode.interaction.ActivatePackage;
 import ship.netcode.interaction.CreateTilePackage;
 import ship.netcode.interaction.DeleteTilePackage;
-import ship.world.player.Builder;
 import ship.world.player.Player;
+import ship.world.player.PlayerHolder;
 import ship.world.vehicle.ImmobileVehicle;
 import ship.world.vehicle.Vehicle;
 import ship.world.vehicle.VehicleHolder;
@@ -47,6 +47,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
 
     public static final int UNPAUSE_COUNTDOWN_START = 3000;
 
+    public static final Color SPLIT_COLOR = Color.green;
+
     private View view;
 
     private int x;
@@ -58,8 +60,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
     private ParallaxBackground paraBack;
 
     private VehicleHolder island;
-    private Player[] players;
-    private Player currPlayer;
+    private PlayerHolder[] players;
+    private PlayerHolder currPlayer;
     private List<VehicleHolder> vehicles;
 
     private float actionsPerTick;
@@ -110,9 +112,12 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
             vehicles.add(holder);
         }
 
-        players = new Player[view.numPlayers()];
-        for (int i = 0; i < view.numPlayers(); i++)
-            players[i] = new Player(this, i, island.getVehicle().getWidth()/2 + 32, -100 - i*10);
+        players = new PlayerHolder[view.numPlayers()];
+        for (int i = 0; i < view.numPlayers(); i++) {
+            players[i] = new PlayerHolder(new Player(this, i, island.getVehicle().getWidth()/2 + 32, -100 - i*10));
+            //players[i].getPieces().setHorizontalSplit(players[i].getPlayer().getX() - 500, false, -500);
+            players[i].getPieces().setVerticalSplit(500, true, 100);
+        }
         currPlayer = players[view.playerId()];
 
         time = Integer.MIN_VALUE;
@@ -128,12 +133,14 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
     @Override
     public void update(GameContainer gc, int diff) {
         if (running) {
-            for (Player player : players)
+            for (PlayerHolder player : players)
                 player.updateEarly(gc, diff);
 
             moveX(diff);
+            //TODO: update horizontal splitting points
             collideX();
             moveY(diff);
+            //TODO: update vertical splitting points
             collideY();
 
             time += diff;
@@ -145,13 +152,13 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
             } else
                 updatePos = false;
 
-            for (Player player : players)
+            for (PlayerHolder player : players)
                 player.update(gc, diff);
             for (VehicleHolder vehicle : vehicles)
                 vehicle.update(gc, diff);
 
-            x = Math.round(currPlayer.getX()) + currPlayer.getWidth()/2  - View.window().getWidth()/2;
-            y = Math.round(currPlayer.getY()) + currPlayer.getHeight()/2 - View.window().getHeight()/2;
+            x = Math.round(currPlayer.getCenterX() - View.window().getWidth ()/2);
+            y = Math.round(currPlayer.getCenterY() - View.window().getHeight()/2);
 
         } else {
             if (unpauseTimer >= 0) {
@@ -178,8 +185,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
     private void moveX(int diff) {
         for (VehicleHolder vehicle : vehicles)
             vehicle.moveX(diff);
-        for (Player player : players)
-            player.moveX(diff);
+        for (PlayerHolder player : players)
+            player.getPlayer().moveX(diff);
     }
     /**
      * When a vehicle gets an updated position from the server
@@ -191,8 +198,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
      * @param move the distance it has moved
      */
     public void relMoveX(Vehicle vehicle, float move) {
-        for (Player player : players)
-            player.relMoveX(vehicle, move);
+        for (PlayerHolder player : players)
+            player.getPlayer().relMoveX(vehicle, move);
     }
     /**
      * Checks for horizontal collision between all objects, moving them
@@ -204,7 +211,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
         for (VehicleHolder vehicle : vehicles)
             collideVehicleX(vehicle);
 
-        for (Player player : players)
+        for (PlayerHolder player : players)
             collidePlayerX(player);
     }
     /**
@@ -217,8 +224,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
     private void moveY(int diff) {
         for (VehicleHolder vehicle : vehicles)
             vehicle.moveY(diff);
-        for (Player player : players)
-            player.moveY(diff);
+        for (PlayerHolder player : players)
+            player.getPlayer().moveY(diff);
     }
     /**
      * When a vehicle gets an updated position from the server
@@ -230,8 +237,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
      * @param move the distance it has moved
      */
     public void relMoveY(Vehicle vehicle, float move) {
-        for (Player player : players)
-            player.relMoveY(vehicle, move);
+        for (PlayerHolder player : players)
+            player.getPlayer().relMoveY(vehicle, move);
     }
     /**
      * Checks for vertical collision between all objects, moving them
@@ -243,7 +250,7 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
         for (VehicleHolder vehicle : vehicles)
             collideVehicleY(vehicle);
 
-        for (Player player : players)
+        for (PlayerHolder player : players)
             collidePlayerY(player);
     }
 
@@ -301,11 +308,11 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
      * moving the <code>player</code> should it be necessary.
      * @param player the Player to be checked
      */
-    public void collidePlayerX(Player player) {
+    public void collidePlayerX(PlayerHolder player) {
         for (VehicleHolder vehicle : vehicles)
-            vehicle.collideWithPlayerX(player);
+            player.collideWithVehicleHolderX(vehicle);
 
-        island.collideWithPlayerY(player);
+        player.collideWithVehicleHolderX(island);
     }
 
     /**
@@ -313,32 +320,28 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
      * moving the <code>player</code> should it be necessary.
      * @param player the Player to be checked
      */
-    public void collidePlayerY(Player player) {
+    public void collidePlayerY(PlayerHolder player) {
         for (VehicleHolder vehicle : vehicles)
-            vehicle.collideWithPlayerY(player);
+            player.collideWithVehicleHolderY(vehicle);
 
-        island.collideWithPlayerY(player);
+        player.collideWithVehicleHolderY(island);
     }
 
-    /**
-     * Changes the player.ID.activate value to trigger an activate command
-     * on the tile that <code>player<code> is overlapping in a Vehicle. Will
-     * do nothing if there is no overlapping Vehicle or the overlapping
-     * tile is empty.
-     * @param player the player that is activating
-     */
-    public void activateUnderPlayer(Player player) {
+    public void activateUnderPlayer(PlayerHolder player) {
         for (VehicleHolder vehicle : vehicles) {
-            VehiclePiece closestPiece = vehicle.findClosestPiece(player.getX() + player.getWidth()/2, player.getY() + player.getHeight()/2);
+            float centerX = player.getCenterX();
+            float centerY = player.getCenterY();
 
-            int vehX = closestPiece.getTileXUnderPos(player.getX() + player.getWidth ()/2);
-            int vehY = closestPiece.getTileYUnderPos(player.getY() + player.getHeight()/2);
+            VehiclePiece closestPiece = vehicle.findClosestPiece(centerX, centerY);
+
+            int vehX = closestPiece.getTileXUnderPos(centerX);
+            int vehY = closestPiece.getTileYUnderPos(centerY);
 
             if (vehX != -1 && vehY != -1 && vehicle.getVehicle().tile(vehX, vehY) != null) {
                 if (view.net().isOnline())
                     view.net().send(ShipProtocol.ACTIVATE, new ActivatePackage(player.getID(), vehicle.getVehicle().getID(), vehX, vehY));
                 if (view.net().isServer() || !view.net().isClient())
-                    vehicle.getVehicle().tile(vehX, vehY).activate(player);
+                    vehicle.getVehicle().tile(vehX, vehY).activate(player.getPlayer());
             }
         }
 
@@ -366,10 +369,17 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
 
     }
 
-    public Player findPlayer(int playerID) {
-        for (Player player : players)
+    public PlayerHolder findPlayerHolder(int playerID) {
+        for (PlayerHolder player : players)
             if (player.getID() == playerID)
                 return player;
+
+        return null;
+    }
+    public Player findPlayer(int playerID) {
+        PlayerHolder ret = findPlayerHolder(playerID);
+        if (ret != null)
+            return ret.getPlayer();
 
         return null;
     }
@@ -381,12 +391,15 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
      * or already a block at the given point.
      * @param player the player doing the building
      */
-    public void buildUnderPlayerBuilder(Player player) {
+    public void buildUnderPlayerBuilder(PlayerHolder player) {
         for (VehicleHolder vehicle : vehicles) {
-            VehiclePiece closestPiece = vehicle.findClosestPiece(player.getX(), player.getY());
+            float builderCenterX = player.getPieces().getBuilderCenterX();
+            float builderCenterY = player.getPieces().getBuilderCenterY();
 
-            int tx = closestPiece.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
-            int ty = closestPiece.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
+            VehiclePiece closestPiece = vehicle.findClosestPiece(builderCenterX, builderCenterY);
+
+            int tx = closestPiece.getTileXUnderPos(builderCenterX);
+            int ty = closestPiece.getTileYUnderPos(builderCenterY);
             if (tx != -1 && ty != -1)
                 if (!vehicle.getVehicle().existsAt(tx, ty) &&
                         (vehicle.getVehicle().existsAt(tx    , ty - 1) ||
@@ -415,12 +428,15 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
      * the given position
      * @param player the player doing the destroying
      */
-    public void destroyUnderPlayerBuilder(Player player) {
+    public void destroyUnderPlayerBuilder(PlayerHolder player) {
         for (VehicleHolder vehicle : vehicles) {
-            VehiclePiece closestPiece = vehicle.findClosestPiece(player.getX(), player.getY());
+            float builderCenterX = player.getPieces().getBuilderCenterX();
+            float builderCenterY = player.getPieces().getBuilderCenterY();
 
-            int tx = closestPiece.getTileXUnderPos(player.builder().getX() + player.builder().getWidth ()/2);
-            int ty = closestPiece.getTileYUnderPos(player.builder().getY() + player.builder().getHeight()/2);
+            VehiclePiece closestPiece = vehicle.findClosestPiece(builderCenterX, builderCenterY);
+
+            int tx = closestPiece.getTileXUnderPos(builderCenterX);
+            int ty = closestPiece.getTileYUnderPos(builderCenterY);
             if (tx != -1 && ty != -1)
                 if (vehicle.getVehicle().existsAt(tx, ty)) {
                     if (view.net().isOnline())
@@ -454,14 +470,12 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
             vehicle.render(gc, g);
         tileset.getSpriteSheet().endUse();
 
-        for (Player player : players)
+        for (PlayerHolder player : players)
             player.render(gc, g);
 
-        if (currPlayer.builder().buildMode())
-            renderBuilder(currPlayer.builder(), gc, g);
         g.drawString("time: " +time+ "\n" +
-                     "xSpeed: " +Math.round(currPlayer.getAbsXSpeed()/32)+ " squ/igs\n" +
-        		     "ySpeed: " +Math.round(currPlayer.getAbsYSpeed()/32)+ " squ/igs\n\nPlayer " +view.playerId(), 10, 100);
+                     "xSpeed: " +Math.round(currPlayer.getPlayer().getAbsXSpeed()/32)+ " squ/igs\n" +
+        		     "ySpeed: " +Math.round(currPlayer.getPlayer().getAbsYSpeed()/32)+ " squ/igs\n\nPlayer " +view.playerId(), 10, 100);
 
         if (systemMessage != null)
             view.fonts().message().drawString(View.window().getWidth()/2 - view.fonts().message().getWidth(systemMessage)/2,
@@ -469,28 +483,31 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
                                               systemMessage);
     }
     /**
-     * Renders the highlight of the player builder, if in overlaps a position
+     * Renders the highlight of the player builder, if it overlaps a position
      * where either building or destruction can be done.
      * @param builder the Builder whose highlight will be rendered.
      * @param gc the GameContainer in which the current game exists
      * @param g the Graphics object that draws everything
      */
-    private void renderBuilder(Builder builder, GameContainer gc, Graphics g) {
+    public void renderBuilder(PlayerHolder player, GameContainer gc, Graphics g) {
         for (VehicleHolder vehicle : vehicles) {
-            VehiclePiece closestPiece = vehicle.findClosestPiece(builder.getX(), builder.getY());
+            float centerX = player.getPieces().getBuilderCenterX();
+            float centerY = player.getPieces().getBuilderCenterY();
 
-            int tx = closestPiece.getTileXUnderPos(builder.getX() + builder.getWidth ()/2);
-            int ty = closestPiece.getTileYUnderPos(builder.getY() + builder.getHeight()/2);
+            VehiclePiece closestPiece = vehicle.findClosestPiece(centerX, centerY);
+
+            int tx = closestPiece.getTileXUnderPos(centerX);
+            int ty = closestPiece.getTileYUnderPos(centerY);
             if (tx != -1 && ty != -1)
                 if (!vehicle.getVehicle().existsAt(tx, ty) &&
                         (vehicle.getVehicle().existsAt(tx    , ty - 1) ||
                          vehicle.getVehicle().existsAt(tx + 1, ty    ) ||
                          vehicle.getVehicle().existsAt(tx    , ty + 1) ||
                          vehicle.getVehicle().existsAt(tx - 1, ty    ))) {
-                    builder.renderHighlight(gc, g, closestPiece.ix() + tx*Vehicle.TW, closestPiece.iy() + ty*Vehicle.TH, true);
+                    player.getPieces().builder().renderHighlight(gc, g, closestPiece.ix() + tx*Vehicle.TW, closestPiece.iy() + ty*Vehicle.TH, true);
                     break;
                 } else if (vehicle.getVehicle().existsAt(tx, ty)) {
-                    builder.renderHighlight(gc, g, closestPiece.ix() + tx*Vehicle.TW, closestPiece.iy() + ty*Vehicle.TH, false);
+                    player.getPieces().builder().renderHighlight(gc, g, closestPiece.ix() + tx*Vehicle.TW, closestPiece.iy() + ty*Vehicle.TH, false);
                     break;
                 }
         }
@@ -578,8 +595,9 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
     public float  gravity()          { return          gravity; }
     public float  frictionFraction() { return frictionFraction; }
     public float  airResist()        { return        airResist; }
-    public Player currPlayer()       { return       currPlayer; }
     public float  fuelRate()         { return         fuelRate; }
+
+    public PlayerHolder currPlayerHolder() { return currPlayer; }
 
     public List<VehicleHolder> vehicles() { return vehicles; }
 

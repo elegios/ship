@@ -6,6 +6,7 @@ import org.newdawn.slick.SlickException;
 import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
+import ship.world.player.PlayerPieces;
 import ship.world.vehicle.tile.Tile;
 
 public class ImmobileVehicle extends Vehicle {
@@ -26,8 +27,14 @@ public class ImmobileVehicle extends Vehicle {
     public int HEIGHT() { return IMMOBILE_VEH_HEIGHT; }
 
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first) {
-        if (rect instanceof RelativeMovable) {
-            RelativeMovable rel = ((RelativeMovable) rect);
+        if (rect instanceof RelativeMovable || rect instanceof PlayerPieces) {
+            RelativeMovable rel = null;
+
+            if (rect instanceof PlayerPieces)
+                rel = ((PlayerPieces) rect).getPlayer();
+            else
+                rel = (RelativeMovable) rect;
+
             if (first) {
                 rel.pushY(-rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff());
                 rel.pushX(-rel.getMass() * xSpeed);
@@ -37,8 +44,14 @@ public class ImmobileVehicle extends Vehicle {
         return fixMove;
     }
     protected float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first) {
-        if (rect instanceof RelativeMovable) {
-            RelativeMovable rel = ((RelativeMovable) rect);
+        if (rect instanceof RelativeMovable || rect instanceof PlayerPieces) {
+            RelativeMovable rel = null;
+
+            if (rect instanceof PlayerPieces)
+                rel = ((PlayerPieces) rect).getPlayer();
+            else
+                rel = (RelativeMovable) rect;
+
             if (first) {
                 rel.pushX(-rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff());
                 rel.pushY(-rel.getMass() * ySpeed);

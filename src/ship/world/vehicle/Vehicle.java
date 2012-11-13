@@ -20,6 +20,7 @@ import ship.world.Rectangle;
 import ship.world.RelativeMovable;
 import ship.world.World;
 import ship.world.player.Player;
+import ship.world.player.PlayerPieces;
 import ship.world.vehicle.tile.Thruster;
 import ship.world.vehicle.tile.Tile;
 import ship.world.vehicle.tile.fuel.AirFuelTransport;
@@ -271,8 +272,14 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
      * @return a new fixMove value, or the old one if it does not need to change
      */
     protected float pushBackAndFixMoveX(Rectangle rect, float xSpeed, float fixMove, boolean first) {
-        if (rect instanceof RelativeMovable) {
-            RelativeMovable rel = (RelativeMovable) rect;
+        if (rect instanceof RelativeMovable || rect instanceof PlayerPieces) {
+            RelativeMovable rel = null;
+
+            if (rect instanceof PlayerPieces)
+                rel = ((PlayerPieces) rect).getPlayer();
+            else
+                rel = (RelativeMovable) rect;
+
             if (first) {
                 float frictionMomentum = rel.getMass() * (rel.getAbsYSpeed() - getAbsYSpeed()) * world.frictionFraction() * world.view().diff();
                 rel.pushY(-frictionMomentum);
@@ -314,12 +321,18 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
      * @return a new fixMove value, or the old one if it does not need to change
      */
     protected float pushBackAndFixMoveY(Rectangle rect, float ySpeed, float fixMove, boolean first) {
-        if (rect instanceof RelativeMovable) {
-            RelativeMovable rel = (RelativeMovable) rect;
+        if (rect instanceof RelativeMovable || rect instanceof PlayerPieces) {
+            RelativeMovable rel = null;
+
+            if (rect instanceof PlayerPieces)
+                rel = ((PlayerPieces) rect).getPlayer();
+            else
+                rel = (RelativeMovable) rect;
+
             if (first) {
                 float frictionMomentum = rel.getMass() * (rel.getAbsXSpeed() - getAbsXSpeed()) * world.frictionFraction() * world.view().diff();
                 rel.pushX(-frictionMomentum);
-                if (!(rect instanceof Player))
+                if (!(rel instanceof Player) || !collidedWithImmobileY)
                     pushX(frictionMomentum);
                 float minMomentum = Math.min(rel.getMass(), getMass()) * ySpeed;
                 pushY(minMomentum);

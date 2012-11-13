@@ -175,22 +175,22 @@ public class WholeVehiclePiece implements VehiclePiece {
 
     @Override
     public boolean overlaps(VehiclePiece other) {
-        if (((other.getBoundX()  >= getBoundX() && other.getBoundX()  <= getBoundX2()) ||
-             (other.getBoundX2() >= getBoundX() && other.getBoundX2() <= getBoundX2()))
+        if (((other.getBoundX()     >= getBoundX() && other.getBoundX()     <= getBoundX2()) ||
+             (other.getBoundX2() +1 >= getBoundX() && other.getBoundX2() +1 <= getBoundX2()))
             &&
-            ((other.getBoundY()  >= getBoundY() && other.getBoundY()  <= getBoundY2()) ||
-             (other.getBoundY2() >= getBoundY() && other.getBoundY2() <= getBoundY2())))
+            ((other.getBoundY()     >= getBoundY() && other.getBoundY()     <= getBoundY2()) ||
+             (other.getBoundY2() +1 >= getBoundY() && other.getBoundY2() +1 <= getBoundY2())))
             return true;
         return false;
     }
 
     @Override
     public boolean overlaps(Rectangle other) {
-        if (((other.getX()  >= getBoundX() && other.getX()  <= getBoundX2()) ||
-             (other.getX2() >= getBoundX() && other.getX2() <= getBoundX2()))
+        if (((other.getX()     >= getBoundX() && other.getX()     <= getBoundX2()) ||
+             (other.getX2() +1 >= getBoundX() && other.getX2() +1 <= getBoundX2()))
             &&
             ((other.getY()  >= getBoundY() && other.getY()  <= getBoundY2()) ||
-             (other.getY2() >= getBoundY() && other.getY2() <= getBoundY2())))
+             (other.getY2() +1 >= getBoundY() && other.getY2() +1 <= getBoundY2())))
             return true;
         return false;
     }
@@ -219,9 +219,9 @@ public class WholeVehiclePiece implements VehiclePiece {
     public float getBoundY() { return vehicle.getY() + vehicle.topY ()*Vehicle.TH; }
 
     @Override
-    public float getBoundX2() { return vehicle.getX() + vehicle.rightX()*Vehicle.TW + Vehicle.TW; }
+    public float getBoundX2() { return vehicle.getX() + vehicle.rightX()*Vehicle.TW + Vehicle.TW - 1; }
     @Override
-    public float getBoundY2() { return vehicle.getY() + vehicle.botY  ()*Vehicle.TH + Vehicle.TH; }
+    public float getBoundY2() { return vehicle.getY() + vehicle.botY  ()*Vehicle.TH + Vehicle.TH - 1; }
 
     @Override
     public Vehicle getVehicle() { return vehicle; }
