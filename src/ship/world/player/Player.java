@@ -29,21 +29,18 @@ import ship.world.World;
 import ship.world.vehicle.ImmobileVehicle;
 import ship.world.vehicle.Vehicle;
 import ship.world.vehicle.VehicleHolder;
-import ship.world.vehicle.VehiclePiece;
 
 /**
  *
  * @author elegios
  */
 public class Player implements Position, Renderable, Updatable, RelativeMovable, Rectangle, KeyReceiver {
-    static final float JUMP_SPEED = -320;
-    static final float MOVE_SPEED =  160; // 5 squ/igs
-    static final float MOVE_ACCEL =  32;
-    static final float BASE_MASS  =  20;
+    public static final float JUMP_SPEED = -320;
+    public static final float MOVE_SPEED =  160; // 5 squ/igs
+    public static final float MOVE_ACCEL =  32;
+    public static final float BASE_MASS  =  20;
 
-    static final float AIR_RESIST_RANGE = 200; //The range of vehicle airresist in pixels
-
-    static final int NAME_HEIGHT = 18;
+    public static final int NAME_HEIGHT = 18;
 
     private boolean collidedWithImobileX;
     private boolean collidedWithImobileY;
@@ -265,28 +262,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     }
 
     public void update(GameContainer gc, int diff) {
-        if (lastVehicle == null || !doAirResistX(lastVehicle)) {
-            boolean airResisted = false;
-            for (VehicleHolder vehicle : world.vehicles())
-                if (doAirResistX(vehicle)) {
-                    lastVehicle = vehicle;
-                    airResisted = true;
-                    break;
-                }
-            if (!airResisted)
-                doAirResistX();
-        }
-        if (lastVehicle == null || !doAirResistY(lastVehicle)) {
-            boolean airResisted = false;
-            for (VehicleHolder vehicle : world.vehicles())
-                if (doAirResistY(vehicle)) {
-                    airResisted = true;
-                    break;
-                }
-            if (!airResisted)
-                doAirResistY();
-        }
-
         if (collidedY != null)
             lastVehicle = collidedY;
 
@@ -311,87 +286,6 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
                 }
             }
         }
-    }
-
-    private boolean doAirResistX(VehicleHolder vehicle) {
-        VehiclePiece closestPiece = vehicle.findClosestPiece(getX(), getY());
-
-        int playX = closestPiece.getTileXUnderPos(getX() + getWidth ()/2);
-        int playY = closestPiece.getTileYUnderPos(getY() + getHeight()/2);
-
-        if (getX() >= closestPiece.getBoundX() - AIR_RESIST_RANGE && getX() < closestPiece.getBoundX2() + AIR_RESIST_RANGE &&
-            getY() >= closestPiece.getBoundY()                    && getY() <= closestPiece.getBoundY2()) {
-
-            if (xSpeed - vehicle.getVehicle().getAbsXSpeed() > 0) {
-                for (int i = Math.max(playX, closestPiece.leftX()); i <= closestPiece.rightX(); i++) {
-                    if (vehicle.getVehicle().existsAt(i, playY)) {
-                        pushX(-(xSpeed - vehicle.getVehicle().getAbsXSpeed()) * world.airResist());
-                        airResistX = true;
-                        return true;
-                    }
-                }
-
-            } else if (xSpeed - vehicle.getVehicle().getAbsXSpeed() < 0) {
-                //The following if statement is to fix a bug when the player is to the right of the VehiclePiece
-                //and getTileXUnderPos returns -1
-                if (playX == -1)
-                    playX = closestPiece.rightX();
-
-                for (int i = playX; i >= closestPiece.leftX(); i--) {
-                    if (vehicle.getVehicle().existsAt(i, playY)) {
-                        pushX(-(xSpeed - vehicle.getVehicle().getAbsXSpeed()) * world.airResist());
-                        airResistX = true;
-                        return true;
-                    }
-                }
-
-            }
-        }
-
-        return false;
-    }
-    private void doAirResistX() {
-        pushX(-xSpeed * world.airResist());
-        airResistX = false;
-    }
-
-    private boolean doAirResistY(VehicleHolder vehicle) {
-        VehiclePiece closestPiece = vehicle.findClosestPiece(getX(), getY());
-
-        int playX = closestPiece.getTileXUnderPos(getX() + getWidth ()/2);
-        int playY = closestPiece.getTileYUnderPos(getY() + getHeight()/2);
-
-        if (getX() >= closestPiece.getBoundX()                    && getX() <  closestPiece.getBoundX2() &&
-            getY() >= closestPiece.getBoundY() - AIR_RESIST_RANGE && getY() <= closestPiece.getBoundY2() + AIR_RESIST_RANGE) {
-
-            if (ySpeed - vehicle.getVehicle().getAbsYSpeed() > 0) {
-                for (int j = Math.max(playY, closestPiece.topY()); j <= closestPiece.botY(); j++) {
-                    if (vehicle.getVehicle().existsAt(playX, j)) {
-                        pushY(-(ySpeed - vehicle.getVehicle().getAbsYSpeed()) * world.airResist());
-                        return true;
-                    }
-                }
-
-            } else if (ySpeed - vehicle.getVehicle().getAbsYSpeed() < 0) {
-                //The following if statement is to fix a bug when the player is to the right of the VehiclePiece
-                //and getTileXUnderPos returns -1
-                if (playY == -1)
-                    playY = closestPiece.botY();
-
-                for (int j = playY; j >= closestPiece.topY(); j--) {
-                    if (vehicle.getVehicle().existsAt(playX, j)) {
-                        pushY(-(ySpeed - vehicle.getVehicle().getAbsYSpeed()) * world.airResist());
-                        return true;
-                    }
-                }
-
-            }
-        }
-
-        return false;
-    }
-    private void doAirResistY() {
-        pushY(-ySpeed * world.airResist());
     }
 
     public void collisionFixPosX(float xMove, VehicleHolder collisionOrigin) {
@@ -452,6 +346,12 @@ public class Player implements Position, Renderable, Updatable, RelativeMovable,
     public void collidedWithImmobileY(boolean val) { collidedWithImobileY = val; }
     public void collisionLockX       (float   val) { collisionLockX       = val; }
     public void collisionLockY       (float   val) { collisionLockY       = val; }
+
+    protected VehicleHolder lastVehicle() { return lastVehicle; }
+
+    protected void lastVehicle(VehicleHolder lastVehicle) { this.lastVehicle = lastVehicle; }
+
+    protected void airResistX(boolean airResistX) { this.airResistX = airResistX; }
 
     public World world() { return world; }
 

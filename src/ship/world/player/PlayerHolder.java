@@ -92,7 +92,7 @@ public class PlayerHolder implements Updatable, Renderable, KeyReceiver {
 
     public void updateEarly(GameContainer gc, int diff) { player.updateEarly(gc, diff); }
     @Override
-    public void update(GameContainer gc, int diff) { player.update(gc, diff); }
+    public void update(GameContainer gc, int diff) { pieces.update(gc, diff); }
 
     public int getID() { return player.getID(); }
 

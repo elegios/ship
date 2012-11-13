@@ -7,11 +7,15 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 
+import ship.Updatable;
 import ship.View;
 import ship.world.Rectangle;
 import ship.world.World;
+import ship.world.vehicle.VehicleHolder;
+import ship.world.vehicle.VehiclePiece;
 
-public class PlayerPieces implements Rectangle, Renderable {
+public class PlayerPieces implements Rectangle, Renderable, Updatable {
+    public static final float AIR_RESIST_RANGE = 320; //The range of vehicle airresist in pixels
 
     private Player player;
 
@@ -39,6 +43,117 @@ public class PlayerPieces implements Rectangle, Renderable {
 
     public Player getPlayer() { return  player; }
     public Builder  builder() { return builder; }
+
+    public void update(GameContainer gc, int diff) {
+        player.airResistX(false);
+
+        if (player.lastVehicle() == null || !doAirResistX(player.lastVehicle())) {
+            boolean airResisted = false;
+            for (VehicleHolder vehicle : player.world().vehicles())
+                if (doAirResistX(vehicle)) {
+                    player.lastVehicle(vehicle);
+                    airResisted = true;
+                    break;
+                }
+
+            if (!airResisted)
+                doAirResistX();
+        }
+        if (player.lastVehicle() == null || !doAirResistY(player.lastVehicle())) {
+            boolean airResisted = false;
+            for (VehicleHolder vehicle : player.world().vehicles())
+                if (doAirResistY(vehicle)) {
+                    airResisted = true;
+                    break;
+                }
+
+            if (!airResisted)
+                doAirResistY();
+        }
+
+        player.update(gc, diff);
+    }
+
+    private boolean doAirResistX(VehicleHolder vehicle) { //TODO: take player splitting into account
+        VehiclePiece closestPiece = vehicle.findClosestPiece(getX(), getY());
+
+        int playX = closestPiece.getTileXUnderPos(getCenterX());
+        int playY = closestPiece.getTileYUnderPos(getCenterY());
+
+        if (getX() >= closestPiece.getBoundX() - AIR_RESIST_RANGE && getX2() <= closestPiece.getBoundX2() + AIR_RESIST_RANGE &&
+            getY() >= closestPiece.getBoundY()                    && getY2() <= closestPiece.getBoundY2()) {
+
+            if (player.getAbsXSpeed() > 0) {
+                for (int i = Math.max(playX, closestPiece.leftX()); i <= closestPiece.rightX(); i++) {
+                    if (vehicle.getVehicle().existsAt(i, playY)) {
+                        player.pushX(-(player.getAbsXSpeed() - vehicle.getVehicle().getAbsXSpeed()) * player.world().airResist());
+                        player.airResistX(true);
+                        return true;
+                    }
+                }
+
+            } else if (player.getAbsXSpeed() < 0) {
+                //The following if statement is to fix a bug when the player is to the right of the VehiclePiece
+                //and getTileXUnderPos returns -1
+                if (playX == -1)
+                    playX = closestPiece.rightX();
+
+                for (int i = playX; i >= closestPiece.leftX(); i--) {
+                    if (vehicle.getVehicle().existsAt(i, playY)) {
+                        player.pushX(-(player.getAbsXSpeed() - vehicle.getVehicle().getAbsXSpeed()) * player.world().airResist());
+                        player.airResistX(true);
+                        return true;
+                    }
+                }
+
+            }
+        }
+
+        return false;
+    }
+    private void doAirResistX() {
+        player.pushX(-player.getAbsXSpeed() * player.world().airResist());
+        player.airResistX(true);
+    }
+
+    private boolean doAirResistY(VehicleHolder vehicle) {
+        VehiclePiece closestPiece = vehicle.findClosestPiece(getX(), getY());
+
+        int playX = closestPiece.getTileXUnderPos(getCenterX());
+        int playY = closestPiece.getTileYUnderPos(getCenterY());
+
+        if (getX() >= closestPiece.getBoundX()                    && getX2() <= closestPiece.getBoundX2() &&
+            getY() >= closestPiece.getBoundY() - AIR_RESIST_RANGE && getY2() <= closestPiece.getBoundY2() + AIR_RESIST_RANGE) {
+
+            if (player.getAbsYSpeed() > 0) {
+                for (int j = Math.max(playY, closestPiece.topY()); j <= closestPiece.botY(); j++) {
+                    if (vehicle.getVehicle().existsAt(playX, j)) {
+                        player.pushY(-(player.getAbsYSpeed() - vehicle.getVehicle().getAbsYSpeed()) * player.world().airResist());
+                        return true;
+                    }
+                }
+
+            } else if (player.getAbsYSpeed() < 0) {
+                //The following if statement is to fix a bug when the player is to the right of the VehiclePiece
+                //and getTileXUnderPos returns -1
+                if (playY == -1)
+                    playY = closestPiece.botY();
+
+                for (int j = playY; j >= closestPiece.topY(); j--) {
+                    if (vehicle.getVehicle().existsAt(playX, j)) {
+                        player.pushY(-(player.getAbsYSpeed() - vehicle.getVehicle().getAbsYSpeed()) * player.world().airResist());
+                        return true;
+                    }
+                }
+
+            }
+        }
+
+        return false;
+    }
+    private void doAirResistY() {
+        player.pushY(-player.getAbsYSpeed() * player.world().airResist());
+    }
 
     /**
      * Removes the vertical splitting point, if any, and sets
