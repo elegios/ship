@@ -242,7 +242,7 @@ public class Vehicle implements Position, Renderable, Updatable, RelativeMovable
      * @param y the internal y coordinate to be checked
      * @return true if (x, y) contains a tile
      */
-    public boolean existsAt(int x, int y) { return tiles[x][y] != null; }
+    public boolean existsAt(int x, int y) { try { return tiles[x][y] != null; } catch(ArrayIndexOutOfBoundsException e) {return false;}}
 
     /**
      * Returns the tile at (x, y), or null if none exists
