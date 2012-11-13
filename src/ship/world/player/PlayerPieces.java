@@ -93,7 +93,7 @@ public class PlayerPieces implements Rectangle, Renderable {
      * box would have been there)
      */
     public void removeSplits() {
-        if (index == 1)
+        if (completePiece() == 1)
             if (horizontalSplit)
                 player.x += offset;
             else if (verticalSplit)
@@ -299,6 +299,7 @@ public class PlayerPieces implements Rectangle, Renderable {
     }
 
     private void renderHorizontallySplit(Renderable rend, GameContainer gc, Graphics g) { //TODO: figure out what happens to the builder getX and stuff
+        View view = player.world().view();
         setCurrentPiece(0);
 
         float screenY  = player.world().getY();
@@ -312,11 +313,11 @@ public class PlayerPieces implements Rectangle, Renderable {
             screenY2 += player.getY() + builder.getModY(false) + builder.getHeight() - 1;
         }
 
-        g.setClip(0, 0, (int) (player.world().getX() + splittingPoint), View.window().getHeight());
+        view.pushClip(0, 0, (int) (player.world().getX() + splittingPoint), View.window().getHeight());
         if (rend instanceof Builder)
             builder.setRenderPos(player);
         rend.render(gc, g);
-        g.clearClip();
+        view.popClip();
 
         Color c = g.getColor();
         g.setColor(World.SPLIT_COLOR);
@@ -324,7 +325,7 @@ public class PlayerPieces implements Rectangle, Renderable {
             g.drawLine(player.world().getX() + splittingPoint, screenY,
                        player.world().getX() + splittingPoint, screenY2);
 
-        g.setClip((int) (player.world().getX() + splittingPoint + offset), 0, View.window().getWidth(), View.window().getHeight());
+        view.pushClip((int) (player.world().getX() + splittingPoint + offset), 0, View.window().getWidth(), View.window().getHeight());
 
         if (rend instanceof Player) {
             float oldX = player.x;
@@ -337,7 +338,7 @@ public class PlayerPieces implements Rectangle, Renderable {
             builder.render(gc, g);
         }
 
-        g.clearClip();
+        view.popClip();
 
         setCurrentPiece(1);
         if (!(rend instanceof Builder) || ((Builder) rend).buildMode())
@@ -347,6 +348,7 @@ public class PlayerPieces implements Rectangle, Renderable {
         g.setColor(c);
     }
     private void renderVerticallySplit(Renderable rend, GameContainer gc, Graphics g) { //TODO: figure out what happens to the builder getX and stuff
+        View view = player.world().view();
         setCurrentPiece(0);
 
         float screenX  = player.world().getX();
@@ -360,11 +362,11 @@ public class PlayerPieces implements Rectangle, Renderable {
             screenX2 += player.getX() + builder.getModX(false) + builder.getWidth() - 1;
         }
 
-        g.setClip(0, 0, View.window().getWidth(), (int) (player.world().getY() + splittingPoint));
+        view.pushClip(0, 0, View.window().getWidth(), (int) (player.world().getY() + splittingPoint));
         if (rend instanceof Builder)
             builder.setRenderPos(player);
         rend.render(gc, g);
-        g.clearClip();
+        view.popClip();
 
         Color c = g.getColor();
         g.setColor(World.SPLIT_COLOR);
@@ -372,7 +374,7 @@ public class PlayerPieces implements Rectangle, Renderable {
             g.drawLine(screenX,  player.world().getY() + splittingPoint,
                        screenX2, player.world().getY() + splittingPoint);
 
-        g.setClip(0, (int) (player.world().getY() + splittingPoint + offset), View.window().getWidth(), View.window().getHeight());
+        view.pushClip(0, (int) (player.world().getY() + splittingPoint + offset), View.window().getWidth(), View.window().getHeight());
 
         if (rend instanceof Player) {
             float oldY = player.y;
@@ -385,7 +387,7 @@ public class PlayerPieces implements Rectangle, Renderable {
             builder.render(gc, g);
         }
 
-        g.clearClip();
+        view.popClip();
 
         setCurrentPiece(1);
         if (!(rend instanceof Builder) || ((Builder) rend).buildMode())
@@ -457,5 +459,11 @@ public class PlayerPieces implements Rectangle, Renderable {
 
         return centerY;
     }
+
+    public boolean horizontalSplit() { return horizontalSplit; }
+    public boolean verticalSplit  () { return   verticalSplit; }
+
+    public float splittingPoint() { return splittingPoint; }
+    public float offset        () { return         offset; }
 
 }

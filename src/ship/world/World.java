@@ -26,6 +26,7 @@ import ship.netcode.interaction.CreateTilePackage;
 import ship.netcode.interaction.DeleteTilePackage;
 import ship.world.player.Player;
 import ship.world.player.PlayerHolder;
+import ship.world.player.PlayerPieces;
 import ship.world.vehicle.ImmobileVehicle;
 import ship.world.vehicle.Vehicle;
 import ship.world.vehicle.VehicleHolder;
@@ -115,8 +116,8 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
         players = new PlayerHolder[view.numPlayers()];
         for (int i = 0; i < view.numPlayers(); i++) {
             players[i] = new PlayerHolder(new Player(this, i, island.getVehicle().getWidth()/2 + 32, -100 - i*10));
-            //players[i].getPieces().setHorizontalSplit(players[i].getPlayer().getX() - 500, false, -500);
-            players[i].getPieces().setVerticalSplit(500, true, 100);
+            players[i].getPieces().setHorizontalSplit(players[i].getPlayer().getX() - 500, false, -500);
+            //players[i].getPieces().setVerticalSplit(500, true, 100);
         }
         currPlayer = players[view.playerId()];
 
@@ -156,9 +157,6 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
                 player.update(gc, diff);
             for (VehicleHolder vehicle : vehicles)
                 vehicle.update(gc, diff);
-
-            x = Math.round(currPlayer.getCenterX() - View.window().getWidth ()/2);
-            y = Math.round(currPlayer.getCenterY() - View.window().getHeight()/2);
 
         } else {
             if (unpauseTimer >= 0) {
@@ -460,7 +458,74 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
 
     @Override
     public void render(GameContainer gc, Graphics g) {
-        renderBackgroundGradient();
+        PlayerPieces pieces = currPlayer.getPieces();
+        if (pieces.isSplit()) {
+            if (pieces.horizontalSplit()) {
+                y = Math.round(currPlayer.getCenterY() - View.window().getHeight()/2);
+
+                float playerCenX = currPlayer.getPlayer().getX() + currPlayer.getPlayer().getWidth()/2;
+
+                //render left part of the screen
+                x = Math.round(playerCenX - View.window().getWidth()/2);
+                view.pushClip(0, 0,
+                              pieces.splittingPoint() - x,
+                              View.window().getHeight());
+                renderInternal(gc, g);
+                view.popClip();
+
+                //render right part of the screen
+                x = Math.round(pieces.offset() + playerCenX - View.window().getWidth()/2);
+                view.pushClip(pieces.splittingPoint() - x + pieces.offset(), 0,
+                              View.window().getWidth() - (pieces.splittingPoint() - x + pieces.offset()),
+                              View.window().getHeight());
+                renderInternal(gc, g);
+                view.popClip();
+
+                //render splitline
+                Color oldColor = g.getColor();
+                g.setColor(SPLIT_COLOR);
+                g.drawLine(pieces.splittingPoint() - x + pieces.offset(), 0,
+                           pieces.splittingPoint() - x + pieces.offset(), View.window().getHeight());
+                g.setColor(oldColor);
+
+            } else {
+                x = Math.round(currPlayer.getCenterX() - View.window().getWidth()/2);
+
+                float playerCenY = currPlayer.getPlayer().getY() + currPlayer.getPlayer().getHeight()/2;
+
+                //render top part of the screen
+                y = Math.round(playerCenY - View.window().getHeight()/2);
+                view.pushClip(0, 0,
+                              View.window().getWidth(),
+                              pieces.splittingPoint() - y);
+                renderInternal(gc, g);
+                view.popClip();
+
+                //render bottom part of the screen
+                y = Math.round(pieces.offset() + playerCenY - View.window().getHeight()/2);
+                view.pushClip(0, pieces.splittingPoint() - y + pieces.offset(),
+                              View.window().getWidth(),
+                              View.window().getHeight() - (pieces.splittingPoint() - y + pieces.offset()));
+                renderInternal(gc, g);
+                view.popClip();
+
+                //render splitline
+                Color oldColor = g.getColor();
+                g.setColor(SPLIT_COLOR);
+                g.drawLine(0, pieces.splittingPoint() - y + pieces.offset(),
+                           View.window().getWidth(), pieces.splittingPoint() - y + pieces.offset());
+                g.setColor(oldColor);
+            }
+
+        } else { //No splits, just render everything
+            x = Math.round(currPlayer.getCenterX() - View.window().getWidth()/2);
+            y = Math.round(currPlayer.getCenterY() - View.window().getHeight()/2);
+
+            renderInternal(gc, g);
+        }
+    }
+    public void renderInternal(GameContainer gc, Graphics g) {
+        renderBackgroundGradient(gc, g);
 
         paraBack.render(gc, g);
 
@@ -518,19 +583,21 @@ public class World implements Position, Renderable, Updatable, KeyReceiver {
      * expensive, instead renders one color that is darker the further away from
      * the nearest island the player is.
      */
-    private void renderBackgroundGradient() {
+    private void renderBackgroundGradient(GameContainer gc, Graphics g) {
         long deltaX = View.window().getWidth ()/2 - island.getVehicle().ix() - island.getVehicle().getWidth ()/2;
         long deltaY = View.window().getHeight()/2 - island.getVehicle().iy() - island.getVehicle().getHeight()/2;
         float dist = (float) Math.sqrt(deltaX*deltaX + deltaY*deltaY) - SKY_GRADIENT_MINIMUM;
 
-        View.window().getGraphics().drawString("dist: " + dist, 10, 200);
+        g.drawString("dist: " + dist, 10, 200);
 
         int color = 0;
         if (dist > 0)
             color = Math.min(Math.round(dist/SKY_GRADIENT_LENGTH), 255);
 
-        View.window().getGraphics().setBackground(skyColors[color]);
-        View.window().getGraphics().flush();
+        Color oldColor = g.getColor();
+        g.setColor(skyColors[color]);
+        g.fillRect(0, 0, View.window().getWidth(), View.window().getHeight());
+        g.setColor(oldColor);
     }
 
     private void togglePause() {
